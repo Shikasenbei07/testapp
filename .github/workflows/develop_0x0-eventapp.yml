@@ -85,24 +85,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Node.js version
-        uses: actions/setup-node@v3
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          node-version: '22.x'
+          python-version: '3.11'
 
-      - name: npm install and build (backend)
+      - name: Install dependencies
         run: |
-          npm install
-          npm run build --if-present
-        working-directory: ./back
+          python -m pip install --upgrade pip
+          pip install -r back/requirements.txt
 
-      - name: Zip backend for deployment
-        run: cd back && zip -r ../backend.zip .
-
-      - name: 'Deploy backend to Azure Web App'
-        uses: azure/webapps-deploy@v3
+      - name: 'Deploy to Azure Functions'
+        uses: Azure/functions-action@v1
         with:
-          app-name: '<バックエンド用WebApp名>'
-          slot-name: 'Production'
-          package: ./backend.zip
+          app-name: '<バックエンド用FunctionApp名>'
+          package: ./back
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_BACKEND }}
