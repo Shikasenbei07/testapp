@@ -1,7 +1,7 @@
 # SQLサーバの作成
 1. [Azureポータル](https://portal.azure.com/)から「SQLサーバー」のページに移動
 <a id="server_setting"></a>
-2. 次の内容で新規作成する
+2. 次の内容で新規作成する<br>
    **基本**
    - サブスクリプション：X-Garage-2
    - リソースグループ：X-Garage-Team-2025NE01
