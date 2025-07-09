@@ -37,7 +37,7 @@ jobs:
         working-directory: ./front
 
       - name: Zip artifact for deployment
-        run: cd front && zip -r ../release.zip .next
+        run: zip -r release.zip front/.next
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -65,5 +65,5 @@ jobs:
         with:
           app-name: '0x0-eventapp'
           slot-name: 'Production'
-          package: ./front/.next
+          package: front/.next
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_BED41A03A9A54C1591F81101A4D14F57 }}
