@@ -7,8 +7,8 @@
 ## テーブルEVENT
 | event_id | event_title | event_category | event_datetime | deadline | location | max | current | creator | description | content | image |
 | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |
-| イベントID | イベントタイトル | イベントカテゴリ | イベント日時 | 申し込み締め切り日 | 場所 | 最大人数 | 現在人数 | 作成者id | 概要 | 内容 | 画像URL |
-| INTEGER/AUTO_INCREMENT/NOT NULL/PK | VARCHAR(255) | INTEGER/REFERENCES CATEGORY(category_id) | DATETIME | DATETIME | VARCHAR(255) | INTEGER | INTEGER/DEFAULT 0 | VARCHAR(4)/NOT NULL/REFERENCES USERS(id) | VARCHAR(500) | VARCHAR(500) | VARCHAR(500) |
+| イベントID | イベントタイトル | イベントカテゴリ | イベント日時 | 申し込み締め切り日 | 場所 | 最大人数 | 現在人数 | 作成者id | 概要URL | 内容URL | 画像URL |
+| INTEGER/AUTO_INCREMENT/NOT NULL/PK | VARCHAR(255) | INTEGER/REFERENCES CATEGORY(category_id) | DATETIME | DATETIME | VARCHAR(255) | INTEGER | INTEGER/DEFAULT 0 | VARCHAR(4)/NOT NULL/REFERENCES USERS(id) | VARCHAR(200) | VARCHAR(200) | VARCHAR(200) |
 
 ## テーブルCATEGORY
 | category_id | category_name |
