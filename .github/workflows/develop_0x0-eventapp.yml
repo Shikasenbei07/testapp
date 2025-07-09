@@ -32,8 +32,9 @@ jobs:
 
       - name: copy public file and static file
         run: |
-          cp -r front/public front/.next/standalone/
-          cp -r front/.next/static front/.next/standalone/.next/
+          cp -r public .next/
+          cp -r .next/static .next/.next/
+        working-directory: ./front
 
       - name: Zip artifact for deployment
         run: cd front && zip -r ../release.zip .next
@@ -64,5 +65,5 @@ jobs:
         with:
           app-name: '0x0-eventapp'
           slot-name: 'Production'
-          package: ./front/.next/standalone
+          package: ./front/.next
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_BED41A03A9A54C1591F81101A4D14F57 }}
