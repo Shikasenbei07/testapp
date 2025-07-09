@@ -77,3 +77,32 @@ jobs:
           slot-name: 'Production'
           package: ./standalone
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_BED41A03A9A54C1591F81101A4D14F57 }}
+
+  backend-deploy:
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js version
+        uses: actions/setup-node@v3
+        with:
+          node-version: '22.x'
+
+      - name: npm install and build (backend)
+        run: |
+          npm install
+          npm run build --if-present
+        working-directory: ./back
+
+      - name: Zip backend for deployment
+        run: cd back && zip -r ../backend.zip .
+
+      - name: 'Deploy backend to Azure Web App'
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: '<バックエンド用WebApp名>'
+          slot-name: 'Production'
+          package: ./backend.zip
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_BACKEND }}
