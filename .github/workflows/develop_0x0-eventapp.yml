@@ -30,14 +30,23 @@ jobs:
           npm run test --if-present
         working-directory: ./front
 
-      - name: copy public file and static file
+      - name: Prepare artifact for deployment
         run: |
-          cp -r public .next/
-          cp -r .next/static .next/.next/
-        working-directory: ./front
+          mkdir deploy
+          cp -r front/.next deploy/
+          cp -r front/public deploy/
+          cp front/package.json deploy/
+          if [ -f front/package-lock.json ]; then cp front/package-lock.json deploy/; fi
+          if [ -f front/next.config.js ]; then cp front/next.config.js deploy/; fi
+        # 必要に応じて他の設定ファイルも追加
+
+      - name: Prepare standalone for deployment
+        run: |
+          cp -r front/public front/.next/standalone/
+          cp -r front/.next/static front/.next/standalone/.next/
 
       - name: Zip artifact for deployment
-        run: cd front && zip -r ../release.zip .
+        run: cd deploy && zip -r ../release.zip .
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -48,8 +57,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     needs: build
-    
-    
+
     steps:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
@@ -65,5 +73,5 @@ jobs:
         with:
           app-name: '0x0-eventapp'
           slot-name: 'Production'
-          package: .
+          package: ./front/.next/standalone
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_BED41A03A9A54C1591F81101A4D14F57 }}
