@@ -34,9 +34,11 @@ jobs:
         run: |
           cp -r public .next/standalone/
           cp -r .next/static .next/standalone/.next/
+        working-directory: ./front
 
       - name: Zip artifact for deployment
         run: zip release.zip .next -r
+        working-directory: ./front
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -57,6 +59,7 @@ jobs:
 
       - name: Unzip artifact for deployment
         run: unzip release.zip
+        working-directory: ./front
       
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
