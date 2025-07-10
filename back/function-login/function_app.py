@@ -18,7 +18,10 @@ def login(req: func.HttpRequest) -> func.HttpResponse:
         return func.HttpResponse(
             json.dumps({"error": "GETメソッドは許可されていません"}),
             mimetype="application/json",
-            status_code=405
+            status_code=405,
+            headers={
+                "Access-Control-Allow-Origin": "https://0x0-eventapp-hthba0e7hshdg3g2.japaneast-01.azurewebsites.net"
+            }
         )
 
     try:
@@ -49,9 +52,12 @@ def login(req: func.HttpRequest) -> func.HttpResponse:
                 if row and row[0] == 1:
                     # ログイン成功時はJSONで成功を返す
                     return func.HttpResponse(
-                        json.dumps({"success": True}),
+                        json.dumps({"result": "ログイン成功"}),
                         mimetype="application/json",
-                        status_code=200
+                        status_code=200,
+                        headers={
+                            "Access-Control-Allow-Origin": "https://0x0-eventapp-hthba0e7hshdg3g2.japaneast-01.azurewebsites.net"
+                        }
                     )
                 else:
                     return func.HttpResponse(
