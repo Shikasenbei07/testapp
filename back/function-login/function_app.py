@@ -7,11 +7,26 @@ import json
 
 app = func.FunctionApp(http_auth_level=func.AuthLevel.FUNCTION)
 
+ALLOWED_ORIGIN = "https://0x0-eventapp-hthba0e7hshdg3g2.japaneast-01.azurewebsites.net"
+
 
 # ログイン機能を持つHTTPトリガーFunction
-@app.route(route="login", methods=["POST", "GET"]) # 後でGET消す
+@app.route(route="login", methods=["POST", "GET", "OPTIONS"])
 def login(req: func.HttpRequest) -> func.HttpResponse:
     logging.info('Login function triggered.')
+
+    # OPTIONSメソッド（CORSプリフライト）対応
+    if req.method == "OPTIONS":
+        return func.HttpResponse(
+            "",
+            status_code=204,
+            headers={
+                "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
+                "Access-Control-Allow-Methods": "POST, OPTIONS",
+                "Access-Control-Allow-Headers": "Content-Type",
+                "Access-Control-Max-Age": "3600"
+            }
+        )
 
     # GETリクエストの場合は405を返す
     if req.method == "GET":
@@ -20,7 +35,7 @@ def login(req: func.HttpRequest) -> func.HttpResponse:
             mimetype="application/json",
             status_code=405,
             headers={
-                "Access-Control-Allow-Origin": "https://0x0-eventapp-hthba0e7hshdg3g2.japaneast-01.azurewebsites.net"
+                "Access-Control-Allow-Origin": ALLOWED_ORIGIN
             }
         )
 
@@ -56,7 +71,7 @@ def login(req: func.HttpRequest) -> func.HttpResponse:
                         mimetype="application/json",
                         status_code=200,
                         headers={
-                            "Access-Control-Allow-Origin": "https://0x0-eventapp-hthba0e7hshdg3g2.japaneast-01.azurewebsites.net"
+                            "Access-Control-Allow-Origin": ALLOWED_ORIGIN
                         }
                     )
                 else:
@@ -65,7 +80,7 @@ def login(req: func.HttpRequest) -> func.HttpResponse:
                         mimetype="application/json",
                         status_code=401,
                         headers={
-                            "Access-Control-Allow-Origin": "https://0x0-eventapp-hthba0e7hshdg3g2.japaneast-01.azurewebsites.net"
+                            "Access-Control-Allow-Origin": ALLOWED_ORIGIN
                         }
                     )
     except pyodbc.Error as e:
@@ -75,7 +90,7 @@ def login(req: func.HttpRequest) -> func.HttpResponse:
             mimetype="application/json",
             status_code=500,
             headers={
-                "Access-Control-Allow-Origin": "https://0x0-eventapp-hthba0e7hshdg3g2.japaneast-01.azurewebsites.net"
+                "Access-Control-Allow-Origin": ALLOWED_ORIGIN
             }
         )
     except Exception as e:
@@ -85,6 +100,6 @@ def login(req: func.HttpRequest) -> func.HttpResponse:
             mimetype="application/json",
             status_code=500,
             headers={
-                "Access-Control-Allow-Origin": "https://0x0-eventapp-hthba0e7hshdg3g2.japaneast-01.azurewebsites.net"
+                "Access-Control-Allow-Origin": ALLOWED_ORIGIN
             }
         )
