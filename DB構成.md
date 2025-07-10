@@ -7,7 +7,7 @@
 ## テーブルEVENTS
 | event_id | event_title | event_category | event_datetime | deadline | location | max_participants | current_participants | creator | description | content | image | is_draft |
 | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | --- |
-| イベントID | イベントタイトル | イベントカテゴリ | イベント日時 | 申し込み締め切り日 | 場所 | 最大人数 | 現在人数 | 作成者id | 概要URL | 内容URL | 画像URL | 下書きフラグ(0=作成完了、1=下書き中) |
+| イベントID | イベントタイトル | イベントカテゴリ | イベント日時 | 申し込み締め切り日 | 場所 | 最大人数 | 現在人数 | 作成者id | 概要文字列 | 内容文字列 | 画像URL | 下書きフラグ(0=作成完了、1=下書き中) |
 | INTEGER/AUTO_INCREMENT/NOT NULL/PK | VARCHAR(255) | INTEGER/REFERENCES CATEGORY(category_id) | DATETIME | DATETIME | VARCHAR(255) | INTEGER | INTEGER/DEFAULT 0 | VARCHAR(4)/NOT NULL/REFERENCES USERS(id) | VARCHAR(200) | VARCHAR(200) | VARCHAR(200) | TINYINT/NOT NULL/DEFAULT 1 |
 
 ## テーブルCATEGORYS
