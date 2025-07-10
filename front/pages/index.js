@@ -1,7 +1,49 @@
+import { useState } from 'react';
 import Head from 'next/head';
 import styles from '../styles/Home.module.css';
 
 export default function Home() {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    try {
+      const res = await fetch(
+        'https://0x0-login.azurewebsites.net/api/login?code=9L4lUJuBIQvolKJrqK4EUFKUpvZFevZKRN8DLkhkr-5qAzFucYp7_Q%3D%3D',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password }),
+          redirect: 'follow'
+        }
+      );
+
+      // Azure Functionsが302リダイレクトを返す場合、fetchは自動で遷移しません
+      if (res.redirected) {
+        window.location.href = res.url;
+        return;
+      }
+
+      const data = await res.json();
+      if (res.ok) {
+        // ここには通常来ないが、念のため
+        window.location.href = '/mypage';
+      } else {
+        setError(data.error || 'ログインに失敗しました');
+      }
+    } catch (err) {
+      setError('通信エラーが発生しました');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className={styles.container}>
       <Head>
@@ -10,43 +52,33 @@ export default function Home() {
       </Head>
 
       <main>
-        <h1 className={styles.title}>
-          Welcome to <a href="https://nextjs.org">Next.js!</a>
-        </h1>
-
-        <p className={styles.description}>
-          Get started by editing <code>pages/index.js</code>
-        </p>
-
-        <div className={styles.grid}>
-          <a href="https://nextjs.org/docs" className={styles.card}>
-            <h3>Documentation &rarr;</h3>
-            <p>Find in-depth information about Next.js features and API.</p>
-          </a>
-
-          <a href="https://nextjs.org/learn" className={styles.card}>
-            <h3>Learn &rarr;</h3>
-            <p>Learn about Next.js in an interactive course with quizzes!</p>
-          </a>
-
-          <a
-            href="https://github.com/vercel/next.js/tree/canary/examples"
-            className={styles.card}
-          >
-            <h3>Examples &rarr;</h3>
-            <p>Discover and deploy boilerplate example Next.js projects.</p>
-          </a>
-
-          <a
-            href="https://vercel.com/import?filter=next.js&utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-          >
-            <h3>Deploy &rarr;</h3>
-            <p>
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
-        </div>
+        <h1>ログイン</h1>
+        <form onSubmit={handleSubmit} style={{ minWidth: 300, display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <label>
+            ユーザー名
+            <input
+              type="text"
+              value={username}
+              onChange={e => setUsername(e.target.value)}
+              required
+              style={{ width: '100%', padding: 8, marginTop: 4 }}
+            />
+          </label>
+          <label>
+            パスワード
+            <input
+              type="password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              required
+              style={{ width: '100%', padding: 8, marginTop: 4 }}
+            />
+          </label>
+          <button type="submit" disabled={loading} style={{ padding: 10, marginTop: 8 }}>
+            {loading ? 'ログイン中...' : 'ログイン'}
+          </button>
+          {error && <div style={{ color: 'red', marginTop: 8 }}>{error}</div>}
+        </form>
       </main>
 
       <footer>

@@ -47,10 +47,11 @@ def login(req: func.HttpRequest) -> func.HttpResponse:
                 cursor.execute('SELECT COUNT(*) FROM users WHERE id = ? AND password = ?', (username, password))
                 row = cursor.fetchone()
                 if row and row[0] == 1:
+                    # ログイン成功時に mypage.js へリダイレクト
                     return func.HttpResponse(
-                        json.dumps({"message": f"Login successful. Welcome, {username}!"}),
-                        mimetype="application/json",
-                        status_code=200
+                        "",
+                        status_code=302,
+                        headers={"Location": "http://localhost:3000/mypage"}
                     )
                 else:
                     return func.HttpResponse(
