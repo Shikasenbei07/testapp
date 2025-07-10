@@ -27,10 +27,10 @@ export default function Home() {
       );
 
       // Azure Functionsが302リダイレクトを返す場合、fetchは自動で遷移しません
-      if (res.redirected) {
-        window.location.href = res.url;
-        return;
-      }
+      // if (res.redirected) {
+      //   window.location.href = res.url;
+      //   return;
+      // }
 
       const data = await res.json();
       if (res.ok && data.success) {
