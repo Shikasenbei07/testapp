@@ -29,7 +29,7 @@
 | INTEGER/NOT NULL/REFERENCES EVENT(event_id)/PK | INTEGER/NOT NULL/REFERENCES KEYWORD(keyword_id)/PK |
 
 ## テーブルEVENTS_PARTICIPANTS
-| event_id | id |
-| ---- | ---- |
-| イベントID | 参加者ID |
-| INTEGER/NOT NULL/REFERENCES EVENT(event_id)/PK | VARCHAR(4)/NOT NULL/REFERENCES USERS(id)/PK |
+| event_id | id | registration_status | registered_at | canncelled_at
+| ---- | ---- | ---- | ---- | ---- | 
+| イベントID | 参加者ID | 参加状態 | 参加登録日時 | キャンセル日時
+| INTEGER/NOT NULL/REFERENCES EVENT(event_id)/PK | VARCHAR(4)/NOT NULL/REFERENCES USERS(id)/PK | TINYINT	NOT NULL/DEFAULT 1 | DATETIME	DEFAULT CURRENT_TIMESTAMP | 	DATETIME	NULL
