@@ -7,7 +7,11 @@ import io
 from multipart import MultipartParser
 
 def get_db_connection():
-    conn_str = os.environ.get("CONNECTION_STRING")
+    import json
+    settings_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'local.settings.json'))
+    with open(settings_path, encoding='utf-8') as f:
+        settings = json.load(f)
+    conn_str = settings.get('Values', {}).get('CONNECTION_STRING')
     if not conn_str:
         raise Exception("DB接続文字列が設定されていません")
     return pyodbc.connect(conn_str)
@@ -30,8 +34,12 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                     # ファイルパート
                     filename = content_disposition.split('filename="')[1].split('"')[0]
                     from datetime import datetime
+                    import uuid
                     ext = os.path.splitext(filename)[1]
-                    save_name = datetime.now().strftime("%Y%m%d%H%M%S") + ext
+                    # ユーザーIDを取得（なければ"unknown"）
+                    user_id = str(data.get("creator", "unknown"))
+                    unique_id = uuid.uuid4().hex[:8]
+                    save_name = f"{datetime.now().strftime('%Y%m%d%H%M%S')}_{user_id}_{unique_id}{ext}"
                     save_dir = os.path.join(os.path.dirname(__file__), "images")
                     os.makedirs(save_dir, exist_ok=True)
                     save_path = os.path.join(save_dir, save_name)

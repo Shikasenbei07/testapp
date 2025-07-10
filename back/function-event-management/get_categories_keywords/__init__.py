@@ -5,7 +5,11 @@ import os
 import json
 
 def get_db_connection():
-    conn_str = os.environ.get("CONNECTION_STRING")
+    import json
+    settings_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'local.settings.json'))
+    with open(settings_path, encoding='utf-8') as f:
+        settings = json.load(f)
+    conn_str = settings.get('Values', {}).get('CONNECTION_STRING')
     if not conn_str:
         raise Exception("DB接続文字列が設定されていません")
     return pyodbc.connect(conn_str)
