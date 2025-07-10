@@ -13,12 +13,12 @@ app = func.FunctionApp(http_auth_level=func.AuthLevel.FUNCTION)
 def login(req: func.HttpRequest) -> func.HttpResponse:
     logging.info('Login function triggered.')
 
-    # GETリクエストの場合はリダイレクト
+    # GETリクエストの場合は405を返す
     if req.method == "GET":
         return func.HttpResponse(
-            "",
-            status_code=302,
-            headers={"Location": "https://0x0-eventapp-hthba0e7hshdg3g2.japaneast-01.azurewebsites.net"}
+            json.dumps({"error": "GETメソッドは許可されていません"}),
+            mimetype="application/json",
+            status_code=405
         )
 
     try:
