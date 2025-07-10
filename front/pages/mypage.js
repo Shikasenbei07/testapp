@@ -1,17 +1,28 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 
 export default function MyPage() {
   const router = useRouter();
+  const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
     // ログイン状態をlocalStorageやcookie等で管理している場合はここでチェック
-    const isLoggedIn = typeof window !== 'undefined' && localStorage.getItem('isLoggedIn') === 'true';
+    const isLoggedIn =
+      typeof window !== 'undefined' &&
+      localStorage.getItem('isLoggedIn') === 'true';
+
     if (!isLoggedIn) {
-      router.replace({ pathname: '/' }, undefined, { shallow: true });
+      router.replace('/');
+    } else {
+      setIsChecking(false);
     }
   }, [router]);
+
+  if (isChecking) {
+    // ログインチェック中は何も表示しない
+    return null;
+  }
 
   return (
     <div>
