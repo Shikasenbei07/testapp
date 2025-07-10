@@ -34,6 +34,7 @@ export default function Home() {
 
       const data = await res.json();
       if (res.ok && data.success) {
+        localStorage.setItem('isLoggedIn', 'true');
         router.push('/mypage');
       } else {
         setError(data.error || 'ログインに失敗しました');

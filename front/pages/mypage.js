@@ -6,9 +6,10 @@ export default function MyPage() {
   const router = useRouter();
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && router && router.asPath === '/mypage' && router.query.from !== 'login') {
-      // GETリクエストで直接アクセスされた場合はindex.jsへリダイレクト
-      router.replace('/');
+    // ログイン状態をlocalStorageやcookie等で管理している場合はここでチェック
+    const isLoggedIn = typeof window !== 'undefined' && localStorage.getItem('isLoggedIn') === 'true';
+    if (!isLoggedIn) {
+      router.replace({ pathname: '/' }, undefined, { shallow: true });
     }
   }, [router]);
 
