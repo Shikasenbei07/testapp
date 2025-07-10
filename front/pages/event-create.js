@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 
 export default function EventCreate() {
@@ -276,7 +275,18 @@ export default function EventCreate() {
                     </label>
                     {errors.deadline && <div style={{ color: 'red' }}>{errors.deadline}</div>}
                 </div>
-                <button type="submit" disabled={!isFormComplete()}>作成</button>
+                <button
+                    type="submit"
+                    disabled={!isFormComplete()}
+                    style={{
+                        background: isFormComplete() ? "#1976d2" : "#ccc",
+                        color: isFormComplete() ? "#fff" : "#888",
+                        cursor: isFormComplete() ? "pointer" : "not-allowed",
+                        opacity: isFormComplete() ? 1 : 0.6
+                    }}
+                >
+                    作成
+                </button>
                 <button type="button" style={{ marginLeft: 8 }} onClick={handleDraft}>下書き保存</button>
             </form>
         </div>
