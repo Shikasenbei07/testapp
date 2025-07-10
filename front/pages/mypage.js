@@ -1,6 +1,17 @@
+import { useEffect } from 'react';
+import { useRouter } from 'next/router';
 import Head from 'next/head';
 
 export default function MyPage() {
+  const router = useRouter();
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && router && router.asPath === '/mypage' && router.query.from !== 'login') {
+      // GETリクエストで直接アクセスされた場合はindex.jsへリダイレクト
+      router.replace('/');
+    }
+  }, [router]);
+
   return (
     <div>
       <Head>

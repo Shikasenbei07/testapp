@@ -18,7 +18,7 @@ def login(req: func.HttpRequest) -> func.HttpResponse:
         return func.HttpResponse(
             "",
             status_code=302,
-            headers={"Location": "http://localhost:3000/"}
+            headers={"Location": "https://0x0-eventapp-hthba0e7hshdg3g2.japaneast-01.azurewebsites.net"}
         )
 
     try:
@@ -51,7 +51,7 @@ def login(req: func.HttpRequest) -> func.HttpResponse:
                     return func.HttpResponse(
                         "",
                         status_code=302,
-                        headers={"Location": "http://localhost:3000/mypage"}
+                        headers={"Location": "https://0x0-eventapp-hthba0e7hshdg3g2.japaneast-01.azurewebsites.net/mypage"}
                     )
                 else:
                     return func.HttpResponse(
