@@ -44,7 +44,7 @@ def get_name(id):
     cursor = conn.cursor()
     # SQL文を記述して実行
     sql = "SELECT l_name, f_name FROM team1-testdb WHERE id = ?"
-    cursor.execute(sql, id)
+    cursor.execute(sql, (id,))
     row = cursor.fetchone()
     conn.close()
   except Exception as e:
