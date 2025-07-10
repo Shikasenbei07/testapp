@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import Head from 'next/head';
+import { useRouter } from 'next/router';
 import styles from '../styles/Home.module.css';
 
 export default function Home() {
+  const router = useRouter();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -31,9 +33,8 @@ export default function Home() {
       }
 
       const data = await res.json();
-      if (res.ok) {
-        // ここには通常来ないが、念のため
-        window.location.href = '/mypage';
+      if (res.ok && data.success) {
+        router.push('/mypage');
       } else {
         setError(data.error || 'ログインに失敗しました');
       }
