@@ -40,7 +40,7 @@ def xxx(req: func.HttpRequest) -> func.HttpResponse:
 # 例：入力idがマッチしたときに対応する氏名を取得する関数
 def get_name(id):
   try:
-    conn = os.environ.get['CONNECTION_STRING']
+    conn = os.environ.get["CONNECTION_STRING"]
     cursor = conn.cursor()
     # SQL文を記述して実行
     sql = "SELECT l_name, f_name FROM team1-testdb WHERE id = ?"
