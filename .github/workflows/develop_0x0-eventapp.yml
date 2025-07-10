@@ -53,11 +53,12 @@ jobs:
       - name: Unzip artifact for deployment
         run: unzip release.zip -d ./front
 
-      - name: 'Deploy to Azure Web App'
-        id: deploy-to-webapp
+      - name: Copy .next/static to standalone
+        run: cp -r ./front/.next/static ./front/.next/standalone/.next/static
+
+      - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
           app-name: '0x0-eventapp'
-          slot-name: 'Production'
           package: ./front/.next/standalone
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_580A664D28054898989800CB0F07C35A }}

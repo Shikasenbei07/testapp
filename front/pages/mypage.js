@@ -11,9 +11,10 @@ export default function MyPage() {
     const isLoggedIn =
       typeof window !== 'undefined' &&
       localStorage.getItem('isLoggedIn') === 'true';
+      console.log('isLoggedIn:', isLoggedIn);
 
     if (!isLoggedIn) {
-      router.replace('/');
+      //router.replace('/');
     } else {
       setIsChecking(false);
     }
