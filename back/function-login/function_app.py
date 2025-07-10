@@ -63,19 +63,28 @@ def login(req: func.HttpRequest) -> func.HttpResponse:
                     return func.HttpResponse(
                         json.dumps({"error": "ユーザー名またはパスワードが間違っています"}),
                         mimetype="application/json",
-                        status_code=401
+                        status_code=401,
+                        headers={
+                            "Access-Control-Allow-Origin": "https://0x0-eventapp-hthba0e7hshdg3g2.japaneast-01.azurewebsites.net"
+                        }
                     )
     except pyodbc.Error as e:
         logging.error(f"Database error: {str(e)}")
         return func.HttpResponse(
             json.dumps({"error": "データベースエラーが発生しました"}),
             mimetype="application/json",
-            status_code=500
+            status_code=500,
+            headers={
+                "Access-Control-Allow-Origin": "https://0x0-eventapp-hthba0e7hshdg3g2.japaneast-01.azurewebsites.net"
+            }
         )
     except Exception as e:
         logging.error(f"Unexpected error: {str(e)}")
         return func.HttpResponse(
             json.dumps({"error": "予期せぬエラーが発生しました"}),
             mimetype="application/json",
-            status_code=500
+            status_code=500,
+            headers={
+                "Access-Control-Allow-Origin": "https://0x0-eventapp-hthba0e7hshdg3g2.japaneast-01.azurewebsites.net"
+            }
         )
