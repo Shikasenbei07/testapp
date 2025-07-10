@@ -3,22 +3,18 @@ import { useRouter } from 'next/router';
 import Head from 'next/head';
 
 export default function MyPage() {
-  const router = useRouter();
   const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
     // ログイン状態をlocalStorageやcookie等で管理している場合はここでチェック
     const isLoggedIn =
       typeof window !== 'undefined' &&
-      localStorage.getItem('isLoggedIn') === 'true';
-      console.log('isLoggedIn:', isLoggedIn);
+      localStorage.getItem('isLoggedIn') === true;
+    console.log('isLoggedIn:', isLoggedIn);
 
-    if (!isLoggedIn) {
-      //router.replace('/');
-    } else {
-      setIsChecking(false);
-    }
-  }, [router]);
+    // リダイレクト処理は行わず、チェックのみ
+    setIsChecking(false);
+  }, []);
 
   if (isChecking) {
     // ログインチェック中は何も表示しない
