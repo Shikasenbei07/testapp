@@ -1,25 +1,67 @@
 import azure.functions as func
-import logging
+import json
+import pyodbc
+import os
 
 app = func.FunctionApp(http_auth_level=func.AuthLevel.FUNCTION)
 
 @app.route(route="participation")
 def participation(req: func.HttpRequest) -> func.HttpResponse:
-    logging.info('Python HTTP trigger function processed a request.')
+    try:
+        # URLクエリからidを取得
+        user_id = req.params.get("id")
+        if not user_id:
+            try:
+                req_body = req.get_json()
+            except ValueError:
+                req_body = None
+            if req_body:
+                user_id = req_body.get("id")
 
-    name = req.params.get('name')
-    if not name:
+        conn_str = os.environ.get("CONNECTION_STRING")
+        if not conn_str:
+            return func.HttpResponse(
+                json.dumps({"error": "DB接続情報が設定されていません"}),
+                status_code=500,
+                mimetype="application/json"
+            )
+
+        if not user_id:
+            return func.HttpResponse(
+                json.dumps({"error": "idが指定されていません"}),
+                status_code=400,
+                mimetype="application/json"
+            )
+
         try:
-            req_body = req.get_json()
-        except ValueError:
-            pass
-        else:
-            name = req_body.get('name')
-
-    if name:
-        return func.HttpResponse(f"Hello, {name}. This HTTP triggered function executed successfully.")
-    else:
+            with pyodbc.connect(conn_str) as conn:
+                cursor = conn.cursor()
+                cursor.execute(
+                    "SELECT l_name FROM users WHERE id=?",
+                    (user_id,)
+                )
+                result = cursor.fetchone()
+                if result:
+                    return func.HttpResponse(
+                        json.dumps({"l_name": result[0]}),
+                        status_code=200,
+                        mimetype="application/json"
+                    )
+                else:
+                    return func.HttpResponse(
+                        json.dumps({"error": "該当するユーザーが見つかりません"}),
+                        status_code=404,
+                        mimetype="application/json"
+                    )
+        except Exception as e:
+            return func.HttpResponse(
+                json.dumps({"error": str(e)}),
+                status_code=400,
+                mimetype="application/json"
+            )
+    except Exception as e:
         return func.HttpResponse(
-             "This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response.",
-             status_code=200
+            json.dumps({"error": str(e)}),
+            status_code=400,
+            mimetype="application/json"
         )
