@@ -1,4 +1,26 @@
+
 import { useState, useEffect } from "react";
+
+// カテゴリ・キーワードをlocalStorageでキャッシュするカスタムフック
+function useCachedFetch(key, url, mapFn) {
+    const [data, setData] = useState([]);
+    useEffect(() => {
+        const cached = localStorage.getItem(key);
+        if (cached) {
+            setData(JSON.parse(cached));
+            return;
+        }
+        fetch(url)
+            .then(res => res.json())
+            .then(json => {
+                const mapped = mapFn ? json.map(mapFn) : json;
+                setData(mapped);
+                localStorage.setItem(key, JSON.stringify(mapped));
+            });
+    }, [key, url, mapFn]);
+    return data;
+}
+
 
 export default function EventCreate() {
     const [preview, setPreview] = useState(null);
@@ -16,28 +38,19 @@ export default function EventCreate() {
     });
     const [errors, setErrors] = useState({});
 
-    // カテゴリ・キーワードをAPIから取得
-    const [categoryOptions, setCategoryOptions] = useState([]);
-    const [keywordOptions, setKeywordOptions] = useState([]);
-
-    useEffect(() => {
-        // カテゴリ取得（バックエンドAPI直アクセス）
-        fetch("http://localhost:7071/api/categories")
-            .then(res => res.json())
-            .then(data => {
-                if (Array.isArray(data)) {
-                    setCategoryOptions(data.map(c => ({ value: String(c.category_id), label: c.category_name })));
-                }
-            });
-        // キーワード取得
-        fetch("http://localhost:7071/api/keywords")
-            .then(res => res.json())
-            .then(data => {
-                if (Array.isArray(data)) {
-                    setKeywordOptions(data.map(k => ({ value: String(k.keyword_id), label: k.keyword_name })));
-                }
-            });
-    }, []);
+    // カテゴリ・キーワードをlocalStorageでキャッシュ
+    // APIベースURLを環境変数から取得（なければlocalhost）
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:7071";
+    const categoryOptions = useCachedFetch(
+        "categories",
+        `${API_BASE_URL}/api/categories`,
+        c => ({ value: String(c.category_id), label: c.category_name })
+    );
+    const keywordOptions = useCachedFetch(
+        "keywords",
+        `${API_BASE_URL}/api/keywords`,
+        k => ({ value: String(k.keyword_id), label: k.keyword_name })
+    );
 
     // バリデーション
     const validate = (data) => {
@@ -134,7 +147,7 @@ export default function EventCreate() {
         form.keywords.forEach(k => formData.append("keywords", k));
 
         try {
-            const res = await fetch("http://localhost:7071/api/events", {
+            const res = await fetch(`${API_BASE_URL}/api/events`, {
                 method: "POST",
                 body: formData
             });
@@ -172,7 +185,7 @@ export default function EventCreate() {
         form.keywords.forEach(k => formData.append("keywords", k));
 
         try {
-            const res = await fetch("http://localhost:7071/api/events", {
+            const res = await fetch(`${API_BASE_URL}/api/events`, {
                 method: "POST",
                 body: formData
             });
