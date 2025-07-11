@@ -60,6 +60,9 @@ jobs:
         pip install pytest
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
+    - name: Install Microsoft ODBC
+      run: sudo ACCEPT_EULA=Y apt-get install msodbcsql18 -y
+
     - name: Run tests
       env:
         CONNECTION_STRING: ${{ secrets.CONNECTION_STRING }}
