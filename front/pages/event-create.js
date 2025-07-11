@@ -17,7 +17,7 @@ function useCachedFetch(key, url, mapFn) {
                 setData(mapped);
                 localStorage.setItem(key, JSON.stringify(mapped));
             });
-    }, [key, url, mapFn]);
+    }, [key, url]); // mapFnは依存配列から除外
     return data;
 }
 
@@ -41,14 +41,20 @@ export default function EventCreate() {
     // カテゴリ・キーワードをlocalStorageでキャッシュ
     // APIベースURLを環境変数から取得（なければlocalhost）
     const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:7071";
+    // APIパスをローカル（localhost/127.0.0.1）は/api/、本番は直下で切り替え
+    const isLocal = API_BASE_URL.includes("localhost") || API_BASE_URL.includes("127.0.0.1");
+    const API_EVENTS_PATH = isLocal ? "/api/events" : "/events";
+    const API_CATEGORIES_PATH = isLocal ? "/api/get_categories_keywords/categories" : "/get_categories_keywords/categories";
+    const API_KEYWORDS_PATH = isLocal ? "/api/get_categories_keywords/keywords" : "/get_categories_keywords/keywords";
+
     const categoryOptions = useCachedFetch(
         "categories",
-        `${API_BASE_URL}/api/categories`,
+        `${API_BASE_URL}${API_CATEGORIES_PATH}`,
         c => ({ value: String(c.category_id), label: c.category_name })
     );
     const keywordOptions = useCachedFetch(
         "keywords",
-        `${API_BASE_URL}/api/keywords`,
+        `${API_BASE_URL}${API_KEYWORDS_PATH}`,
         k => ({ value: String(k.keyword_id), label: k.keyword_name })
     );
 
@@ -145,9 +151,19 @@ export default function EventCreate() {
         formData.append("is_draft", 0);
         if (form.image) formData.append("image", form.image);
         form.keywords.forEach(k => formData.append("keywords", k));
+        // creator（ユーザーID）が空の場合、ローカル環境ならダミー値を送信、本番環境なら送信しない
+        const isLocal = API_BASE_URL.includes("localhost") || API_BASE_URL.includes("127.0.0.1");
+        if (!form.creator) {
+            if (isLocal) {
+                formData.append("creator", "0738");
+            }
+            // 本番環境なら送信しない（API側で処理）
+        } else {
+            formData.append("creator", form.creator);
+        }
 
         try {
-            const res = await fetch(`${API_BASE_URL}/api/events`, {
+            const res = await fetch(`${API_BASE_URL}${API_EVENTS_PATH}`, {
                 method: "POST",
                 body: formData
             });
@@ -183,9 +199,19 @@ export default function EventCreate() {
         formData.append("is_draft", 1);
         if (form.image) formData.append("image", form.image);
         form.keywords.forEach(k => formData.append("keywords", k));
+        // creator（ユーザーID）が空の場合、ローカル環境ならダミー値を送信、本番環境なら送信しない
+        const isLocal = API_BASE_URL.includes("localhost") || API_BASE_URL.includes("127.0.0.1");
+        if (!form.creator) {
+            if (isLocal) {
+                formData.append("creator", "0738");
+            }
+            // 本番環境なら送信しない（API側で処理）
+        } else {
+            formData.append("creator", form.creator);
+        }
 
         try {
-            const res = await fetch(`${API_BASE_URL}/api/events`, {
+            const res = await fetch(`${API_BASE_URL}${API_EVENTS_PATH}`, {
                 method: "POST",
                 body: formData
             });
