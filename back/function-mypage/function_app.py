@@ -12,23 +12,20 @@ app = func.FunctionApp(http_auth_level=func.AuthLevel.ANONYMOUS)
 def xxx(req: func.HttpRequest) -> func.HttpResponse:
     if req.method == "GET":
         # GETリクエスト時の処理
-        # クエリパラメータidの値をuser_idに格納したり…
         user_id = req.params.get("id")
-        # クエリパラメータが渡されていないときの処理を書いたり
-        if not user_id:
-
+        # クエリパラメータが渡されていない、または空文字のときの処理
+        if user_id is None or user_id == "":
             return func.HttpResponse("idが指定されていません", status_code=400)
         
     elif req.method == "POST":
         # POSTリクエスト時の処理
-        # リクエストボディをJSONとしてパースして値を取得
         try:
             req_body = req.get_json()
         except ValueError:
             return func.HttpResponse("リクエストボディが不正です", status_code=400)
         user_id = req_body.get("id")
-        # 同様にエラー処理も書いておく
-        if not user_id:
+        # idが未指定または空文字のときのエラー処理
+        if user_id is None or user_id == "":
             return func.HttpResponse("idが指定されていません", status_code=400)
     else:
         return func.HttpResponse("許可されていないメソッドです", status_code=405)
@@ -39,6 +36,9 @@ def xxx(req: func.HttpRequest) -> func.HttpResponse:
 
 # 例：入力idがマッチしたときに対応する氏名を取得する関数
 def get_name(id):
+    # idがNoneや空文字の場合は404を返す
+    if id is None or id == "":
+        return func.HttpResponse("該当するデータがありません", status_code=404)
     try:
         conn_str = os.environ.get("CONNECTION_STRING")
         if not conn_str:

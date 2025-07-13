@@ -2,8 +2,11 @@ import azure.functions as func
 import json
 import pyodbc
 import os
+import jwt  # pip install PyJWT
 
 app = func.FunctionApp(http_auth_level=func.AuthLevel.FUNCTION)
+
+SECRET_KEY = os.environ.get("JWT_SECRET", "your-secret-key")
 
 @app.route(route="login", methods=["POST"])
 def login(req: func.HttpRequest) -> func.HttpResponse:
@@ -38,8 +41,10 @@ def login(req: func.HttpRequest) -> func.HttpResponse:
                 )
                 result = cursor.fetchone()
                 if result and result[0] == 1:
+                    # JWTトークン生成
+                    token = jwt.encode({"username": username}, SECRET_KEY, algorithm="HS256")
                     return func.HttpResponse(
-                        json.dumps({"result": "ok"}),
+                        json.dumps({"result": "ok", "token": token}),
                         status_code=200,
                         mimetype="application/json"
                     )
