@@ -1,5 +1,5 @@
 {
-    "azureFunctions.deploySubpath": "back\\function-login",
+    "azureFunctions.deploySubpath": "back\\function-Registration-History",
     "azureFunctions.scmDoBuildDuringDeployment": true,
     "azureFunctions.pythonVenv": ".venv",
     "azureFunctions.projectLanguage": "Python",
