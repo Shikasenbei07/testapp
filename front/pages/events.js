@@ -29,9 +29,10 @@ export default function EventsPage() {
       <table border="1" cellPadding="8">
         <thead>
           <tr>
-            {filteredKeys.map((key) => (
-              <th key={key}>{key}</th>
-            ))}
+            <th>イベント名</th>
+            <th>開催日時</th>
+            <th>申し込み期限</th>
+            <th>開催場所</th>
             <th>詳細</th>
           </tr>
         </thead>
