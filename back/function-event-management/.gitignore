@@ -41,8 +41,6 @@ venv.bak/
 local.settings.json
 
 
-# テストディレクトリ（Git管理対象外）
-tests/
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

@@ -1,11 +1,9 @@
 import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
 
-function EventCreateConfirm() {
+export default function EventEditConfirm() {
     const router = useRouter();
     const [formValues, setFormValues] = useState(null);
-    const [image, setImage] = useState(null);
-    const [imageName, setImageName] = useState(null);
     const [categoryName, setCategoryName] = useState("");
     const [keywordNames, setKeywordNames] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -13,8 +11,9 @@ function EventCreateConfirm() {
 
     useEffect(() => {
         if (!router.isReady) return;
-        // router.queryから値取得
+        // 編集内容はクエリ or localStorageから取得
         const {
+            event_id = "",
             title = "",
             date = "",
             location = "",
@@ -23,32 +22,11 @@ function EventCreateConfirm() {
             summary = "",
             detail = "",
             deadline = "",
-            max_participants = "",
-            is_draft = 0
+            max_participants = ""
         } = router.query;
         const keywords = typeof rawKeywords === "string" ? rawKeywords.split(",") : rawKeywords;
-        setFormValues({ title, date, location, category, keywords, summary, detail, deadline, max_participants, is_draft });
-
-        // 画像
-        try {
-            const imageData = typeof window !== "undefined" ? localStorage.getItem("eventCreateImage") : null;
-            const imageNameData = typeof window !== "undefined" ? localStorage.getItem("eventCreateImageName") : null;
-            if (imageData) {
-                const arr = imageData.split(",");
-                if (arr[0].includes("base64")) {
-                    const mime = arr[0].match(/:(.*?);/)[1];
-                    const bstr = atob(arr[1]);
-                    let n = bstr.length;
-                    const u8arr = new Uint8Array(n);
-                    while (n--) {
-                        u8arr[n] = bstr.charCodeAt(n);
-                    }
-                    setImage(new Blob([u8arr], { type: mime }));
-                    setImageName(imageNameData || "upload.png");
-                }
-            }
-        } catch { }
-        // カテゴリ・キーワード
+        setFormValues({ event_id, title, date, location, category, keywords, summary, detail, deadline, max_participants });
+        // カテゴリ・キーワード名取得
         try {
             const categoriesMaster = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("categories") || "[]") : [];
             const keywordsMaster = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("keywords") || "[]") : [];
@@ -65,16 +43,12 @@ function EventCreateConfirm() {
         return <div>読み込み中...</div>;
     }
 
-    const isDraft = String(formValues.is_draft) === "1";
-    const confirmText = isDraft
-        ? "この内容で下書き保存します。よろしいですか？"
-        : "この内容でイベントを登録します。よろしいですか？";
-    const buttonText = isDraft ? "下書き保存を確定" : "イベント登録を確定";
-
-    // 確定ボタンでAPI POST
     const handleConfirm = async () => {
         setLoading(true);
         setError("");
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:7071";
+        const isLocal = API_BASE_URL.includes("localhost") || API_BASE_URL.includes("127.0.0.1");
+        const API_EVENTS_PATH = isLocal ? "/api/events" : "/events";
         const formData = new FormData();
         formData.append("title", formValues.title);
         formData.append("date", formValues.date);
@@ -85,19 +59,13 @@ function EventCreateConfirm() {
         formData.append("deadline", formValues.deadline);
         formData.append("max_participants", formValues.max_participants);
         (formValues.keywords || []).forEach(k => formData.append("keywords", k));
-        if (image) formData.append("image", image, imageName);
-        formData.append("is_draft", isDraft ? 1 : 0);
-        // creatorは省略（API側で処理）
-        const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:7071";
-        const isLocal = API_BASE_URL.includes("localhost") || API_BASE_URL.includes("127.0.0.1");
-        const API_EVENTS_PATH = isLocal ? "/api/events" : "/events";
         try {
-            const res = await fetch(`${API_BASE_URL}${API_EVENTS_PATH}`, {
-                method: "POST",
+            const res = await fetch(`${API_BASE_URL}${API_EVENTS_PATH}/${formValues.event_id}`, {
+                method: "PUT",
                 body: formData
             });
             if (res.ok) {
-                router.push(`/event-create-done?is_draft=${isDraft ? 1 : 0}`);
+                router.push("/event-edit-done");
             } else {
                 let err;
                 const contentType = res.headers.get("content-type");
@@ -106,9 +74,8 @@ function EventCreateConfirm() {
                 } else {
                     err = { error: await res.text() };
                 }
-                setError("登録失敗: " + (err.error || res.status) + (err.trace ? "\n" + err.trace : ""));
+                setError("更新失敗: " + (err.error || res.status) + (err.trace ? "\n" + err.trace : ""));
             }
-
         } catch (err) {
             setError("通信エラー: " + err);
         }
@@ -117,8 +84,8 @@ function EventCreateConfirm() {
 
     return (
         <div style={{ maxWidth: 600, margin: "2rem auto", fontFamily: "sans-serif" }}>
-            <h1>イベント作成{isDraft ? "（下書き保存）" : "（本登録）"}確認</h1>
-            <div style={{ margin: "1rem 0", fontWeight: "bold", color: "#1976d2" }}>{confirmText}</div>
+            <h1>イベント編集内容確認</h1>
+            <div style={{ margin: "1rem 0", fontWeight: "bold", color: "#1976d2" }}>この内容でイベントを更新します。よろしいですか？</div>
             <div className="row"><b>タイトル:</b> {formValues.title}</div>
             <div className="row"><b>日付:</b> {formValues.date}</div>
             <div className="row"><b>場所:</b> {formValues.location}</div>
@@ -128,43 +95,15 @@ function EventCreateConfirm() {
             <div className="row"><b>詳細:</b> {formValues.detail}</div>
             <div className="row"><b>最大人数:</b> {formValues.max_participants}</div>
             <div className="row"><b>締切日:</b> {formValues.deadline}</div>
-            <div className="row"><b>画像:</b> {
-                image instanceof Blob ? (
-                    <img
-                        src={URL.createObjectURL(image)}
-                        alt={imageName || "画像"}
-                        style={{ maxWidth: "200px", maxHeight: "200px", border: "1px solid #ccc", marginTop: "8px" }}
-                    />
-                ) : (
-                    "未設定"
-                )
-            }</div>
             {error && <div style={{ color: "red" }}>{error}</div>}
             <button onClick={handleConfirm} disabled={loading} style={{ background: "#1976d2", color: "#fff", marginTop: 16 }}>
-                {loading ? "登録中..." : buttonText}
+                {loading ? "更新中..." : "この内容で更新"}
             </button>
             <button
                 type="button"
                 style={{ marginLeft: 8 }}
-                onClick={() => {
-                    // 入力内容をlocalStorageに保存
-                    const saveData = {
-                        title: formValues.title,
-                        date: formValues.date,
-                        location: formValues.location,
-                        category: formValues.category,
-                        keywords: formValues.keywords,
-                        summary: formValues.summary,
-                        detail: formValues.detail,
-                        deadline: formValues.deadline,
-                        max_participants: formValues.max_participants
-                    };
-                    localStorage.setItem("eventCreateDraft", JSON.stringify(saveData));
-                    router.back();
-                }}
+                onClick={() => router.back()}
             >戻る</button>
         </div>
     );
 }
-
-export default EventCreateConfirm;

@@ -6,13 +6,9 @@ import EventForm from "../components/EventForm";
 function useCachedFetch(key, url, mapFn) {
     const [data, setData] = useState([]);
     useEffect(() => {
-        // カテゴリ・キーワードのみlocalStorageキャッシュ
+        // キャッシュクリアしてAPIから再取得
         if (key === "categories" || key === "keywords") {
-            const cached = localStorage.getItem(key);
-            if (cached) {
-                setData(JSON.parse(cached));
-                return;
-            }
+            localStorage.removeItem(key);
         }
         fetch(url)
             .then(res => res.json())
@@ -176,31 +172,67 @@ export default function EventCreate() {
         const v = validate(form);
         setErrors(v);
         if (Object.keys(v).length > 0) return;
-        // 入力内容を確認画面へ遷移
-        // localStorage未使用
-        const query = {};
-        Object.keys(form).forEach(k => {
-            // 画像はFile型なので渡せない。nameだけ渡す
-            if (k === "image" && form.image) {
-                query.image = form.image.name;
-            } else {
-                query[k] = form[k];
-            }
-        });
-        window.location.href = `/event-create-confirm?${new URLSearchParams(query).toString()}`;
+        // 画像ファイルをDataURL化してlocalStorageに保存
+        if (form.image instanceof File) {
+            const reader = new FileReader();
+            reader.onload = function (ev) {
+                localStorage.setItem("eventCreateImage", ev.target.result);
+                localStorage.setItem("eventCreateImageName", form.image.name);
+                const query = {};
+                Object.keys(form).forEach(k => {
+                    if (k === "image" && form.image) {
+                        query.image = form.image.name;
+                    } else {
+                        query[k] = form[k];
+                    }
+                });
+                window.location.href = `/event-create-confirm?${new URLSearchParams(query).toString()}`;
+            };
+            reader.readAsDataURL(form.image);
+        } else {
+            localStorage.removeItem("eventCreateImage");
+            localStorage.removeItem("eventCreateImageName");
+            const query = {};
+            Object.keys(form).forEach(k => {
+                if (k === "image" && form.image) {
+                    query.image = form.image.name;
+                } else {
+                    query[k] = form[k];
+                }
+            });
+            window.location.href = `/event-create-confirm?${new URLSearchParams(query).toString()}`;
+        }
     };
 
     // 下書き保存（バリデーションなし・確認画面へ遷移）
     const handleDraft = (e) => {
         e.preventDefault();
-        // localStorageへの保存は行わない（eventCreateDraft未使用）
-        const query = {};
-        Object.keys(form).forEach(k => {
-            if (k === "image") return;
-            query[k] = form[k];
-        });
-        query.is_draft = 1;
-        window.location.href = `/event-create-confirm?${new URLSearchParams(query).toString()}`;
+        // 画像ファイルをDataURL化してlocalStorageに保存（下書きも同様）
+        if (form.image instanceof File) {
+            const reader = new FileReader();
+            reader.onload = function (ev) {
+                localStorage.setItem("eventCreateImage", ev.target.result);
+                localStorage.setItem("eventCreateImageName", form.image.name);
+                const query = {};
+                Object.keys(form).forEach(k => {
+                    if (k === "image") return;
+                    query[k] = form[k];
+                });
+                query.is_draft = 1;
+                window.location.href = `/event-create-confirm?${new URLSearchParams(query).toString()}`;
+            };
+            reader.readAsDataURL(form.image);
+        } else {
+            localStorage.removeItem("eventCreateImage");
+            localStorage.removeItem("eventCreateImageName");
+            const query = {};
+            Object.keys(form).forEach(k => {
+                if (k === "image") return;
+                query[k] = form[k];
+            });
+            query.is_draft = 1;
+            window.location.href = `/event-create-confirm?${new URLSearchParams(query).toString()}`;
+        }
     };
 
     // 削除ボタンのハンドラ

@@ -1,3 +1,4 @@
+
 import os
 import pyodbc
 import io
@@ -8,6 +9,8 @@ from multipart import MultipartParser
 from requests_toolbelt.multipart import decoder
 import uuid
 from datetime import datetime
+
+# appはファイル先頭で一度だけ定義
 app = func.FunctionApp()
 
 @app.function_name(name="get_event")
@@ -15,16 +18,23 @@ app = func.FunctionApp()
 def get_event(req: func.HttpRequest) -> func.HttpResponse:
     event_id = req.route_params.get('event_id')
     try:
+        logging.info(f"get_event: event_id param = {event_id} (type: {type(event_id)})")
+        if event_id is None:
+            return func.HttpResponse("event_id is required", status_code=400)
+        try:
+            event_id_int = int(event_id)
+        except Exception:
+            return func.HttpResponse("event_id must be integer", status_code=400)
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM EVENTS WHERE event_id = ?", event_id)
+        cursor.execute("SELECT * FROM EVENTS WHERE event_id = ?", event_id_int)
         row = cursor.fetchone()
         if not row:
+            logging.warning(f"get_event: event_id {event_id_int} not found in DB")
             return func.HttpResponse("Not Found", status_code=404)
         # キーワード取得
-        cursor.execute("SELECT keyword_id FROM EVENTS_KEYWORDS WHERE event_id = ?", event_id)
+        cursor.execute("SELECT keyword_id FROM EVENTS_KEYWORDS WHERE event_id = ?", event_id_int)
         keywords = [str(r.keyword_id) for r in cursor.fetchall()]
-        # dict型 or オブジェクト型両対応
         def get_attr(obj, key):
             if isinstance(obj, dict):
                 return obj.get(key)
@@ -86,17 +96,30 @@ def update_event(req: func.HttpRequest) -> func.HttpResponse:
         else:
             data = req.get_json()
             image_path = data.get("image")
+        def to_db_date(val):
+            if not val or (isinstance(val, str) and val.strip() == ""):
+                return None
+            if isinstance(val, str) and 'T' in val:
+                try:
+                    date_part, time_part = val.split('T')
+                    if len(time_part) == 5:
+                        time_part += ':00'
+                    return f"{date_part} {time_part}"
+                except Exception:
+                    return val
+            return val
 
         with get_db_connection() as conn:
             with conn.cursor() as cursor:
                 cursor.execute(
                     '''
                     UPDATE EVENTS SET event_title=?, event_category=?, event_datetime=?, deadline=?, location=?, max_participants=?, description=?, content=?, image=? WHERE event_id=?
-                    ''',
+                    '''
+                    ,
                     data.get("title"),
                     int(data.get("category")) if data.get("category") else None,
-                    data.get("date"),
-                    data.get("deadline"),
+                    to_db_date(data.get("date")),
+                    to_db_date(data.get("deadline")),
                     data.get("location"),
                     int(data.get("max_participants")) if data.get("max_participants") else None,
                     data.get("summary"),
@@ -137,17 +160,8 @@ def delete_event(req: func.HttpRequest) -> func.HttpResponse:
         tb = traceback.format_exc()
         logging.error(tb)
         return func.HttpResponse(json.dumps({"error": str(e), "trace": tb}), mimetype="application/json", status_code=500)
-import os
-import pyodbc
-import io
-import json
-import logging
-import azure.functions as func
-from multipart import MultipartParser
-from requests_toolbelt.multipart import decoder
-import uuid
-from datetime import datetime
-app = func.FunctionApp()
+
+# ↓この重複定義・importを削除
 
 def get_db_connection():
     # Azure環境では環境変数から取得、ローカルはlocal.settings.jsonから取得
