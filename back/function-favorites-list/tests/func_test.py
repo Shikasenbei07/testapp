@@ -43,9 +43,3 @@ def test_remove_favorite_not_found():
     # Assuming function_app.remove_favorite returns False if item not in favorites
     success = function_app.remove_favorite(user_id="test_user", item_id="nonexistent_item")
     assert success is False
-
-# - name: Run tests
-#   run: |
-#     pip install -r back/function-favorites-list/requirements.txt
-#     pip install pytest
-#     pytest back/function-favorites-list/tests
