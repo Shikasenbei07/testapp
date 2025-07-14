@@ -20,11 +20,11 @@ name: Deploy Python project to Azure Function App
 
 on:
   push:
-    branches: ["feature/event_participation"]
+    branches: ["develop"]
 
 env:
-  AZURE_FUNCTIONAPP_NAME: 'event_participation'   # set this to your function app name on Azure
-  AZURE_FUNCTIONAPP_PACKAGE_PATH: './back/event_participation'       # set this to the path to your function app project, defaults to the repository root
+  AZURE_FUNCTIONAPP_NAME: 'mypage'   # set this to your function app name on Azure
+  AZURE_FUNCTIONAPP_PACKAGE_PATH: './back/function-mypage'       # set this to the path to your function app project, defaults to the repository root
   PYTHON_VERSION: '3.11'                     # set this to the python version to use (e.g. '3.6', '3.7', '3.8')
 
 jobs:
