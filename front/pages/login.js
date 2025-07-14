@@ -39,18 +39,6 @@ export default function Login() {
     setPassword(e.target.value);
   }
 
-  // 取得時（例：マイページなどで利用する場合）
-  function getValidId() {
-    const id = localStorage.getItem("id");
-    const expire = localStorage.getItem("id_expire");
-    if (!id || !expire || Date.now() > Number(expire)) {
-      localStorage.removeItem("id");
-      localStorage.removeItem("id_expire");
-      return null;
-    }
-    return id;
-  }
-
   return (
     <form onSubmit={handleSubmit}>
       <div>

@@ -1,6 +1,18 @@
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
+// 取得時（例：マイページなどで利用する場合）
+function getValidId() {
+  const id = localStorage.getItem("id");
+  const expire = localStorage.getItem("id_expire");
+  if (!id || !expire || Date.now() > Number(expire)) {
+    localStorage.removeItem("id");
+    localStorage.removeItem("id_expire");
+    return null;
+  }
+  return id;
+}
+
 export default function ReservationDetail() {
   const router = useRouter();
   const [detail, setDetail] = useState(null);
