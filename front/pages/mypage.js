@@ -8,17 +8,15 @@ export default function MyPage() {
   const router = useRouter();
 
   useEffect(() => {
-    // クライアントサイドでのみlocalStorageを参照するため、windowが存在するか確認
     if (typeof window === "undefined") {
       setError("クライアントでのみ利用可能です");
       setLoading(false);
       return;
     }
 
-    const id = localStorage.getItem("id"); // 必要に応じて取得方法を変更
-    console.log(id);
+    const id = localStorage.getItem("id");
     if (!id) {
-      router.push("/index");
+      router.push("/");
       return;
     }
 
@@ -39,10 +37,23 @@ export default function MyPage() {
         setError("データ取得エラー");
         setLoading(false);
       });
-  }, []);
+  }, [router]);
+
+  // ログアウト処理
+  function handleLogout() {
+    localStorage.removeItem("id");
+    localStorage.removeItem("id_expire");
+    router.push("/");
+  }
 
   if (loading) return <div>読み込み中...</div>;
   if (error) return <div style={{color:"red"}}>{error}</div>;
 
-  return <div>{lName}さんのページ</div>;
+  return (
+    <div>
+      {lName}さんのページ
+      <br />
+      <button onClick={handleLogout}>ログアウト</button>
+    </div>
+  );
 }
