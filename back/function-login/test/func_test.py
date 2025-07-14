@@ -3,10 +3,6 @@ from unittest.mock import patch, MagicMock
 import json
 import function_app
 
-# filepath: c:\Users\D0738\Documents\0x0_work\back\function-login\test\func_test.py
-
-
-
 def make_req(json_body):
     req = MagicMock()
     req.get_json.return_value = json_body

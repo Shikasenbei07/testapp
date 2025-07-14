@@ -68,3 +68,65 @@ def login(req: func.HttpRequest) -> func.HttpResponse:
             status_code=400,
             mimetype="application/json"
         )
+    
+
+@app.route(route="mypage", methods=["POST"])
+def mypage(req: func.HttpRequest) -> func.HttpResponse:
+    try:
+        data = req.get_json()
+        id = data.get("id")
+
+        if not id:
+            return func.HttpResponse(
+                json.dumps({"error": "Missing id"}),
+                status_code=400,
+                mimetype="application/json"
+            )
+
+        conn_str = os.environ.get("CONNECTION_STRING")
+        if not conn_str:
+            return func.HttpResponse(
+                json.dumps({"error": "DB接続情報が設定されていません"}),
+                status_code=500,
+                mimetype="application/json"
+            )
+
+        try:
+            with pyodbc.connect(conn_str) as conn:
+                cursor = conn.cursor()
+                cursor.execute(
+                    "SELECT l_name FROM users WHERE id=?",
+                    (id,)
+                )
+                result = cursor.fetchone()
+                if result:
+                    l_name = result[0]
+                    return func.HttpResponse(
+                        json.dumps({"message": f"{l_name}さんのマイページ", "l_name": l_name}),
+                        status_code=200,
+                        mimetype="application/json"
+                    )
+                else:
+                    return func.HttpResponse(
+                        json.dumps({"error": "ユーザーが見つかりません"}),
+                        status_code=404,
+                        mimetype="application/json"
+                    )
+        except pyodbc.Error as db_err:
+            return func.HttpResponse(
+                json.dumps({"error": "Database error: " + str(db_err)}),
+                status_code=500,
+                mimetype="application/json"
+            )
+    except ValueError:
+        return func.HttpResponse(
+            json.dumps({"error": "Invalid JSON"}),
+            status_code=400,
+            mimetype="application/json"
+        )
+    except Exception as e:
+        return func.HttpResponse(
+            json.dumps({"error": str(e)}),
+            status_code=400,
+            mimetype="application/json"
+        )
