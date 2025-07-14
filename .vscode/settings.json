@@ -1,9 +1,18 @@
 {
+<<<<<<< HEAD
     "azureFunctions.deploySubpath": "back\\function-participation",
+=======
+    "azureFunctions.deploySubpath": "back\\function-mypage",
+>>>>>>> 2ae443801a0911fbbafb9508e27ed586d08f450c
     "azureFunctions.scmDoBuildDuringDeployment": true,
     "azureFunctions.pythonVenv": ".venv",
     "azureFunctions.projectLanguage": "Python",
     "azureFunctions.projectRuntime": "~4",
     "debug.internalConsoleOptions": "neverOpen",
-    "azureFunctions.projectLanguageModel": 2
+    "azureFunctions.projectLanguageModel": 2,
+    "python.testing.pytestArgs": [
+        "back"
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true
 }

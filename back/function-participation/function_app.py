@@ -63,11 +63,20 @@ def event_detail(req: func.HttpRequest) -> func.HttpResponse:
 @app.route(route="event/participate", methods=["GET"])
 def participate(req: func.HttpRequest) -> func.HttpResponse:
     try:
+        # GETの場合はクエリパラメータから取得
         event_id = req.params.get("event_id")
         id = req.params.get("id")
         if not event_id or not id:
             return func.HttpResponse(
                 json.dumps({"error": "event_idとidは必須です"}),
+                status_code=400,
+                mimetype="application/json"
+            )
+        try:
+            event_id = int(event_id)
+        except ValueError:
+            return func.HttpResponse(
+                json.dumps({"error": "event_idは整数で指定してください"}),
                 status_code=400,
                 mimetype="application/json"
             )
@@ -84,7 +93,7 @@ def participate(req: func.HttpRequest) -> func.HttpResponse:
             cursor = conn.cursor()
             # すでに参加済みかチェック
             cursor.execute(
-                "SELECT COUNT(*) FROM EVENTS_PARTICIPANTS WHERE event_id=? AND id=? AND registration_status=1",
+                "SELECT COUNT(*) FROM EVENTS_PARTICIPANTS WHERE event_id=? AND id=?",
                 (event_id, id)
             )
             if cursor.fetchone()[0] > 0:
@@ -114,7 +123,7 @@ def participate(req: func.HttpRequest) -> func.HttpResponse:
                 )
             # 参加登録
             cursor.execute(
-                "INSERT INTO EVENTS_PARTICIPANTS (event_id, id, registration_status) VALUES (?, ?, 1)",
+                "INSERT INTO EVENTS_PARTICIPANTS (event_id, id) VALUES (?, ?)",
                 (event_id, id)
             )
             # current_participantsをインクリメント

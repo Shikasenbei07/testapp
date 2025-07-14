@@ -12,7 +12,7 @@ export default function EventConfirm() {
   useEffect(() => {
     if (!event_id) return
     setLoading(true)
-    fetch(`http://localhost:7071/api/event/detail?event_id=${event_id}`)
+    fetch(`https://0x0-participation-d7fqb7h3dpcqcxek.japaneast-01.azurewebsites.net/api/event/detail?code=qC-HX3KjdRcFo7l_yVWZY56v5DwOoRWVjlzW99WcfgchAzFuzYe8QA%3D%3D&event_id=${event_id}`)
       .then(res => res.json())
       .then(data => {
         if (data.error) setError(data.error)
@@ -27,11 +27,12 @@ export default function EventConfirm() {
 
   const handleJoin = async () => {
     setJoining(true)
-    const userId = "sample_user"
-    const res = await fetch('http://localhost:7071/api/event/participate', {
+    const userId = "0738"
+    console.log("event_id:", event_id, "id:", userId);
+    const res = await fetch('https://0x0-participation-d7fqb7h3dpcqcxek.japaneast-01.azurewebsites.net/api/event/participate?code=IqAEzEm_tdgsaLYblJjNZChDOjX7TKk2FDdM9zV2yMqFAzFufBImGw%3D%3D', {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ event_id, id: userId })
+      body: JSON.stringify({ event_id: event_id, id: userId })
     })
     let data = {}
     try {
@@ -60,7 +61,7 @@ export default function EventConfirm() {
     <div>
       <h1>イベント参加確認</h1>
       <p>「{event.event_title}」に参加しますか？</p>
-      <button onClick={handleJoin} disabled={joining}>確定</button>
+      <button onClick={handleJoin} disabled={joining || !event_id}>確定</button>
       <button onClick={() => router.back()}>戻る</button>
     </div>
   )

@@ -9,7 +9,11 @@
 			"isBackground": true,
 			"dependsOn": "pip install (functions)",
 			"options": {
+<<<<<<< HEAD
 				"cwd": "${workspaceFolder}/back\\function-participation"
+=======
+				"cwd": "${workspaceFolder}/back\\function-mypage"
+>>>>>>> 2ae443801a0911fbbafb9508e27ed586d08f450c
 			}
 		},
 		{
@@ -26,7 +30,11 @@
 			},
 			"problemMatcher": [],
 			"options": {
+<<<<<<< HEAD
 				"cwd": "${workspaceFolder}/back\\function-participation"
+=======
+				"cwd": "${workspaceFolder}/back\\function-mypage"
+>>>>>>> 2ae443801a0911fbbafb9508e27ed586d08f450c
 			}
 		}
 	]
