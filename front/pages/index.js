@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useRouter } from "next/router";
 
 export default function Login() {
-  const [username, setUsername] = useState("");
+  const [id, setId] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const router = useRouter();
@@ -31,8 +31,8 @@ export default function Login() {
     }
   }
 
-  function handleUsernameChange(e) {
-    setUsername(e.target.value);
+  function handleIdChange(e) {
+    setId(e.target.value);
   }
 
   function handlePasswordChange(e) {
@@ -55,7 +55,7 @@ export default function Login() {
     <form onSubmit={handleSubmit}>
       <div>
         <label>ユーザー名</label>
-        <input value={id} onChange={handleUsernameChange} />
+        <input value={id} onChange={handleIdChange} />
       </div>
       <div>
         <label>パスワード</label>
