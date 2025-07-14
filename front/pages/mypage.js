@@ -6,7 +6,13 @@ export default function MyPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    // 仮にidをlocalStorageやクエリパラメータから取得する場合
+    // クライアントサイドでのみlocalStorageを参照するため、windowが存在するか確認
+    if (typeof window === "undefined") {
+      setError("クライアントでのみ利用可能です");
+      setLoading(false);
+      return;
+    }
+
     const id = localStorage.getItem("id"); // 必要に応じて取得方法を変更
     if (!id) {
       setError("IDが見つかりません");
@@ -14,7 +20,7 @@ export default function MyPage() {
       return;
     }
 
-    fetch("", {
+    fetch("https://0x0-login.azurewebsites.net/api/mypage?code=EzjjwAEIjnxywfEksi9uz-ixU-8Qet_ZjJCegzf8abomAzFu6xZbzw==", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id }),
@@ -24,7 +30,7 @@ export default function MyPage() {
         return res.json();
       })
       .then(data => {
-        setLName(data.l_name);
+        setLName(data.l_name ?? "");
         setLoading(false);
       })
       .catch(() => {

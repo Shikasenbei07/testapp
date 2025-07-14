@@ -102,7 +102,7 @@ def mypage(req: func.HttpRequest) -> func.HttpResponse:
                 if result:
                     l_name = result[0]
                     return func.HttpResponse(
-                        json.dumps({"message": f"{l_name}さんのマイページ", "l_name": l_name}),
+                        json.dumps({"l_name": l_name}),
                         status_code=200,
                         mimetype="application/json"
                     )
