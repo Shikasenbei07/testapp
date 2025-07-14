@@ -76,7 +76,7 @@ jobs:
       with:
         app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
         package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
-        publish-profile: ${{ secrets.your_profile }} # Remove publish-profile to use Azure RBAC
+        publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
         sku: flexconsumption
         remote-build: true
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
