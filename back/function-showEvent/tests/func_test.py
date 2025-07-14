@@ -1,6 +1,6 @@
 import pytest
 from azure.functions import HttpRequest
-from back.function_showEvent import function_app
+import function_app
 
 import sqlite3
 import os

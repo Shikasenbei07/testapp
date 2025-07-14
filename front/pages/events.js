@@ -23,7 +23,7 @@ export default function EventsPage() {
       });
 
     // カテゴリー一覧をCATEGORYSテーブルAPIから取得
-    fetch("http://localhost:7071/api/categories")
+    fetch("https://0x0-showevent-hbbadxcxh9a4bzhu.japaneast-01.azurewebsites.net/api/categories?code=qPu7q4iQBMrEMTPaYXSYNOrzTnAm5yplhzIJ9JfIq-vWAzFukZ5pSA%3D%3D")
       .then(res => res.json())
       .then(data => {
         setCategories(Array.isArray(data) ? data.map(cat => ({ id: cat.category_id, name: cat.category_name })) : []);

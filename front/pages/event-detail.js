@@ -9,7 +9,7 @@ export default function EventDetailPage() {
 
   useEffect(() => {
     if (!event_id) return;
-    fetch(`http://localhost:7071/api/showEvent?event_id=${event_id}`)
+    fetch(`https://0x0-showevent-hbbadxcxh9a4bzhu.japaneast-01.azurewebsites.net/api/showevent?code=KjUCLx4igb6FiJ3ZtQKowVUUk9MgUtPSuBhPrMam2RwxAzFuTt1T_w%3D%3D&event_id=${event_id}`)
       .then((res) => res.json())
       .then((data) => {
         setEvent(data);
