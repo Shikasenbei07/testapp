@@ -46,6 +46,9 @@ jobs:
       with:
         python-version: ${{ env.PYTHON_VERSION }}
 
+    - name: Clear pip cache
+      run: pip cache purge
+    
     - name: 'Resolve Project Dependencies Using Pip'
       shell: bash
       run: |
