@@ -61,13 +61,18 @@ jobs:
         if [ -f ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/requirements.txt ]; then pip install -r ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/requirements.txt; fi
 
     - name: Install Microsoft ODBC
-      run: sudo ACCEPT_EULA=Y apt-get install msodbcsql18 -y
+      run: sudo ACCEPT_EULA=Y apt-get install msodbcsql18
+
+    - name: Clean pycache
+      run: |
+        find . -type d -name "__pycache__" -exec rm -rf {} +
+        find . -name "*.pyc" -delete
 
     - name: Run tests
       env:
         CONNECTION_STRING: ${{ secrets.CONNECTION_STRING }}
       run:
-        pytest
+        pytest ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/tests
 
     - name: 'Run Azure Functions Action'
       uses: Azure/functions-action@v1
