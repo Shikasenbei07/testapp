@@ -1,8 +1,5 @@
-import pytest
 from fastapi.testclient import TestClient
 from function_app import app
-
-# filepath: c:\Users\D0738\Documents\0x0_work\back\function-mypage\tests\func_test.py
 
 client = TestClient(app)
 

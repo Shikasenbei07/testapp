@@ -5,3 +5,5 @@
 azure-functions
 pyodbc
 azure-storage-blob
+fastapi
+pyjwt
