@@ -1,21 +1,27 @@
-
 import { useState, useEffect } from "react";
+import { useRouter } from "next/router";
+import EventForm from "../components/EventForm";
 
 // カテゴリ・キーワードをlocalStorageでキャッシュするカスタムフック
 function useCachedFetch(key, url, mapFn) {
     const [data, setData] = useState([]);
     useEffect(() => {
-        const cached = localStorage.getItem(key);
-        if (cached) {
-            setData(JSON.parse(cached));
-            return;
+        // カテゴリ・キーワードのみlocalStorageキャッシュ
+        if (key === "categories" || key === "keywords") {
+            const cached = localStorage.getItem(key);
+            if (cached) {
+                setData(JSON.parse(cached));
+                return;
+            }
         }
         fetch(url)
             .then(res => res.json())
             .then(json => {
                 const mapped = mapFn ? json.map(mapFn) : json;
                 setData(mapped);
-                localStorage.setItem(key, JSON.stringify(mapped));
+                if (key === "categories" || key === "keywords") {
+                    localStorage.setItem(key, JSON.stringify(mapped));
+                }
             });
     }, [key, url]); // mapFnは依存配列から除外
     return data;
@@ -23,6 +29,10 @@ function useCachedFetch(key, url, mapFn) {
 
 
 export default function EventCreate() {
+    const router = useRouter();
+    // event_idをクエリから取得
+    const eventId = router.query.event_id;
+    const isEdit = !!eventId;
     const [preview, setPreview] = useState(null);
     const [form, setForm] = useState({
         title: "",
@@ -36,6 +46,33 @@ export default function EventCreate() {
         image: null,
         max_participants: ""
     });
+    const [eventData, setEventData] = useState(null);
+    useEffect(() => {
+        if (isEdit && eventId) {
+            // 編集時はAPIからイベント詳細取得
+            const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:7071";
+            const isLocal = API_BASE_URL.includes("localhost") || API_BASE_URL.includes("127.0.0.1");
+            const API_EVENTS_PATH = isLocal ? "/api/events" : "/events";
+            fetch(`${API_BASE_URL}${API_EVENTS_PATH}/${eventId}`)
+                .then(res => res.json())
+                .then(data => {
+                    setEventData(data);
+                    setForm({
+                        title: data.title || "",
+                        date: data.date || "",
+                        location: data.location || "",
+                        category: data.category || "",
+                        keywords: data.keywords || [],
+                        summary: data.summary || "",
+                        detail: data.detail || "",
+                        deadline: data.deadline || "",
+                        image: null,
+                        max_participants: data.max_participants || ""
+                    });
+                    setPreview(null);
+                });
+        }
+    }, [isEdit, eventId]);
     const [errors, setErrors] = useState({});
 
     // カテゴリ・キーワードをlocalStorageでキャッシュ
@@ -107,10 +144,11 @@ export default function EventCreate() {
             });
         } else if (name === "image") {
             const file = files[0];
-            setForm((prev) => ({ ...prev, image: file }));
             if (file) {
+                setForm((prev) => ({ ...prev, image: file }));
                 setPreview(URL.createObjectURL(file));
             } else {
+                setForm((prev) => ({ ...prev, image: null }));
                 setPreview(null);
             }
         } else {
@@ -133,90 +171,51 @@ export default function EventCreate() {
         );
     };
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = (e) => {
         e.preventDefault();
         const v = validate(form);
         setErrors(v);
         if (Object.keys(v).length > 0) return;
-
-        const formData = new FormData();
-        formData.append("title", form.title);
-        formData.append("date", form.date);
-        formData.append("location", form.location);
-        formData.append("category", form.category);
-        formData.append("summary", form.summary);
-        formData.append("detail", form.detail);
-        formData.append("deadline", form.deadline);
-        formData.append("max_participants", form.max_participants);
-        formData.append("is_draft", 0);
-        if (form.image) formData.append("image", form.image);
-        form.keywords.forEach(k => formData.append("keywords", k));
-        // creator（ユーザーID）が空の場合、ローカル環境ならダミー値を送信、本番環境なら送信しない
-        const isLocal = API_BASE_URL.includes("localhost") || API_BASE_URL.includes("127.0.0.1");
-        if (!form.creator) {
-            if (isLocal) {
-                formData.append("creator", "0738");
-            }
-            // 本番環境なら送信しない（API側で処理）
-        } else {
-            formData.append("creator", form.creator);
-        }
-
-        try {
-            const res = await fetch(`${API_BASE_URL}${API_EVENTS_PATH}`, {
-                method: "POST",
-                body: formData
-            });
-            if (res.ok) {
-                alert("イベントを登録しました");
+        // 入力内容を確認画面へ遷移
+        // localStorage未使用
+        const query = {};
+        Object.keys(form).forEach(k => {
+            // 画像はFile型なので渡せない。nameだけ渡す
+            if (k === "image" && form.image) {
+                query.image = form.image.name;
             } else {
-                let err;
-                const contentType = res.headers.get("content-type");
-                if (contentType && contentType.includes("application/json")) {
-                    err = await res.json();
-                } else {
-                    err = { error: await res.text() };
-                }
-                alert("登録失敗: " + (err.error || res.status) + (err.trace ? "\n" + err.trace : ""));
+                query[k] = form[k];
             }
-        } catch (err) {
-            alert("通信エラー: " + err);
-        }
+        });
+        window.location.href = `/event-create-confirm?${new URLSearchParams(query).toString()}`;
     };
 
-    // 下書き保存（バリデーションなし）
-    const handleDraft = async (e) => {
+    // 下書き保存（バリデーションなし・確認画面へ遷移）
+    const handleDraft = (e) => {
         e.preventDefault();
-        const formData = new FormData();
-        formData.append("title", form.title);
-        formData.append("date", form.date);
-        formData.append("location", form.location);
-        formData.append("category", form.category);
-        formData.append("summary", form.summary);
-        formData.append("detail", form.detail);
-        formData.append("deadline", form.deadline);
-        formData.append("max_participants", form.max_participants);
-        formData.append("is_draft", 1);
-        if (form.image) formData.append("image", form.image);
-        form.keywords.forEach(k => formData.append("keywords", k));
-        // creator（ユーザーID）が空の場合、ローカル環境ならダミー値を送信、本番環境なら送信しない
-        const isLocal = API_BASE_URL.includes("localhost") || API_BASE_URL.includes("127.0.0.1");
-        if (!form.creator) {
-            if (isLocal) {
-                formData.append("creator", "0738");
-            }
-            // 本番環境なら送信しない（API側で処理）
-        } else {
-            formData.append("creator", form.creator);
-        }
+        // localStorageへの保存は行わない（eventCreateDraft未使用）
+        const query = {};
+        Object.keys(form).forEach(k => {
+            if (k === "image") return;
+            query[k] = form[k];
+        });
+        query.is_draft = 1;
+        window.location.href = `/event-create-confirm?${new URLSearchParams(query).toString()}`;
+    };
 
+    // 削除ボタンのハンドラ
+    const handleDelete = async () => {
+        if (!window.confirm("本当にイベントを削除しますか？")) return;
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:7071";
+        const isLocal = API_BASE_URL.includes("localhost") || API_BASE_URL.includes("127.0.0.1");
+        const API_EVENTS_PATH = isLocal ? "/api/events" : "/events";
         try {
-            const res = await fetch(`${API_BASE_URL}${API_EVENTS_PATH}`, {
-                method: "POST",
-                body: formData
+            const res = await fetch(`${API_BASE_URL}${API_EVENTS_PATH}/${eventData.event_id}`, {
+                method: "DELETE"
             });
             if (res.ok) {
-                alert("下書きを保存しました");
+                alert("イベントを削除しました。");
+                window.location.href = "/event-create-done?deleted=1";
             } else {
                 let err;
                 const contentType = res.headers.get("content-type");
@@ -225,7 +224,7 @@ export default function EventCreate() {
                 } else {
                     err = { error: await res.text() };
                 }
-                alert("下書き保存失敗: " + (err.error || res.status) + (err.trace ? "\n" + err.trace : ""));
+                alert("削除失敗: " + (err.error || res.status));
             }
         } catch (err) {
             alert("通信エラー: " + err);
@@ -233,101 +232,22 @@ export default function EventCreate() {
     };
 
     return (
-        <div style={{ maxWidth: 600, margin: "2rem auto", fontFamily: "sans-serif" }}>
-            <h1>イベント作成</h1>
-            <form onSubmit={handleSubmit}>
-                <div className="row">
-                    <label>タイトル
-                        <input type="text" name="title" value={form.title} onChange={handleChange} required maxLength={255} />
-                    </label>
-                    {errors.title && <div style={{ color: 'red' }}>{errors.title}</div>}
-                </div>
-                <div className="row">
-                    <label>日付
-                        <input type="datetime-local" name="date" value={form.date} onChange={handleChange} required min={new Date().toISOString().slice(0, 16)} />
-                    </label>
-                    {errors.date && <div style={{ color: 'red' }}>{errors.date}</div>}
-                </div>
-                <div className="row">
-                    <label>場所
-                        <input type="text" name="location" value={form.location} onChange={handleChange} required maxLength={255} />
-                    </label>
-                    {errors.location && <div style={{ color: 'red' }}>{errors.location}</div>}
-                </div>
-                <div className="row">
-                    <label>カテゴリ
-                        <select name="category" value={form.category} onChange={handleChange} required>
-                            <option value="">選択してください</option>
-                            {categoryOptions.map(opt => (
-                                <option key={opt.value} value={opt.value}>{opt.label}</option>
-                            ))}
-                        </select>
-                    </label>
-                    {errors.category && <div style={{ color: 'red' }}>{errors.category}</div>}
-                </div>
-                <div className="row">
-                    <label>キーワード</label>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
-                        {keywordOptions.map(opt => (
-                            <label key={opt.value} style={{ display: "flex", alignItems: "center", gap: "0.2rem", margin: 0 }}>
-                                <input
-                                    type="checkbox"
-                                    name="keywords"
-                                    value={opt.value}
-                                    checked={form.keywords.includes(opt.value)}
-                                    onChange={handleChange}
-                                />
-                                {opt.label}
-                            </label>
-                        ))}
-                    </div>
-                    {errors.keywords && <div style={{ color: 'red' }}>{errors.keywords}</div>}
-                </div>
-                <div className="row">
-                    <label>画像
-                        <input type="file" name="image" accept="image/*" onChange={handleChange} />
-                    </label>
-                    {preview && <img src={preview} alt="プレビュー" style={{ maxWidth: "100%", maxHeight: 200, marginTop: "0.5rem" }} />}
-                    {errors.image && <div style={{ color: 'red' }}>{errors.image}</div>}
-                </div>
-                <div className="row">
-                    <label>イベント概要
-                        <textarea name="summary" rows={3} maxLength={200} value={form.summary} onChange={handleChange} required />
-                    </label>
-                    {errors.summary && <div style={{ color: 'red' }}>{errors.summary}</div>}
-                </div>
-                <div className="row">
-                    <label>イベント詳細
-                        <textarea name="detail" rows={5} maxLength={200} value={form.detail} onChange={handleChange} required />
-                    </label>
-                    {errors.detail && <div style={{ color: 'red' }}>{errors.detail}</div>}
-                </div>
-                <div className="row">
-                    <label>最大人数
-                        <input type="number" name="max_participants" value={form.max_participants} onChange={handleChange} min={1} />
-                    </label>
-                    {errors.max_participants && <div style={{ color: 'red' }}>{errors.max_participants}</div>}
-                </div>
-                <div className="row">
-                    <label>申し込み締め切り日
-                        <input type="datetime-local" name="deadline" value={form.deadline} onChange={handleChange} required min={new Date().toISOString().slice(0, 16)} max={form.date || undefined} />
-                    </label>
-                    {errors.deadline && <div style={{ color: 'red' }}>{errors.deadline}</div>}
-                </div>
-                <button
-                    type="submit"
-                    disabled={!isFormComplete()}
-                    style={{
-                        background: isFormComplete() ? "#1976d2" : "#ccc",
-                        color: isFormComplete() ? "#fff" : "#888",
-                        cursor: isFormComplete() ? "pointer" : "not-allowed",
-                        opacity: isFormComplete() ? 1 : 0.6
-                    }}
-                >
-                    作成
-                </button>
-                <button type="button" style={{ marginLeft: 8 }} onClick={handleDraft}>下書き保存</button>
-            </form>
-        </div>
+        <EventForm
+            form={form}
+            errors={errors}
+            preview={preview}
+            eventData={eventData}
+            categoryOptions={categoryOptions}
+            keywordOptions={keywordOptions}
+            isEdit={isEdit}
+            onChange={handleChange}
+            onSubmit={handleSubmit}
+            onDraft={handleDraft}
+            onDelete={isEdit ? handleDelete : undefined}
+            isFormComplete={isFormComplete}
+            submitLabel={isEdit ? "更新" : "作成"}
+            draftLabel={"下書き保存"}
+            deleteLabel={"イベント取り消し"}
+        />
     );
 }

@@ -10,6 +10,145 @@ import uuid
 from datetime import datetime
 app = func.FunctionApp()
 
+@app.function_name(name="get_event")
+@app.route(route="events/{event_id}", methods=["GET"])
+def get_event(req: func.HttpRequest) -> func.HttpResponse:
+    event_id = req.route_params.get('event_id')
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM EVENTS WHERE event_id = ?", event_id)
+        row = cursor.fetchone()
+        if not row:
+            return func.HttpResponse("Not Found", status_code=404)
+        # キーワード取得
+        cursor.execute("SELECT keyword_id FROM EVENTS_KEYWORDS WHERE event_id = ?", event_id)
+        keywords = [str(r.keyword_id) for r in cursor.fetchall()]
+        # dict型 or オブジェクト型両対応
+        def get_attr(obj, key):
+            if isinstance(obj, dict):
+                return obj.get(key)
+            return getattr(obj, key, None)
+        result = {
+            "event_id": get_attr(row, "event_id"),
+            "event_title": get_attr(row, "event_title"),
+            "event_datetime": str(get_attr(row, "event_datetime")),
+            "location": get_attr(row, "location"),
+            "event_category": get_attr(row, "event_category"),
+            "description": get_attr(row, "description"),
+            "content": get_attr(row, "content"),
+            "deadline": str(get_attr(row, "deadline")),
+            "image": get_attr(row, "image"),
+            "max_participants": get_attr(row, "max_participants"),
+            "keywords": keywords
+        }
+        return func.HttpResponse(json.dumps(result), mimetype="application/json")
+    except Exception as e:
+        logging.error(str(e))
+        return func.HttpResponse(f"Error: {str(e)}", status_code=500)
+@app.function_name(name="update_event")
+@app.route(route="events/{event_id}", methods=["PUT"])
+def update_event(req: func.HttpRequest) -> func.HttpResponse:
+    event_id = req.route_params.get('event_id')
+    try:
+        content_type = req.headers.get("Content-Type", "")
+        data = {}
+        image_path = None
+        if content_type.startswith("multipart/form-data"):
+            body = req.get_body()
+            multipart_data = decoder.MultipartDecoder(body, content_type)
+            for part in multipart_data.parts:
+                content_disposition = part.headers.get(b'Content-Disposition', b'').decode()
+                if 'filename=' in content_disposition:
+                    filename = content_disposition.split('filename="')[1].split('"')[0]
+                    ext = os.path.splitext(filename)[1]
+                    user_id = "edit"
+                    unique_id = uuid.uuid4().hex[:8]
+                    save_name = f"{datetime.now().strftime('%Y%m%d%H%M%S')}_{user_id}_{unique_id}{ext}"
+                    save_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'front', 'public', 'images'))
+                    os.makedirs(save_dir, exist_ok=True)
+                    save_path = os.path.join(save_dir, save_name)
+                    with open(save_path, "wb") as f:
+                        f.write(part.content)
+                    image_path = f"images/{save_name}"
+                    data["image"] = image_path
+                else:
+                    name = content_disposition.split('name="')[1].split('"')[0]
+                    value = part.text
+                    if name == "keywords":
+                        if "keywords" not in data:
+                            data["keywords"] = []
+                        data["keywords"].append(value)
+                    else:
+                        data[name] = value
+            if "image" not in data:
+                data["image"] = None
+        else:
+            data = req.get_json()
+            image_path = data.get("image")
+
+        with get_db_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    '''
+                    UPDATE EVENTS SET event_title=?, event_category=?, event_datetime=?, deadline=?, location=?, max_participants=?, description=?, content=?, image=? WHERE event_id=?
+                    ''',
+                    data.get("title"),
+                    int(data.get("category")) if data.get("category") else None,
+                    data.get("date"),
+                    data.get("deadline"),
+                    data.get("location"),
+                    int(data.get("max_participants")) if data.get("max_participants") else None,
+                    data.get("summary"),
+                    data.get("detail"),
+                    data.get("image"),
+                    event_id
+                )
+                # キーワード更新（全削除→再登録）
+                cursor.execute("DELETE FROM EVENTS_KEYWORDS WHERE event_id=?", event_id)
+                if data.get("keywords"):
+                    for kw in data["keywords"]:
+                        cursor.execute("INSERT INTO EVENTS_KEYWORDS (event_id, keyword_id) VALUES (?, ?)", event_id, int(kw))
+                conn.commit()
+        return func.HttpResponse(json.dumps({"message": "イベント更新完了", "event_id": event_id}), mimetype="application/json", status_code=200)
+    except Exception as e:
+        import traceback
+        tb = traceback.format_exc()
+        logging.error(tb)
+        return func.HttpResponse(json.dumps({"error": str(e), "trace": tb}), mimetype="application/json", status_code=500)
+@app.function_name(name="delete_event")
+@app.route(route="events/{event_id}", methods=["DELETE"])
+def delete_event(req: func.HttpRequest) -> func.HttpResponse:
+    event_id = req.route_params.get('event_id')
+    try:
+        with get_db_connection() as conn:
+            with conn.cursor() as cursor:
+                # まず存在確認
+                cursor.execute("SELECT 1 FROM EVENTS WHERE event_id=?", event_id)
+                if not cursor.fetchone():
+                    return func.HttpResponse(json.dumps({"error": "イベントが存在しません"}), mimetype="application/json", status_code=404)
+                cursor.execute("DELETE FROM EVENTS_KEYWORDS WHERE event_id=?", event_id)
+                cursor.execute("DELETE FROM EVENTS_PARTICIPANTS WHERE event_id=?", event_id)
+                cursor.execute("DELETE FROM EVENTS WHERE event_id=?", event_id)
+                conn.commit()
+        return func.HttpResponse(json.dumps({"message": "イベント削除完了", "event_id": event_id}), mimetype="application/json", status_code=200)
+    except Exception as e:
+        import traceback
+        tb = traceback.format_exc()
+        logging.error(tb)
+        return func.HttpResponse(json.dumps({"error": str(e), "trace": tb}), mimetype="application/json", status_code=500)
+import os
+import pyodbc
+import io
+import json
+import logging
+import azure.functions as func
+from multipart import MultipartParser
+from requests_toolbelt.multipart import decoder
+import uuid
+from datetime import datetime
+app = func.FunctionApp()
+
 def get_db_connection():
     # Azure環境では環境変数から取得、ローカルはlocal.settings.jsonから取得
     conn_str = os.environ.get('CONNECTION_STRING')
@@ -22,6 +161,7 @@ def get_db_connection():
         raise Exception("DB接続文字列が設定されていません")
     return pyodbc.connect(conn_str)
 
+@app.function_name(name="get_categories_keywords")
 @app.route(route="get_categories_keywords/{table}", methods=["GET"])
 def get_categories_keywords(req: func.HttpRequest) -> func.HttpResponse:
     table = req.route_params.get('table')
@@ -49,6 +189,7 @@ def get_categories_keywords(req: func.HttpRequest) -> func.HttpResponse:
         logging.error(str(e))
         return func.HttpResponse(f"Error: {str(e)}", status_code=500)
 
+@app.function_name(name="create_event")
 @app.route(route="events", methods=["POST"])
 def create_event(req: func.HttpRequest) -> func.HttpResponse:
     if req.method != "POST":
@@ -149,10 +290,11 @@ def create_event(req: func.HttpRequest) -> func.HttpResponse:
                     raise Exception("イベントIDの取得に失敗しました")
                 if data.get("keywords"):
                     for kw in data["keywords"]:
-                        cursor.execute(
-                            "INSERT INTO EVENTS_KEYWORDS (event_id, keyword_id) VALUES (?, ?)",
-                            event_id, int(kw)
-                        )
+                        if kw:  # 空文字除外
+                            cursor.execute(
+                                "INSERT INTO EVENTS_KEYWORDS (event_id, keyword_id) VALUES (?, ?)",
+                                event_id, int(kw)
+                            )
                 conn.commit()
         return func.HttpResponse(json.dumps({"message": "イベント登録完了", "event_id": event_id}), mimetype="application/json", status_code=200)
     except Exception as e:
@@ -160,3 +302,4 @@ def create_event(req: func.HttpRequest) -> func.HttpResponse:
         tb = traceback.format_exc()
         logging.error(tb)
         return func.HttpResponse(json.dumps({"error": str(e), "trace": tb}), mimetype="application/json", status_code=500)
+

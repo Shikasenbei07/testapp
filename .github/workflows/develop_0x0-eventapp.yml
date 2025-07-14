@@ -6,7 +6,7 @@ name: Build and deploy Node.js app to Azure Web App - 0x0-eventapp
 on:
   push:
     branches:
-      - develop
+      - feature/event-management
   workflow_dispatch:
 
 jobs:
@@ -56,7 +56,7 @@ jobs:
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: '0x0-eventapp'
+          app-name: 'function-event-management'
           slot-name: 'Production'
-          package: .
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_580A664D28054898989800CB0F07C35A }}
+          package: back/function-event-management
+          publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE_EVENTMANAGEMENT }}

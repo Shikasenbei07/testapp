@@ -40,6 +40,9 @@ venv.bak/
 # 開発用設定ファイル（Git管理対象外）
 local.settings.json
 
+
+# テストディレクトリ（Git管理対象外）
+tests/
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
