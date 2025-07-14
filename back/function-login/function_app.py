@@ -2,7 +2,6 @@ import azure.functions as func
 import json
 import pyodbc
 import os
-import jwt  # pip install PyJWT
 
 app = func.FunctionApp(http_auth_level=func.AuthLevel.FUNCTION)
 
@@ -40,7 +39,7 @@ def login(req: func.HttpRequest) -> func.HttpResponse:
                 result = cursor.fetchone()
                 if result and result[0] == 1:
                     return func.HttpResponse(
-                        json.dumps({"result": "ok"}),
+                        json.dumps({"result": "ok", "id": id}),
                         status_code=200,
                         mimetype="application/json"
                     )
