@@ -32,7 +32,7 @@ def get_event(req: func.HttpRequest) -> func.HttpResponse:
         if not row:
             logging.warning(f"get_event: event_id {event_id_int} not found in DB")
             return func.HttpResponse("Not Found", status_code=404)
-        # キーワード取得
+        # キーワード取得1
         cursor.execute("SELECT keyword_id FROM EVENTS_KEYWORDS WHERE event_id = ?", event_id_int)
         keywords = [str(r.keyword_id) for r in cursor.fetchall()]
         def get_attr(obj, key):
