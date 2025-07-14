@@ -1,7 +1,16 @@
 import sys
 import os
+import pytest
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import function_app
+
+@pytest.fixture(autouse=True)
+def setup_and_teardown():
+    # テスト用のDBやデータを初期化する処理をここに書く
+    # 例: function_app.clear_test_data()
+    yield
+    # 後処理（必要なら）
 
 def test_get_favorites_list_returns_list():
     # Assuming function_app.get_favorites_list returns a list of favorites
