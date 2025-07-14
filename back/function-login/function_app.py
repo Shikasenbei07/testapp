@@ -12,13 +12,13 @@ SECRET_KEY = os.environ.get("JWT_SECRET", "your-secret-key")
 def login(req: func.HttpRequest) -> func.HttpResponse:
     try:
         data = req.get_json()
-        username = data.get("username")
+        id = data.get("id")
         password = data.get("password")
 
         # 必須フィールドチェック
-        if not username or not password:
+        if not id or not password:
             return func.HttpResponse(
-                json.dumps({"error": "Missing username or password"}),
+                json.dumps({"error": "Missing id or password"}),
                 status_code=400,
                 mimetype="application/json"
             )
@@ -37,14 +37,12 @@ def login(req: func.HttpRequest) -> func.HttpResponse:
                 cursor = conn.cursor()
                 cursor.execute(
                     "SELECT COUNT(*) FROM users WHERE id=? AND password=?",
-                    (username, password)
+                    (id, password)
                 )
                 result = cursor.fetchone()
                 if result and result[0] == 1:
-                    # JWTトークン生成
-                    token = jwt.encode({"username": username}, SECRET_KEY, algorithm="HS256")
                     return func.HttpResponse(
-                        json.dumps({"result": "ok", "token": token}),
+                        json.dumps({"result": "ok"}),
                         status_code=200,
                         mimetype="application/json"
                     )
