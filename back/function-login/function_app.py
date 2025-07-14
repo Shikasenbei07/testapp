@@ -6,8 +6,6 @@ import jwt  # pip install PyJWT
 
 app = func.FunctionApp(http_auth_level=func.AuthLevel.FUNCTION)
 
-SECRET_KEY = os.environ.get("JWT_SECRET", "your-secret-key")
-
 @app.route(route="login", methods=["POST"])
 def login(req: func.HttpRequest) -> func.HttpResponse:
     try:
