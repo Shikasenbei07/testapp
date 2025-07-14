@@ -68,6 +68,7 @@ jobs:
         CONNECTION_STRING: ${{ secrets.CONNECTION_STRING }}
       run:
         pip install azure-functions
+        pip install azure-storage-blob
         pytest
 
     - name: 'Run Azure Functions Action'
