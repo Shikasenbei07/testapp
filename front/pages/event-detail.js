@@ -53,6 +53,11 @@ export default function EventDetailPage() {
           </tr>
         </tbody>
       </table>
+      {event.image && (
+        <div>
+          <img src={event.image} alt="イベント画像" style={{ maxWidth: "100%" }} />
+        </div>
+      )}
       <button onClick={() => router.back()}>戻る</button>
       <button
         style={{ marginLeft: '1rem', background: '#1976d2', color: 'white', padding: '0.5rem 1.5rem', border: 'none', borderRadius: '4px', cursor: 'pointer' }}

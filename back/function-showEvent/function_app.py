@@ -3,6 +3,8 @@ import logging
 import pyodbc
 import os
 import json
+
+
  
 # グローバル変数でcategories情報を保持
 def load_categories():
