@@ -2,20 +2,6 @@ import { useRouter } from 'next/router';
 
 export default function CancelComplete() {
   const router = useRouter();
-  const { item } = router.query;
-
-  const handleCancel = async () => {
-    const res = await fetch("/api/cancel-reservation", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ event_id: item.event_id })
-    });
-    if (res.ok) {
-      router.replace("/cancel-complete");
-    } else {
-      alert("キャンセルに失敗しました");
-    }
-  };
 
   return (
     <div style={{
@@ -43,19 +29,7 @@ export default function CancelComplete() {
           fontSize: "1.08rem",
           marginTop: 24
         }}
-        onClick={() => {
-          router.push({
-            pathname: "/reservation-detail",
-            query: {
-              event_id: item.event_id, // ←追加
-              event_title: item.event_title ?? "",
-              event_datetime: item.event_datetime ?? "",
-              location: item.location ?? "",
-              description: item.description ?? "",
-              content: item.content ?? ""
-            }
-          });
-        }}
+        onClick={() => router.push("/history")}
       >
         履歴に戻る
       </button>

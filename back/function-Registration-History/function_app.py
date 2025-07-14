@@ -23,6 +23,7 @@ def Registration(req: func.HttpRequest) -> func.HttpResponse:
             cursor = conn.cursor()
             sql = """
             SELECT
+              ep.event_id,  -- これを追加
               e.event_title,
               c.category_name,
               e.event_datetime,
@@ -57,17 +58,38 @@ def CancelReservation(req: func.HttpRequest) -> func.HttpResponse:
     try:
         req_body = req.get_json()
         event_id = req_body.get("event_id")
-        user_id = "0738"  # 固定
+        if not event_id:
+            logging.error("event_idが空です")
+            return func.HttpResponse("event_idが空です", status_code=400)
+        user_id = "0738"
+        logging.info(f"受信 event_id: {event_id} (type: {type(event_id)}), user_id: {user_id} (type: {type(user_id)})")
         conn_str = os.environ.get("CONNECTION_STRING")
         if not conn_str:
             return func.HttpResponse("DB connection string not found.", status_code=500)
         with pyodbc.connect(conn_str) as conn:
             cursor = conn.cursor()
+            try:
+                event_id_int = int(event_id)
+            except Exception as e:
+                logging.error(f"event_id型変換エラー: {e}")
+                return func.HttpResponse("event_id型エラー", status_code=400)
+            # 削除前に該当レコードが存在するか確認
+            cursor.execute(
+                "SELECT COUNT(*) FROM EVENTS_PARTICIPANTS WHERE event_id = ? AND id = ?",
+                (event_id_int, user_id)
+            )
+            count = cursor.fetchone()[0]
+            logging.info(f"削除対象件数: {count}")
+            if count == 0:
+                return func.HttpResponse("Not found", status_code=404)
+            # 削除処理
             cursor.execute(
                 "DELETE FROM EVENTS_PARTICIPANTS WHERE event_id = ? AND id = ?",
-                (event_id, user_id)
+                (event_id_int, user_id)
             )
+            deleted = cursor.rowcount
             conn.commit()
+        logging.info(f"削除件数: {deleted}")
         return func.HttpResponse("OK", status_code=200)
     except Exception as e:
         logging.error(f"Cancel error: {e}")

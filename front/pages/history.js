@@ -5,6 +5,14 @@ export default function ReservationHistory() {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [detail, setDetail] = useState({
+    event_id: "",
+    event_title: "",
+    event_datetime: "",
+    location: "",
+    description: "",
+    content: ""
+  });
   const router = useRouter();
 
   useEffect(() => {
@@ -22,6 +30,47 @@ export default function ReservationHistory() {
         setLoading(false);
       });
   }, []);
+
+  useEffect(() => {
+    if (router.isReady) {
+      setDetail({
+        event_id: router.query.event_id ?? "", // ←ここで受け取る
+        event_title: router.query.event_title ?? "",
+        event_datetime: router.query.event_datetime ?? "",
+        location: router.query.location ?? "",
+        description: router.query.description ?? "",
+        content: router.query.content ?? ""
+      });
+    }
+  }, [router.isReady, router.query]);
+
+  const handleCancel = async () => {
+    if (!detail.event_id) {
+      alert("イベントIDが取得できません。");
+      return;
+    }
+    const res = await fetch("/api/cancel-reservation", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ event_id: detail.event_id })
+    });
+    if (res.ok) {
+      alert("予約をキャンセルしました。");
+      // キャンセル後の処理（例：履歴を再取得）
+      setHistory(history.filter(item => item.event_id !== detail.event_id));
+      setDetail({
+        event_id: "",
+        event_title: "",
+        event_datetime: "",
+        location: "",
+        description: "",
+        content: ""
+      });
+    } else {
+      const errorData = await res.json();
+      alert(`キャンセルに失敗しました: ${errorData.message}`);
+    }
+  };
 
   if (loading) return <div style={{textAlign: "center", marginTop: "3rem", color: "#00c2a0", fontFamily: "monospace", fontSize: "1.5rem"}}>🌀 ローディング中...</div>;
   if (error) return <div style={{ color: "#ff0055", textAlign: "center", marginTop: "3rem", fontFamily: "monospace", fontSize: "1.2rem" }}>{error}</div>;
@@ -175,10 +224,11 @@ export default function ReservationHistory() {
                         transition: "background 0.2s",
                       }}
                       onClick={() => {
+                        // event_idをクエリに必ず含める
                         router.push({
                           pathname: "/reservation-detail",
                           query: {
-                            event_id: item.event_id, // ← ここを必ず追加
+                            event_id: item.event_id,
                             event_title: item.event_title ?? "",
                             event_datetime: item.event_datetime ?? "",
                             location: item.location ?? "",
