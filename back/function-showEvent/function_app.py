@@ -1,0 +1,84 @@
+import azure.functions as func
+import logging
+import pyodbc
+import os
+import json
+
+# 承認レベルによって書き換える
+app = func.FunctionApp(http_auth_level=func.AuthLevel.FUNCTION)
+
+# 11,12行目のxxxは機能ごとに適当に命名してください
+@app.route(route="showEvent", methods=["GET", "POST"])
+def showEvent(req: func.HttpRequest) -> func.HttpResponse:
+    if req.method == "GET":
+        # GETリクエスト時の処理（event_id指定なしなら全件返す）
+        event_id = req.params.get("event_id")
+        if not event_id:
+            # event_id未指定なら全件返す
+            try:
+                conn_str = os.environ.get("CONNECTION_STRING")
+                if not conn_str:
+                    logging.error("CONNECTION_STRINGが環境変数に設定されていません")
+                    return func.HttpResponse("DB接続情報がありません", status_code=500)
+                conn = pyodbc.connect(conn_str)
+                cursor = conn.cursor()
+                cursor.execute("SELECT * FROM events")
+                columns = [column[0] for column in cursor.description]
+                rows = cursor.fetchall()
+                conn.close()
+                result = [dict(zip(columns, row)) for row in rows]
+                return func.HttpResponse(json.dumps(result, default=str), mimetype="application/json")
+            except Exception as e:
+                logging.error(f"DBエラー: {e}")
+                return func.HttpResponse(f"DB接続エラー: {e}", status_code=500)
+    elif req.method == "POST":
+        # POSTリクエスト時の処理
+        try:
+            req_body = req.get_json()
+        except ValueError:
+            return func.HttpResponse("リクエストボディが不正です", status_code=400)
+        event_id = req_body.get("event_id")
+        if not event_id:
+            return func.HttpResponse("event_idが指定されていません", status_code=400)
+    else:
+        return func.HttpResponse("許可されていないメソッドです", status_code=405)
+
+    # event_idが数値型の場合はintに変換
+    try:
+        event_id_int = int(event_id)
+    except (ValueError, TypeError):
+        return func.HttpResponse("event_idの形式が不正です", status_code=400)
+    return get_name(event_id_int)
+
+
+# 例：入力idがマッチしたときに対応する氏名を取得する関数
+def get_name(event_id):
+    try:
+        conn_str = os.environ.get("CONNECTION_STRING")
+        if not conn_str:
+            logging.error("CONNECTION_STRINGが環境変数に設定されていません")
+            return func.HttpResponse("DB接続情報がありません", status_code=500)
+        conn = pyodbc.connect(conn_str)
+        cursor = conn.cursor()
+        # eventsテーブルからイベント情報を全カラム取得
+        sql = "SELECT * FROM events WHERE event_id = ?"
+        cursor.execute(sql, (event_id,))
+        row = cursor.fetchone()
+        columns = [column[0] for column in cursor.description]
+        conn.close()
+    except Exception as e:
+        logging.error(f"DBエラー: {e}")
+        return func.HttpResponse(f"DB接続エラー: {e}", status_code=500)
+    
+    if row:
+        # 結果を返す（イベント情報：全カラム）
+        result = dict(zip(columns, row))
+        # 日付型などは文字列化
+        for k, v in result.items():
+            if isinstance(v, (bytes, bytearray)):
+                result[k] = v.decode('utf-8', errors='ignore')
+            elif hasattr(v, 'isoformat'):
+                result[k] = v.isoformat()
+        return func.HttpResponse(json.dumps(result, default=str), mimetype="application/json")
+    else:
+        return func.HttpResponse("該当するデータがありません", status_code=404)

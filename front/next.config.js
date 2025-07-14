@@ -8,4 +8,13 @@ module.exports = {
         }
         return config;
     },
+    async redirects() {
+        return [
+            {
+                source: '/',
+                destination: '/index',
+                permanent: true,
+            },
+        ];
+    },
 };
