@@ -47,4 +47,5 @@ def test_remove_favorite_not_found():
 # - name: Run tests
 #   run: |
 #     pip install -r back/function-favorites-list/requirements.txt
+#     pip install pytest
 #     pytest back/function-favorites-list/tests
