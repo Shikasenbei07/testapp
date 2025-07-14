@@ -61,6 +61,7 @@ def get_event(req: func.HttpRequest) -> func.HttpResponse:
 def update_event(req: func.HttpRequest) -> func.HttpResponse:
     event_id = req.route_params.get('event_id')
     try:
+        # 作成者チェック
         content_type = req.headers.get("Content-Type", "")
         data = {}
         image_path = None
@@ -96,6 +97,18 @@ def update_event(req: func.HttpRequest) -> func.HttpResponse:
         else:
             data = req.get_json()
             image_path = data.get("image")
+
+        # DBからイベント取得して作成者チェック
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT creator FROM EVENTS WHERE event_id=?", event_id)
+        row = cursor.fetchone()
+        if not row:
+            return func.HttpResponse(json.dumps({"error": "イベントが存在しません"}), mimetype="application/json", status_code=404)
+        event_creator = row.creator if hasattr(row, "creator") else row[0]
+        request_creator = str(data.get("creator", ""))
+        if not request_creator or request_creator != str(event_creator):
+            return func.HttpResponse(json.dumps({"error": "イベント作成者のみ編集可能です"}), mimetype="application/json", status_code=403)
         def to_db_date(val):
             if not val or (isinstance(val, str) and val.strip() == ""):
                 return None
@@ -146,10 +159,20 @@ def delete_event(req: func.HttpRequest) -> func.HttpResponse:
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cursor:
-                # まず存在確認
-                cursor.execute("SELECT 1 FROM EVENTS WHERE event_id=?", event_id)
-                if not cursor.fetchone():
+                # まず存在確認と作成者チェック
+                cursor.execute("SELECT creator FROM EVENTS WHERE event_id=?", event_id)
+                row = cursor.fetchone()
+                if not row:
                     return func.HttpResponse(json.dumps({"error": "イベントが存在しません"}), mimetype="application/json", status_code=404)
+                event_creator = row.creator if hasattr(row, "creator") else row[0]
+                # creatorはリクエストbodyまたはクエリから取得（ここではbody優先）
+                try:
+                    data = req.get_json()
+                except Exception:
+                    data = {}
+                request_creator = str(data.get("creator", ""))
+                if not request_creator or request_creator != str(event_creator):
+                    return func.HttpResponse(json.dumps({"error": "イベント作成者のみ削除可能です"}), mimetype="application/json", status_code=403)
                 cursor.execute("DELETE FROM EVENTS_KEYWORDS WHERE event_id=?", event_id)
                 cursor.execute("DELETE FROM EVENTS_PARTICIPANTS WHERE event_id=?", event_id)
                 cursor.execute("DELETE FROM EVENTS WHERE event_id=?", event_id)
