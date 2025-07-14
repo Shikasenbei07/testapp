@@ -67,7 +67,6 @@ jobs:
       env:
         CONNECTION_STRING: ${{ secrets.CONNECTION_STRING }}
       run:
-        pip install azure-functions
         pytest
 
     - name: 'Run Azure Functions Action'

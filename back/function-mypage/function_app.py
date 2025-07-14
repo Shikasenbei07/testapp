@@ -1,5 +1,4 @@
 import azure.functions as func
-import logging
 import os
 import pyodbc
 from azure.storage.blob import BlobServiceClient, generate_blob_sas, BlobSasPermissions
