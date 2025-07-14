@@ -1,5 +1,7 @@
-import pytest
-from back.function_favorites_list import function_app
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+import function_app
 
 def test_get_favorites_list_returns_list():
     # Assuming function_app.get_favorites_list returns a list of favorites
@@ -32,3 +34,8 @@ def test_remove_favorite_not_found():
     # Assuming function_app.remove_favorite returns False if item not in favorites
     success = function_app.remove_favorite(user_id="test_user", item_id="nonexistent_item")
     assert success is False
+
+# - name: Run tests
+#   run: |
+#     pip install -r back/function-favorites-list/requirements.txt
+#     pytest back/function-favorites-list/tests
