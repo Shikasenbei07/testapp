@@ -32,7 +32,7 @@ export default function MyPage() {
       return;
     }
 
-    fetch("http://localhost:7071/api/mypage", {
+    fetch("https://0x0-mypage.azurewebsites.net/api/mypage?code=rzWYX4Wg009BE4aqcvISI2-bYJ3FDJleE8xzJD7ogYF2AzFuf0Xu9A%3D%3D", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id }),

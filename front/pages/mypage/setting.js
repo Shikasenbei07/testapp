@@ -76,7 +76,7 @@ export default function Setting() {
       const formData = new FormData();
       formData.append("id", id);
       formData.append("profile_img", profileImg);
-      const res = await fetch("http://localhost:7071/api/upload_profile_img", {
+      const res = await fetch("https://0x0-mypage.azurewebsites.net/api/upload_profile_img?code=cviITIhg8eHig53MaBOTRv7-nw8B9V9H6eMhYD-ho46VAzFu8QllRw%3D%3D", {
         method: "POST",
         body: formData,
       });
@@ -89,7 +89,7 @@ export default function Setting() {
     }
 
     // ユーザ情報更新API呼び出し例
-    const res = await fetch("http://localhost:7071/api/update_user", {
+    const res = await fetch("https://0x0-mypage.azurewebsites.net/api/update_user?code=zLvDKpdGpctGkH6ysOU4978S5vx31ofMN6fNwxo7vJ0UAzFuN8Sz_Q%3D%3D", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id, l_name: lName, profile_img: imgUrl }),
