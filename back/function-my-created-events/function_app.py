@@ -44,6 +44,7 @@ def my_created_events(req: func.HttpRequest) -> func.HttpResponse:
                 if hasattr(v, 'isoformat'):
                     event[k] = v.isoformat()
             events.append(event)
+        events.reverse()
         return func.HttpResponse(json.dumps(events, ensure_ascii=False), mimetype="application/json")
     except Exception as e:
         logging.error(str(e))
@@ -77,6 +78,7 @@ def my_draft_events(req: func.HttpRequest) -> func.HttpResponse:
                 if hasattr(v, 'isoformat'):
                     event[k] = v.isoformat()
             events.append(event)
+        events.reverse()
         return func.HttpResponse(json.dumps(events, ensure_ascii=False), mimetype="application/json")
     except Exception as e:
         logging.error(str(e))
