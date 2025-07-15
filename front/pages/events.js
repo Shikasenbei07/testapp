@@ -1,46 +1,49 @@
 import { useEffect, useState } from "react";
 
 export default function EventsPage() {
-  const [favorites, setFavorites] = useState(() => {
-    try {
-      const favStr = localStorage.getItem("favorites");
-      if (!favStr) return [];
-      return JSON.parse(favStr);
-    } catch {
-      return [];
-    }
-  });
+  const [favorites, setFavorites] = useState([]);
+  const userId = '0738';
 
   function toggleFavorite(eventId) {
     const userId = '0738';
     setFavorites(prev => {
-      let updated;
+      // すでにお気に入りの場合は何もしない（色も維持）
       if (prev.includes(eventId)) {
-        updated = prev.filter(id => id !== eventId);
-      } else {
-        updated = [...prev, eventId];
-        // お気に入り追加時のみAPI呼び出し
-        fetch("https://0x0-showevent-hbbadxcxh9a4bzhu.japaneast-01.azurewebsites.net/api/favorite", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ event_id: eventId, id: userId })
-        })
-        .then(async res => {
-          const text = await res.text();
-          if (!text) return;
-          try {
-            return JSON.parse(text);
-          } catch {
-            return;
-          }
-        })
-        .then(data => {
-          // 必要なら通知やエラーハンドリング
-        })
-        .catch(err => {
-          console.error("お気に入り登録APIエラー", err);
-        });
+        return prev;
       }
+      const updated = [...prev, eventId];
+      // お気に入り追加時のみAPI呼び出し
+      fetch("https://0x0-showevent-hbbadxcxh9a4bzhu.japaneast-01.azurewebsites.net/api/favorite?code=zsOO_WgPGY9dtEN_tkki1bHWPy8XYJQoQPo2G7ONmvsoAzFusJrTJg%3D%3D", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ event_id: eventId, id: userId })
+      })
+      .then(async res => {
+        if (!res.ok) {
+          const errorText = await res.text();
+          let message = `お気に入り登録失敗: ${errorText}`;
+          if (
+            errorText.includes('PRIMARY KEY constraint') ||
+            errorText.includes('duplicate key')
+          ) {
+            message = 'すでにお気に入り登録済みです';
+            alert(message);
+            window.location.href = '/events';
+            throw new Error(errorText);
+          }
+          alert(message);
+          throw new Error(errorText);
+        }
+        return res.text();
+      })
+      .then(data => {
+        // 登録成功時に通知
+        alert('お気に入りに登録しました');
+      })
+      .catch(err => {
+        // 既にalert済みなのでconsoleのみ
+        console.error("お気に入り登録APIエラー", err);
+      });
       localStorage.setItem("favorites", JSON.stringify(updated));
       return updated;
     });
@@ -56,12 +59,27 @@ export default function EventsPage() {
   const [hideExpired, setHideExpired] = useState(false);
 
   useEffect(() => {
+    // お気に入り情報をAPIから取得
+    fetch(`https://0x0-showevent-hbbadxcxh9a4bzhu.japaneast-01.azurewebsites.net/api/favorites?user_id=${userId}`)
+      .then(res => res.json())
+      .then(data => {
+        // dataはevent_idの配列を想定
+        setFavorites(Array.isArray(data) ? data : []);
+      })
+      .catch(() => setFavorites([]));
+
     fetch("https://0x0-showevent-hbbadxcxh9a4bzhu.japaneast-01.azurewebsites.net/api/showevent?code=KjUCLx4igb6FiJ3ZtQKowVUUk9MgUtPSuBhPrMam2RwxAzFuTt1T_w%3D%3D") // 全イベント取得API
       .then((res) => res.json())
       .then((data) => {
-        // is_draftが1のものは除外
+        // is_draftが1のものは除外 & 締切期限が過ぎたものは除外
+        const now = new Date();
         const filtered = Array.isArray(data)
-          ? data.filter(event => event.is_draft !== 1 && event.is_draft !== "1")
+          ? data.filter(event => {
+              if (event.is_draft === 1 || event.is_draft === "1") return false;
+              if (!event.deadline) return true;
+              const deadline = new Date(event.deadline);
+              return deadline >= now;
+            })
           : [];
         setEvents(filtered);
       })
@@ -86,29 +104,29 @@ export default function EventsPage() {
 
   return (
     <div>
-      <div style={{ marginBottom: "1rem" }}>
-        <label htmlFor="sort-select">並び順: </label>
-        <select
-          id="sort-select"
-          value={sortKey}
-          onChange={e => setSortKey(e.target.value)}
-        >
-          <option value="">選択してください</option>
-          <option value="event_id">新着順</option>
-          <option value="current_participants">参加者数</option>
-          <option value="vacancy">空き枠順</option>
-          <option value="deadline">申し込み締め切り順</option>
-        </select>
-        <select
-          value={sortOrder}
-          onChange={e => setSortOrder(e.target.value)}
-        >
-          <option value="asc">昇順</option>
-          <option value="desc">降順</option>
-        </select>
-      </div>
       <div style={{ padding: "2rem" }}>
         <h1>イベント一覧</h1>
+        <div style={{ marginBottom: "1rem" }}>
+          <label htmlFor="sort-select">並び順: </label>
+          <select
+            id="sort-select"
+            value={sortKey}
+            onChange={e => setSortKey(e.target.value)}
+          >
+            <option value="">選択してください</option>
+            <option value="event_id">新着順</option>
+            <option value="current_participants">参加者数</option>
+            <option value="vacancy">空き枠順</option>
+            <option value="deadline">申し込み締め切り順</option>
+          </select>
+          <select
+            value={sortOrder}
+            onChange={e => setSortOrder(e.target.value)}
+          >
+            <option value="asc">昇順</option>
+            <option value="desc">降順</option>
+          </select>
+        </div>
         {error && <div style={{ color: "red" }}>{error}</div>}
         <div style={{ marginBottom: "1rem" }}>
           <label htmlFor="category-select">カテゴリーで絞り込み: </label>
@@ -147,16 +165,6 @@ export default function EventsPage() {
           {keyword && (
             <button onClick={() => setKeyword("")}>クリア</button>
           )}
-        </div>
-        <div style={{ marginBottom: "1rem" }}>
-          <label>
-            <input
-              type="checkbox"
-              checked={hideExpired}
-              onChange={e => setHideExpired(e.target.checked)}
-            />
-            申し込み期限が過ぎたイベントを非表示
-          </label>
         </div>
         <table border="1" cellPadding="8">
           <thead>
@@ -212,9 +220,15 @@ export default function EventsPage() {
                   </td>
                   <td style={{ textAlign: 'center' }}>
                     <button
-                      style={{ color: favorites.includes(event.event_id) ? "gold" : "gray" }}
                       onClick={() => toggleFavorite(event.event_id)}
-                      title={favorites.includes(event.event_id) ? "お気に入り解除" : "お気に入り追加"}
+                      title="お気に入り登録"
+                      style={{
+                        backgroundColor: favorites.includes(event.event_id) ? 'yellow' : '',
+                        border: 'none',
+                        fontSize: '1.5rem',
+                        cursor: 'pointer',
+                        padding: '4px 10px',
+                      }}
                     >
                       ★
                     </button>
