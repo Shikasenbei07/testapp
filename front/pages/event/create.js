@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import EventForm from "../components/EventForm";
+import EventForm from "../../components/EventForm";
 
 // カテゴリ・キーワードをlocalStorageでキャッシュするカスタムフック
 function useCachedFetch(key, url, mapFn) {
@@ -45,11 +45,8 @@ export default function EventCreate() {
     const [eventData, setEventData] = useState(null);
     useEffect(() => {
         if (isEdit && eventId) {
-            // 編集時はAPIからイベント詳細取得
-            const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:7071";
-            const isLocal = API_BASE_URL.includes("localhost") || API_BASE_URL.includes("127.0.0.1");
-            const API_EVENTS_PATH = isLocal ? "/api/events" : "/events";
-            fetch(`${API_BASE_URL}${API_EVENTS_PATH}/${eventId}`)
+           
+            fetch(`https://0x0-event-management.azurewebsites.net/api/events?code=K5myTaihTLRS_ET12lo8kreI7HEeKqkyDYYIEMgaxXTDAzFu7tLFng%3D%3D/${eventId}`)
                 .then(res => res.json())
                 .then(data => {
                     setEventData(data);
@@ -82,12 +79,12 @@ export default function EventCreate() {
 
     const categoryOptions = useCachedFetch(
         "categories",
-        `${API_BASE_URL}${API_CATEGORIES_PATH}`,
+        `https://0x0-event-management.azurewebsites.net/api/get_categories_keywords/categories?code=fAanZK6Io30u2CZlxXnipF3G88zykyIaL6TZkIjz3IW7AzFuGesvgA%3D%3D`,
         c => ({ value: String(c.category_id), label: c.category_name })
     );
     const keywordOptions = useCachedFetch(
         "keywords",
-        `${API_BASE_URL}${API_KEYWORDS_PATH}`,
+        `https://0x0-event-management.azurewebsites.net/api/get_categories_keywords/keywords?code=fAanZK6Io30u2CZlxXnipF3G88zykyIaL6TZkIjz3IW7AzFuGesvgA%3D%3D`,
         k => ({ value: String(k.keyword_id), label: k.keyword_name })
     );
 
@@ -263,6 +260,7 @@ export default function EventCreate() {
         }
     };
 
+    // EventFormへのprops渡し部分を修正
     return (
         <EventForm
             form={form}
@@ -280,6 +278,8 @@ export default function EventCreate() {
             submitLabel={isEdit ? "更新" : "作成"}
             draftLabel={"下書き保存"}
             deleteLabel={"イベント取り消し"}
+            // ↓追加: deadlineTypeを渡す
+            deadlineType="datetime-local"
         />
     );
 }

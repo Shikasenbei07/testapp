@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import EventForm from "../components/EventForm";
+import EventForm from "../../components/EventForm";
 import { useRouter } from "next/router";
 
 // イベント編集ページ
@@ -22,32 +22,25 @@ export default function EventEdit() {
     const [preview, setPreview] = useState(null);
     const [loading, setLoading] = useState(false);
 
-    // APIベースURL
-    const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:7071";
-    const isLocal = API_BASE_URL.includes("localhost") || API_BASE_URL.includes("127.0.0.1");
-    const API_EVENTS_PATH = isLocal ? "/api/events" : "/events";
-    const API_CATEGORIES_PATH = isLocal ? "/api/get_categories_keywords/categories" : "/get_categories_keywords/categories";
-    const API_KEYWORDS_PATH = isLocal ? "/api/get_categories_keywords/keywords" : "/get_categories_keywords/keywords";
-
     // カテゴリ・キーワード取得
     const [categoryOptions, setCategoryOptions] = useState([]);
     const [keywordOptions, setKeywordOptions] = useState([]);
     useEffect(() => {
-        fetch(`${API_BASE_URL}${API_CATEGORIES_PATH}`)
+        fetch(`https://0x0-event-management.azurewebsites.net/api/get_categories_keywords/categories?code=fAanZK6Io30u2CZlxXnipF3G88zykyIaL6TZkIjz3IW7AzFuGesvgA%3D%3D`)
             .then(res => res.json())
             .then(json => setCategoryOptions(json.map(c => ({ value: String(c.category_id), label: c.category_name }))));
-        fetch(`${API_BASE_URL}${API_KEYWORDS_PATH}`)
+        fetch(`https://0x0-event-management.azurewebsites.net/api/get_categories_keywords/keywords?code=fAanZK6Io30u2CZlxXnipF3G88zykyIaL6TZkIjz3IW7AzFuGesvgA%3D%3D`)
             .then(res => res.json())
             .then(json => setKeywordOptions(json.map(k => ({ value: String(k.keyword_id), label: k.keyword_name }))));
-    }, [API_BASE_URL]);
+    }, []);
 
     // イベント詳細取得（event_idはクエリやpropsで渡す想定）
     useEffect(() => {
-        const urlParams = new URLSearchParams(window.location.search);
-        const eventId = urlParams.get("id");
+        // バグ修正: クエリからevent_idを取得
+        const eventId = router.query.id || (typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("id") : "");
         if (!eventId) return;
         setLoading(true);
-        fetch(`${API_BASE_URL}${API_EVENTS_PATH}/${eventId}`)
+        fetch(`https://0x0-event-management.azurewebsites.net/api/events/${eventId}?code=B6FHqDqDwJVTfMUFAC6ZptbH_KME7rndWP2yayBkPrHcAzFuKEsPFw%3D%3D`)
             .then(async res => {
                 if (!res.ok) {
                     // 404や500の場合
@@ -82,7 +75,6 @@ export default function EventEdit() {
             })
             .then(data => {
                 if (!data) return;
-                console.log('イベント取得APIレスポンス:', data);
                 setForm({
                     event_id: data.event_id,
                     title: data.event_title,
@@ -99,7 +91,7 @@ export default function EventEdit() {
                 setPreview(data.image ? `/images/${data.image}` : null);
             })
             .finally(() => setLoading(false));
-    }, [API_BASE_URL]);
+    }, [router.query.id]);
 
     // 入力変更
     const handleChange = (e) => {

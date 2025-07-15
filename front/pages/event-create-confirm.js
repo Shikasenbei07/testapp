@@ -88,11 +88,8 @@ function EventCreateConfirm() {
         if (image) formData.append("image", image, imageName);
         formData.append("is_draft", isDraft ? 1 : 0);
         // creatorは省略（API側で処理）
-        const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:7071";
-        const isLocal = API_BASE_URL.includes("localhost") || API_BASE_URL.includes("127.0.0.1");
-        const API_EVENTS_PATH = isLocal ? "/api/events" : "/events";
         try {
-            const res = await fetch(`${API_BASE_URL}${API_EVENTS_PATH}`, {
+            const res = await fetch(`https://0x0-event-management.azurewebsites.net/api/events?code=K5myTaihTLRS_ET12lo8kreI7HEeKqkyDYYIEMgaxXTDAzFu7tLFng%3D%3D`, {
                 method: "POST",
                 body: formData
             });

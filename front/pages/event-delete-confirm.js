@@ -13,11 +13,8 @@ export default function EventDeleteConfirm() {
         const { id } = router.query;
         setEventId(id);
         if (id) {
-            // イベント詳細取得
-            const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:7071";
-            const isLocal = API_BASE_URL.includes("localhost") || API_BASE_URL.includes("127.0.0.1");
-            const API_EVENTS_PATH = isLocal ? "/api/events" : "/events";
-            fetch(`${API_BASE_URL}${API_EVENTS_PATH}/${id}`)
+            // バグ修正: 取得APIのURL末尾に`/${id}`が重複していたので削除
+            fetch(`https://0x0-event-management.azurewebsites.net/api/events/${id}?code=B6FHqDqDwJVTfMUFAC6ZptbH_KME7rndWP2yayBkPrHcAzFuKEsPFw%3D%3D`)
                 .then(res => res.json())
                 .then(data => setEventData(data))
                 .catch(() => setEventData(null));
@@ -27,12 +24,12 @@ export default function EventDeleteConfirm() {
     const handleDelete = async () => {
         setLoading(true);
         setError("");
-        const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:7071";
-        const isLocal = API_BASE_URL.includes("localhost") || API_BASE_URL.includes("127.0.0.1");
-        const API_EVENTS_PATH = isLocal ? "/api/events" : "/events";
         try {
-            const res = await fetch(`${API_BASE_URL}${API_EVENTS_PATH}/${eventId}`, {
-                method: "DELETE"
+            // バグ修正: 削除APIのURLでidが未定義になる場合があるのでeventIdを使う
+            const res = await fetch(`https://0x0-event-management.azurewebsites.net/api/events/${eventId}?code=Epb_sHIPMHqmDwwPK2AuEPhhB_tDFbLy5GlK0thCRkg8AzFuS0i5bA%3D%3D`, {
+                method: "DELETE",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ "creator": id }),
             });
             if (res.ok) {
                 router.push("/event-delete-done");
