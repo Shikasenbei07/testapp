@@ -22,7 +22,7 @@ export default function Login() {
         const expire = Date.now() + 60 * 60 * 1000; // 1時間（ミリ秒）
         localStorage.setItem("id", data.id);
         localStorage.setItem("id_expire", expire);
-        router.push("/mypage");
+        router.push("/event");
       } else {
         setError("ログイン失敗");
       }

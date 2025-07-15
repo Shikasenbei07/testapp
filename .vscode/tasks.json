@@ -9,7 +9,7 @@
 			"isBackground": true,
 			"dependsOn": "pip install (functions)",
 			"options": {
-				"cwd": "${workspaceFolder}/back"
+				"cwd": "${workspaceFolder}/back\\function-showEvent"
 			}
 		},
 		{
@@ -26,7 +26,7 @@
 			},
 			"problemMatcher": [],
 			"options": {
-				"cwd": "${workspaceFolder}/back\\function-favorites-list"
+				"cwd": "${workspaceFolder}/back\\function-showEvent"
 			}
 		}
 	]

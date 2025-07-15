@@ -1,68 +1,53 @@
-import { useRouter } from 'next/router'
-import { useEffect, useState } from 'react'
+import { useRouter } from "next/router";
+import { useEffect, useState } from "react";
 
-export default function EventConfirm() {
-  const router = useRouter()
-  const { event_id } = router.query
-  const [event, setEvent] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const [joining, setJoining] = useState(false)
+export default function EventConfirmPage() {
+  const router = useRouter();
+  const { event_id } = router.query;
+  const [event, setEvent] = useState(null);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    if (!event_id) return
-    setLoading(true)
-    fetch(`https://0x0-participation-d7fqb7h3dpcqcxek.japaneast-01.azurewebsites.net/api/event/detail?code=qC-HX3KjdRcFo7l_yVWZY56v5DwOoRWVjlzW99WcfgchAzFuzYe8QA%3D%3D&event_id=${event_id}`)
-      .then(res => res.json())
-      .then(data => {
-        if (data.error) setError(data.error)
-        else setEvent(data)
-        setLoading(false)
+    if (!event_id) return;
+    fetch(`https://0x0-showevent-hbbadxcxh9a4bzhu.japaneast-01.azurewebsites.net/api/showevent?code=KjUCLx4igb6FiJ3ZtQKowVUUk9MgUtPSuBhPrMam2RwxAzFuTt1T_w%3D%3D&event_id=${event_id}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setEvent(data);
       })
-      .catch(() => {
-        setError('データ取得エラー')
-        setLoading(false)
-      })
-  }, [event_id])
+      .catch((err) => {
+        setError("データ取得エラー: " + err.message);
+      });
+  }, [event_id]);
 
-  const handleJoin = async () => {
-    setJoining(true)
-    const userId = "0738"
-    console.log("event_id:", event_id, "id:", userId);
-    const res = await fetch('https://0x0-participation-d7fqb7h3dpcqcxek.japaneast-01.azurewebsites.net/api/event/participate?code=IqAEzEm_tdgsaLYblJjNZChDOjX7TKk2FDdM9zV2yMqFAzFufBImGw%3D%3D', {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ event_id: event_id, id: userId })
-    })
-    let data = {}
-    try {
-      // レスポンスが空の場合はエラーを投げる
-      const text = await res.text()
-      if (!text) throw new Error("空のレスポンス")
-      data = JSON.parse(text)
-    } catch (e) {
-      setJoining(false)
-      router.push(`/event/confirmed?event_id=${event_id}&status=fail`)
-      return
-    }
-    if (res.ok && data.result === "ok") {
-      router.push(`/event/confirmed?event_id=${event_id}&status=success`)
-    } else {
-      router.push(`/event/confirmed?event_id=${event_id}&status=fail`)
-    }
-    setJoining(false)
-  }
-
-  if (loading) return <div>読み込み中...</div>
-  if (error) return <div>エラー: {error}</div>
-  if (!event) return null
+  if (error) return <div style={{ color: "red" }}>{error}</div>;
+  if (!event) return <div>読み込み中...</div>;
 
   return (
-    <div>
+    <div style={{ padding: "2rem" }}>
       <h1>イベント参加確認</h1>
-      <p>「{event.event_title}」に参加しますか？</p>
-      <button onClick={handleJoin} disabled={joining || !event_id}>確定</button>
-      <button onClick={() => router.back()}>戻る</button>
+      <p>以下のイベントに参加しますか？</p>
+      <table border="1" cellPadding="8">
+        <tbody>
+          <tr>
+            <th>タイトル</th>
+            <td>{event.event_title}</td>
+          </tr>
+          <tr>
+            <th>日時</th>
+            <td>{event.event_datetime}</td>
+          </tr>
+          <tr>
+            <th>場所</th>
+            <td>{event.location}</td>
+          </tr>
+        </tbody>
+      </table>
+      // 仮の参加メッセージ
+      // 実際に本番で動かすときは正しい行き先を指定して下さい
+      <button style={{ marginTop: "1rem", background: "#43a047", color: "white", padding: "0.5rem 1.5rem", border: "none", borderRadius: "4px", cursor: "pointer" }}
+        onClick={() => alert("参加が確定しました！（仮）")}
+      >参加を確定</button>
+      <button style={{ marginLeft: "1rem" }} onClick={() => router.back()}>戻る</button>
     </div>
-  )
+  );
 }
