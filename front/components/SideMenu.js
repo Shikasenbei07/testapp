@@ -51,7 +51,7 @@ export default function SideMenu({ open, setOpen }) {
             </Link>
           </li>
           <li style={{ margin: '1em' }}>
-            <Link href="/event/edit" style={{ color: '#000' }} onClick={() => setOpen(false)}>
+            <Link href="/event/created" style={{ color: '#000' }} onClick={() => setOpen(false)}>
               イベント編集
             </Link>
           </li>

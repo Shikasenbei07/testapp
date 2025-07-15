@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import EventList from "../components/EventList";
+import EventList from "../../components/EventList";
 
 export default function CreatedEventsContainer() {
     const [events, setEvents] = useState([]);
@@ -10,7 +10,7 @@ export default function CreatedEventsContainer() {
 
     useEffect(() => {
         if (!userId) return;
-        fetch(`https://0x0-my-created-events-bpc3aghwg9bsb6fh.japaneast-01.azurewebsites.net/api/my_created_events?user_id=${userId}`)
+        fetch(`https://0x0-my-created-events-bpc3aghwg9bsb6fh.japaneast-01.azurewebsites.net/api/my_created_events?code=ySei4_1PSXAQo0-wKbHWgNOEC81pkALwA2bgaMN7JkzjAzFu4VKmeQ%3D%3D&user_id=${userId}`)
             .then((res) => {
                 if (!res.ok) {
                     throw new Error(`取得失敗: ${res.status}`);
@@ -22,7 +22,7 @@ export default function CreatedEventsContainer() {
     }, [userId]);
 
     const handleEdit = (eventId) => {
-        router.push(`/event_edit/${eventId}`);
+        router.push(`/event/edit?event_id=${eventId}`);
     };
 
     if (error) {

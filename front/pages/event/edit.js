@@ -37,7 +37,7 @@ export default function EventEdit() {
     // イベント詳細取得（event_idはクエリやpropsで渡す想定）
     useEffect(() => {
         // バグ修正: クエリからevent_idを取得
-        const eventId = router.query.id || (typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("id") : "");
+        const eventId = router.query.event_id || (typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("event_id") : "");
         if (!eventId) return;
         setLoading(true);
         fetch(`https://0x0-event-management.azurewebsites.net/api/events/${eventId}?code=B6FHqDqDwJVTfMUFAC6ZptbH_KME7rndWP2yayBkPrHcAzFuKEsPFw%3D%3D`)
