@@ -8,7 +8,11 @@ if defined _OLD_CODEPAGE (
     "%SystemRoot%\System32\chcp.com" 65001 > nul
 )
 
+<<<<<<< HEAD
 set VIRTUAL_ENV=c:\Users\D0718\Documents\0x0\back\.venv
+=======
+set VIRTUAL_ENV=C:\workspace_0x0_test\back\.venv
+>>>>>>> origin/feature/event-management
 
 if not defined PROMPT set PROMPT=$P$G
 

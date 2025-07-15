@@ -1,16 +1,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-
-function getValidId() {
-  const id = localStorage.getItem("id");
-  const expire = localStorage.getItem("id_expire");
-  if (!id || !expire || Date.now() > Number(expire)) {
-    localStorage.removeItem("id");
-    localStorage.removeItem("id_expire");
-    return null;
-  }
-  return id;
-}
+import { getValidId } from "../../utils/getValidId";
 
 export default function MyPage() {
   const [lName, setLName] = useState("");

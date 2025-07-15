@@ -1,53 +1,10 @@
 import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
+import { getValidId } from "../../utils/getValidId";
 
 export default function EventsPage() {
   const [favorites, setFavorites] = useState([]);
-  const userId = '0738';
-
-  function toggleFavorite(eventId) {
-    const userId = '0738';
-    setFavorites(prev => {
-      // すでにお気に入りの場合は何もしない（色も維持）
-      if (prev.includes(eventId)) {
-        return prev;
-      }
-      const updated = [...prev, eventId];
-      // お気に入り追加時のみAPI呼び出し
-      fetch("https://0x0-showevent-hbbadxcxh9a4bzhu.japaneast-01.azurewebsites.net/api/favorite?code=zsOO_WgPGY9dtEN_tkki1bHWPy8XYJQoQPo2G7ONmvsoAzFusJrTJg%3D%3D", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ event_id: eventId, id: userId })
-      })
-      .then(async res => {
-        if (!res.ok) {
-          const errorText = await res.text();
-          let message = `お気に入り登録失敗: ${errorText}`;
-          if (
-            errorText.includes('PRIMARY KEY constraint') ||
-            errorText.includes('duplicate key')
-          ) {
-            message = 'すでにお気に入り登録済みです';
-            alert(message);
-            window.location.href = '/events';
-            throw new Error(errorText);
-          }
-          alert(message);
-          throw new Error(errorText);
-        }
-        return res.text();
-      })
-      .then(data => {
-        // 登録成功時に通知
-        alert('お気に入りに登録しました');
-      })
-      .catch(err => {
-        // 既にalert済みなのでconsoleのみ
-        console.error("お気に入り登録APIエラー", err);
-      });
-      localStorage.setItem("favorites", JSON.stringify(updated));
-      return updated;
-    });
-  }
+  const [id, setId] = useState(null);
   const [sortKey, setSortKey] = useState("");
   const [sortOrder, setSortOrder] = useState("asc");
   const [events, setEvents] = useState([]);
@@ -57,21 +14,38 @@ export default function EventsPage() {
   const [selectedDate, setSelectedDate] = useState("");
   const [keyword, setKeyword] = useState("");
   const [hideExpired, setHideExpired] = useState(false);
+  const router = useRouter();
 
+  // id取得とリダイレクト
   useEffect(() => {
-    // お気に入り情報をAPIから取得
-    fetch(`https://0x0-showevent-hbbadxcxh9a4bzhu.japaneast-01.azurewebsites.net/api/favorites?user_id=${userId}`)
+    const validId = getValidId();
+    if (!validId) {
+      router.push("/login");
+      return;
+    }
+    setId(validId);
+  }, [router]);
+
+  // idがセットされてからのみAPIリクエスト
+  useEffect(() => {
+    if (!id) return;
+
+    fetch(`https://0x0-favorites-list.azurewebsites.net/api/favorites?code=zzyPmL0sN_rUEbSrao2nHRMb4xME2aDHTidr9DtDXsjRAzFu7br4HA%3D%3D`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      }
+    )
       .then(res => res.json())
       .then(data => {
-        // dataはevent_idの配列を想定
         setFavorites(Array.isArray(data) ? data : []);
       })
       .catch(() => setFavorites([]));
 
-    fetch("https://0x0-showevent-hbbadxcxh9a4bzhu.japaneast-01.azurewebsites.net/api/showevent?code=KjUCLx4igb6FiJ3ZtQKowVUUk9MgUtPSuBhPrMam2RwxAzFuTt1T_w%3D%3D") // 全イベント取得API
+    fetch("https://0x0-showevent-hbbadxcxh9a4bzhu.japaneast-01.azurewebsites.net/api/showevent?code=KjUCLx4igb6FiJ3ZtQKowVUUk9MgUtPSuBhPrMam2RwxAzFuTt1T_w%3D%3D")
       .then((res) => res.json())
       .then((data) => {
-        // is_draftが1のものは除外 & 締切期限が過ぎたものは除外
         const now = new Date();
         const filtered = Array.isArray(data)
           ? data.filter(event => {
@@ -87,7 +61,6 @@ export default function EventsPage() {
         setError("データ取得エラー: " + err.message);
       });
 
-    // カテゴリー一覧をCATEGORYSテーブルAPIから取得
     fetch("https://0x0-showevent-hbbadxcxh9a4bzhu.japaneast-01.azurewebsites.net/api/categories?code=qPu7q4iQBMrEMTPaYXSYNOrzTnAm5yplhzIJ9JfIq-vWAzFukZ5pSA%3D%3D")
       .then(res => res.json())
       .then(data => {
@@ -96,11 +69,9 @@ export default function EventsPage() {
       .catch(err => {
         setError("カテゴリー取得エラー: " + err.message);
       });
-  }, []);
+  }, [id]); // ← ここを修正: idがセットされたときのみ実行
 
-  // 表示するカラムを限定
   const filteredKeys = ["event_title", "event_datetime", "deadline", "location"];
-  const displayKeys = ["event_title", "event_datetime", "deadline", "location", "participants_status"];
 
   return (
     <div>
@@ -214,7 +185,7 @@ export default function EventsPage() {
                   {filteredKeys.map((key, i) => (
                     <td key={i}>
                       {(key === "event_datetime" || key === "deadline") && event[key]
-                        ? event[key].replace(/:\d{2}$/, "") // 秒を省略
+                        ? event[key].replace(/:\d{2}$/, "")
                         : event[key]}
                     </td>
                   ))}

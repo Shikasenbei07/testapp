@@ -35,7 +35,11 @@ deactivate () {
 # unset irrelevant variables
 deactivate nondestructive
 
+<<<<<<< HEAD
 VIRTUAL_ENV="c:\Users\D0718\Documents\0x0\back\.venv"
+=======
+VIRTUAL_ENV="C:\workspace_0x0_test\back\.venv"
+>>>>>>> origin/feature/event-management
 export VIRTUAL_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"
