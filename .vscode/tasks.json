@@ -9,24 +9,32 @@
 			"isBackground": true,
 			"dependsOn": "pip install (functions)",
 			"options": {
+<<<<<<< HEAD
 				"cwd": "${workspaceFolder}/back\\function-inquiry"
+=======
+				"cwd": "${workspaceFolder}/back\\function-showEvent"
+>>>>>>> 326ea2421c91799c1fd62fe1ee6649a3ca96f731
 			}
 		},
 		{
 			"label": "pip install (functions)",
 			"type": "shell",
 			"osx": {
-				"command": "${config:azureFunctions.pythonVenv}/bin/python -m pip install -r ../requirements.txt"
+				"command": "${config:azureFunctions.pythonVenv}/bin/python -m pip install -r requirements.txt"
 			},
 			"windows": {
-				"command": "${config:azureFunctions.pythonVenv}\\Scripts\\python -m pip install -r ../requirements.txt"
+				"command": "${config:azureFunctions.pythonVenv}\\Scripts\\python -m pip install -r requirements.txt"
 			},
 			"linux": {
-				"command": "${config:azureFunctions.pythonVenv}/bin/python -m pip install -r ../requirements.txt"
+				"command": "${config:azureFunctions.pythonVenv}/bin/python -m pip install -r requirements.txt"
 			},
 			"problemMatcher": [],
 			"options": {
+<<<<<<< HEAD
 				"cwd": "${workspaceFolder}/back\\function-inquiry"
+=======
+				"cwd": "${workspaceFolder}/back\\function-showEvent"
+>>>>>>> 326ea2421c91799c1fd62fe1ee6649a3ca96f731
 			}
 		}
 	]
