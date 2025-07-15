@@ -3,10 +3,16 @@ import os
 import pyodbc
 from azure.storage.blob import BlobServiceClient, generate_blob_sas, BlobSasPermissions
 from datetime import datetime, timedelta
+import json
+from fastapi import FastAPI, HTTPException, Query, Body
+from fastapi.responses import JSONResponse
 
+# Azure Functions 用
 app = func.FunctionApp(http_auth_level=func.AuthLevel.FUNCTION)
+# FastAPI 用 (テストやローカル実行)
+app_fastapi = FastAPI()
 
-AZURE_STORAGE_CONNECTION_STRING = os.environ["AZURE_STORAGE_CONNECTION_STRING"]
+AZURE_STORAGE_CONNECTION_STRING = os.environ.get("AZURE_STORAGE_CONNECTION_STRING")
 CONTAINER_NAME = "profile-images"
 
 def upload_to_blob_storage(file, user_id):
@@ -14,26 +20,85 @@ def upload_to_blob_storage(file, user_id):
     container_client = blob_service_client.get_container_client(CONTAINER_NAME)
     ext = os.path.splitext(file.filename)[1]
     blob_name = f"{user_id}{ext}"
-    # ファイルをアップロード
     container_client.upload_blob(name=blob_name, data=file.stream, overwrite=True)
-    # 公開URLを生成
     url = f"https://{blob_service_client.account_name}.blob.core.windows.net/{CONTAINER_NAME}/{blob_name}"
     return url
 
 def get_blob_sas_url(user_id, ext):
     blob_service_client = BlobServiceClient.from_connection_string(AZURE_STORAGE_CONNECTION_STRING)
     blob_name = f"{user_id}{ext}"
+    # credentialがAccountKey型でない場合のバグ修正
+    account_key = None
+    if hasattr(blob_service_client.credential, 'account_key'):
+        account_key = blob_service_client.credential.account_key
+    elif isinstance(blob_service_client.credential, str):
+        account_key = blob_service_client.credential
+    else:
+        raise Exception("Blob Storageのアカウントキーが取得できません")
     sas_token = generate_blob_sas(
         account_name=blob_service_client.account_name,
         container_name=CONTAINER_NAME,
         blob_name=blob_name,
-        account_key=blob_service_client.credential.account_key,
+        account_key=account_key,
         permission=BlobSasPermissions(read=True),
         expiry=datetime.utcnow() + timedelta(hours=1)
     )
     url = f"https://{blob_service_client.account_name}.blob.core.windows.net/{CONTAINER_NAME}/{blob_name}?{sas_token}"
     return url
 
+def get_conn():
+    conn_str = os.environ.get("CONNECTION_STRING")
+    if not conn_str:
+        raise Exception("DB接続情報がありません")
+    return pyodbc.connect(conn_str)
+
+# FastAPIエンドポイント（テスト用）
+@app_fastapi.get("/")
+def root():
+    return {"message": "ok"}
+
+@app_fastapi.get("/user/profile")
+def get_user_profile(user_id: int = Query(...)):
+    try:
+        with get_conn() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT id, name, email FROM users WHERE id=?", (user_id,))
+            row = cursor.fetchone()
+            if row:
+                return {"user_id": row[0], "name": row[1], "email": row[2]}
+            else:
+                raise HTTPException(status_code=404, detail="User not found")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app_fastapi.put("/user/profile")
+def update_user_profile(
+    data: dict = Body(...)
+):
+    user_id = data.get("user_id")
+    name = data.get("name")
+    email = data.get("email")
+    if not user_id or not name or not email:
+        raise HTTPException(status_code=422, detail="Missing fields")
+    if "@" not in email:
+        raise HTTPException(status_code=422, detail="Invalid email")
+    try:
+        with get_conn() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                "UPDATE users SET name=?, email=? WHERE id=?",
+                (name, email, user_id)
+            )
+            conn.commit()
+            if cursor.rowcount == 0:
+                raise HTTPException(status_code=404, detail="User not found")
+        return {"user_id": user_id, "name": name, "email": email}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Azure Functionsエンドポイント
 @app.route(route="upload_profile_img", methods=["POST"])
 def upload_profile_img(req: func.HttpRequest) -> func.HttpResponse:
     try:
@@ -42,7 +107,6 @@ def upload_profile_img(req: func.HttpRequest) -> func.HttpResponse:
         if not user_id or not file:
             return func.HttpResponse("idまたは画像ファイルがありません", status_code=400)
         url = upload_to_blob_storage(file, user_id)
-
         return func.HttpResponse(
             body=f'{{"url": "{url}"}}',
             status_code=200,
@@ -50,17 +114,6 @@ def upload_profile_img(req: func.HttpRequest) -> func.HttpResponse:
         )
     except Exception as e:
         return func.HttpResponse(f"アップロード失敗: {str(e)}", status_code=500)
-
-def get_profile_img_path(user_id):
-    conn_str = os.environ.get("CONNECTION_STRING")
-    with pyodbc.connect(conn_str) as conn:
-        cursor = conn.cursor()
-        cursor.execute("SELECT profile_img FROM users WHERE id=?", (user_id,))
-        result = cursor.fetchone()
-        if result:
-            return result[0]  # 画像パスやURL
-        else:
-            return None
 
 @app.route(route="update_user", methods=["POST"])
 def update_user(req: func.HttpRequest) -> func.HttpResponse:
@@ -118,7 +171,6 @@ def update_user(req: func.HttpRequest) -> func.HttpResponse:
 
 @app.route(route="mypage", methods=["POST"])
 def mypage(req: func.HttpRequest) -> func.HttpResponse:
-    import json
     try:
         data = req.get_json()
         user_id = data.get("id")
@@ -144,7 +196,6 @@ def mypage(req: func.HttpRequest) -> func.HttpResponse:
             result = cursor.fetchone()
             if result:
                 l_name, profile_img = result
-                # profile_imgがファイル名や拡張子の場合
                 if profile_img:
                     ext = os.path.splitext(profile_img)[1]
                     img_url = get_blob_sas_url(user_id, ext)

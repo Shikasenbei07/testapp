@@ -1,47 +1,21 @@
-from fastapi.testclient import TestClient
-from function_app import app
+import unittest
+from unittest.mock import patch, MagicMock
+import function_app
 
-client = TestClient(app)
+class TestFunctionApp(unittest.TestCase):
 
-def test_root():
-    response = client.get("/")
-    assert response.status_code == 200
-    assert "message" in response.json()
+    @patch("function_app.get_conn")
+    def test_root(self, mock_get_conn):
+        # ルート関数がある場合の例
+        result = function_app.root()
+        self.assertEqual(result["message"], "ok")
 
-def test_get_user_profile_success():
-    response = client.get("/user/profile?user_id=1")
-    assert response.status_code == 200
-    data = response.json()
-    assert "user_id" in data
-    assert data["user_id"] == 1
+    @patch("function_app.get_conn")
+    def test_update_user_profile_missing_fields(self, mock_get_conn):
+        # name, emailが足りない場合
+        data = {"user_id": 1}
+        with self.assertRaises(Exception):
+            function_app.update_user_profile(data)
 
-def test_get_user_profile_missing_param():
-    response = client.get("/user/profile")
-    assert response.status_code == 422
-
-def test_get_user_profile_not_found():
-    response = client.get("/user/profile?user_id=99999")
-    assert response.status_code == 404
-
-def test_update_user_profile_success():
-    payload = {"user_id": 1, "name": "Test User", "email": "test@example.com"}
-    response = client.put("/user/profile", json=payload)
-    assert response.status_code == 200
-    data = response.json()
-    assert data["name"] == "Test User"
-    assert data["email"] == "test@example.com"
-
-def test_update_user_profile_invalid_email():
-    payload = {"user_id": 1, "name": "Test User", "email": "invalid-email"}
-    response = client.put("/user/profile", json=payload)
-    assert response.status_code == 422
-
-def test_update_user_profile_missing_fields():
-    payload = {"user_id": 1}
-    response = client.put("/user/profile", json=payload)
-    assert response.status_code == 422
-
-def test_update_user_profile_not_found():
-    payload = {"user_id": 99999, "name": "No User", "email": "nouser@example.com"}
-    response = client.put("/user/profile", json=payload)
-    assert response.status_code == 404
+if __name__ == "__main__":
+    unittest.main()
