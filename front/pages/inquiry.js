@@ -6,7 +6,7 @@ async function fetchEventInfo(event_id) {
     console.log('Fetching event info for ID:', event_id);
     
     // Next.jsのAPIルートを使用（推奨）
-    const res = await fetch(`/api/eventinfo?event_id=${event_id}`, {
+    const res = await fetch(`https://0x0-inquiry-emc4fhduaybfb7ht.japaneast-01.azurewebsites.net/api/eventinfo?code=eKS5NaYjW_NgqIqiV3HdaNaVEq7j000vTzRnoqIZyPgLAzFu4X3ybQ%3D%3D&event_id=${event_id}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -42,7 +42,7 @@ async function sendInquiry(id, event_id, subject, message) {
   try {
     console.log('Sending inquiry...');
   
-    const res = await fetch('/api/inquiry', {
+    const res = await fetch('https://0x0-inquiry-emc4fhduaybfb7ht.japaneast-01.azurewebsites.net/api/inquiry?code=t39ejaFXLwyMjxNmYnvtso30WGwucKX_kTzi2hqlDmzgAzFuzMA3rg%3D%3D', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
