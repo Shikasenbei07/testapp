@@ -6,6 +6,7 @@ export default function EventConfirmPage() {
   const { event_id } = router.query;
   const [event, setEvent] = useState(null);
   const [error, setError] = useState("");
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     if (!event_id) return;
@@ -42,12 +43,51 @@ export default function EventConfirmPage() {
           </tr>
         </tbody>
       </table>
-      // 仮の参加メッセージ
-      // 実際に本番で動かすときは正しい行き先を指定して下さい
       <button style={{ marginTop: "1rem", background: "#43a047", color: "white", padding: "0.5rem 1.5rem", border: "none", borderRadius: "4px", cursor: "pointer" }}
-        onClick={() => alert("参加が確定しました！（仮）")}
+        onClick={() => setShowModal(true)}
       >参加を確定</button>
       <button style={{ marginLeft: "1rem" }} onClick={() => router.back()}>戻る</button>
+
+      {showModal && (
+        <div style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          width: "100vw",
+          height: "100vh",
+          background: "rgba(0,0,0,0.7)",
+          zIndex: 1000,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center"
+        }}>
+          <div style={{
+            background: "#fff",
+            color: "#a10000",
+            padding: "2rem 3rem",
+            borderRadius: "12px",
+            boxShadow: "0 0 30px #a10000",
+            textAlign: "center",
+            minWidth: "320px"
+          }}>
+            <h2>参加が確定しました！</h2>
+            <p>ご参加ありがとうございます。</p>
+            <button
+              style={{
+                marginTop: "1.5rem",
+                background: "#a10000",
+                color: "#fff",
+                padding: "0.5rem 2rem",
+                border: "none",
+                borderRadius: "6px",
+                fontSize: "1.1rem",
+                cursor: "pointer"
+              }}
+              onClick={() => router.push("/events")}
+            >イベント一覧へ戻る</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
