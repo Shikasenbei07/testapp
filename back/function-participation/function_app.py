@@ -12,12 +12,24 @@ else:
 
 
 # イベント参加登録API
-@app.route(route="participate", methods=["GET"])
+@app.route(route="participate", methods=["GET", "POST"])
 def participate(req: func.HttpRequest) -> func.HttpResponse:
     try:
-        # GETの場合はクエリパラメータから取得
-        event_id = req.params.get("event_id")
-        id = req.params.get("id")
+        if req.method == "POST":
+            try:
+                data = req.get_json()
+            except Exception:
+                return func.HttpResponse(
+                    json.dumps({"error": "リクエストボディが不正です"}),
+                    status_code=400,
+                    mimetype="application/json"
+                )
+            event_id = data.get("event_id")
+            id = data.get("id")
+        else:
+            event_id = req.params.get("event_id")
+            id = req.params.get("id")
+
         if not event_id or not id:
             return func.HttpResponse(
                 json.dumps({"error": "event_idとidは必須です"}),

@@ -1,12 +1,7 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
 
-let API_URL_LOGIN = null;
-if (process.env.IS_MAIN_PRODUCT === "true") {
-  API_URL_LOGIN = process.env.NEXT_PUBLIC_API_URL_LOGIN_PRODUCT;
-} else {
-  API_URL_LOGIN = process.env.NEXT_PUBLIC_API_URL_LOGIN_TEST;
-}
+const API_URL_LOGIN = process.env.NEXT_PUBLIC_API_URL_LOGIN
 
 export default function Login() {
   const [id, setId] = useState("");

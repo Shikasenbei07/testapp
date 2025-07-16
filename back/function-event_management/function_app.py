@@ -350,3 +350,31 @@ def get_event_detail(req: func.HttpRequest) -> func.HttpResponse:
         return error_response(str(e), 400)
 
 
+@app.route(route="get_participants")
+def get_participants(req: func.HttpRequest) -> func.HttpResponse:
+    logging.info('参加者一覧APIが呼び出されました')
+    event_id = req.params.get('event_id')
+    if not event_id:
+        return func.HttpResponse("event_id is required", status_code=400)
+
+    conn_str = os.environ["CONNECTION_STRING"]
+    conn = pyodbc.connect(conn_str)
+    try:
+        with conn.cursor() as cursor:
+            sql = """
+                SELECT u.id, u.l_name, u.f_name, u.email
+                FROM EVENTS_PARTICIPANTS ep
+                JOIN USERS u ON ep.id = u.id
+                WHERE ep.event_id = ? AND ep.cancelled_at IS NULL
+            """
+            cursor.execute(sql, event_id)
+            columns = [column[0] for column in cursor.description]
+            participants = [dict(zip(columns, row)) for row in cursor.fetchall()]
+    finally:
+        conn.close()
+
+    return func.HttpResponse(
+        json.dumps({"participants": participants}, ensure_ascii=False),
+        mimetype="application/json",
+        status_code=200
+    )

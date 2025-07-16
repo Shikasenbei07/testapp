@@ -6,7 +6,7 @@ async function fetchEventInfo(event_id) {
     console.log('Fetching event info for ID:', event_id);
     
     // Next.jsのAPIルートを使用（推奨）
-    const res = await fetch(`https://0x0-inquiry-emc4fhduaybfb7ht.japaneast-01.azurewebsites.net/api/eventinfo?code=eKS5NaYjW_NgqIqiV3HdaNaVEq7j000vTzRnoqIZyPgLAzFu4X3ybQ%3D%3D&event_id=${event_id}`, {
+    const res = await fetch(`/api/eventinfo?event_id=${event_id}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -38,33 +38,30 @@ async function fetchEventInfo(event_id) {
   }
 }
 
-async function sendInquiry(id, event_id, subject, message) {
+async function sendInquiry(event_id, subject, message, sender_id, recipient_id, reply_to_inquiry_id) {
   try {
     console.log('Sending inquiry...');
-  
-    const res = await fetch('https://0x0-inquiry-emc4fhduaybfb7ht.japaneast-01.azurewebsites.net/api/inquiry?code=t39ejaFXLwyMjxNmYnvtso30WGwucKX_kTzi2hqlDmzgAzFuzMA3rg%3D%3D', {
+    const res = await fetch('/api/inquiry', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        id,
         event_id,
         subject,
-        message
+        message,
+        sender_id,
+        recipient_id,
+        reply_to_inquiry_id
       })
     });
-    
     console.log('Inquiry response status:', res.status);
-    
     if (!res.ok) {
       throw new Error(`HTTP error! status: ${res.status}`);
     }
-    
     const text = await res.text();
     console.log('Inquiry response:', text);
     return text;
-    
   } catch (error) {
     console.error('sendInquiry error:', error);
     throw error;
@@ -75,7 +72,9 @@ export default function InquiryPage() {
   const router = useRouter();
   // URLクエリパラメータからeventIdを取得
   const eventId = router.query.event_id || "2";
-  const userId = "0606";
+  const userId = "0606"; // 仮の送信者ID
+  const [recipientId, setRecipientId] = useState(""); // 受信者ID
+  const replyToInquiryId = null; // 返信先があればセット
 
   const [eventTitle, setEventTitle] = useState("");
   const [creatorName, setCreatorName] = useState("");
@@ -96,6 +95,8 @@ export default function InquiryPage() {
         if (data) {
           setEventTitle(data.event_title || "");
           setCreatorName(data.creator_name || "");
+          // 受信者ID（イベント作成者ID）をセット
+          if (data.creator_id) setRecipientId(data.creator_id);
         }
       } catch (error) {
         console.error('Error loading event info:', error);
@@ -119,7 +120,7 @@ export default function InquiryPage() {
     setSubmitting(true);
     
     try {
-      const res = await sendInquiry(userId, eventId, subject.trim(), message.trim());
+      const res = await sendInquiry(eventId, subject.trim(), message.trim(), userId, recipientId, replyToInquiryId);
       
       let result;
       try {

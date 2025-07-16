@@ -14,42 +14,45 @@ else:
 
 @app.route(route="create_inquiry", methods=["POST"])
 def create_inquiry(req: func.HttpRequest) -> func.HttpResponse:
-    import json
     logging.info('Python HTTP trigger function processed a request.')
-
-    headers = {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "http://localhost:3000"
-    }
-
     # POSTリクエストのボディから取得
+    import json
     try:
         body = req.get_json()
     except Exception:
-        return func.HttpResponse(json.dumps({"error": "リクエストボディが不正です。"}), status_code=400, headers=headers)
-
+        body = {}
     event_id = body.get('event_id')
     subject = body.get('subject')
     message = body.get('message')
     sender_id = body.get('sender_id')
     recipient_id = body.get('recipient_id')
     reply_to_inquiry_id = body.get('reply_to_inquiry_id')
-
+    headers = {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "http://localhost:3000"
+    }
     try:
-        event_id = int(event_id) if event_id is not None else None
-        reply_to_inquiry_id = int(reply_to_inquiry_id) if reply_to_inquiry_id is not None else None
+        event_id = str(int(event_id)) if event_id is not None else None
+        reply_to_inquiry_id = str(int(reply_to_inquiry_id)) if reply_to_inquiry_id is not None else None
     except ValueError:
-        return func.HttpResponse(json.dumps({"error": "event_idとreply_to_inquiry_idは数値で指定してください。"}), status_code=400, headers=headers)
-
-    if not sender_id or not recipient_id or not event_id or not subject or not message:
-        return func.HttpResponse(json.dumps({"error": "sender_id, recipient_id, event_id, subject, messageは必須です。"}), status_code=400, headers=headers)
-
+        return func.HttpResponse(json.dumps({"error": "event_id, reply_to_inquiry_idは数値で指定してください。"}), status_code=400, headers=headers)
+    if not event_id or not subject or not message:
+        return func.HttpResponse(json.dumps({"error": "event_id, subject, messageは必須です。"}), status_code=400, headers=headers)
     try:
         conn = pyodbc.connect(os.environ.get("CONNECTION_STRING"))
         with conn.cursor() as cursor:
             cursor.execute(
-                "INSERT INTO INQUIRIES (event_id, subject, message, created_at, sender_id, recipient_id, reply_to_inquiry_id) VALUES (?, ?, ?, GETDATE(), ?, ?, ?)",
-                (event_id, subject, message, sender_id, recipient_id, reply_to_inquiry_id)
+                "INSERT INTO INQUIRIES (event_id, subject, message, sender_id, recipient_id) VALUES (?, ?, ?, ?, ?)",
+                (
+                    #event_idはint
+                    
+                    str(event_id) if event_id is not None else None,
+                    str(subject) if subject is not None else None,
+                    str(message) if message is not None else None,
+                    str(sender_id) if sender_id is not None else None,
+                    str(recipient_id) if recipient_id is not None else None,
+                    #str(reply_to_inquiry_id) if reply_to_inquiry_id is not None else None
+                )
             )
             conn.commit()
     except Exception as e:
@@ -57,7 +60,6 @@ def create_inquiry(req: func.HttpRequest) -> func.HttpResponse:
     finally:
         if 'conn' in locals():
             conn.close()
-
     return func.HttpResponse(
         json.dumps({
             "message": "お問い合わせを受け付けました。"
