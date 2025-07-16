@@ -3,7 +3,8 @@ import { useEffect, useState } from "react";
 export default function EventsPage() {
   const [favorites, setFavorites] = useState([]);
   const [participatedEvents, setParticipatedEvents] = useState([]);
-  const userId = '0738';
+  // idを直接定義
+  const id = '0738';
 
   // toggleFavorite関数を定義
   function toggleFavorite(eventId) {
@@ -15,7 +16,7 @@ export default function EventsPage() {
       fetch("https://0x0-showevent-hbbadxcxh9a4bzhu.japaneast-01.azurewebsites.net/api/favorite?code=zsOO_WgPGY9dtEN_tkki1bHWPy8XYJQoQPo2G7ONmvsoAzFusJrTJg%3D%3D", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ event_id: eventId, id: userId })
+        body: JSON.stringify({ event_id: eventId, id }) // ← userIdではなくidに統一
       })
       .then(async res => {
         if (!res.ok) {
@@ -57,15 +58,14 @@ export default function EventsPage() {
 
   useEffect(() => {
     // お気に入り情報をAPIから取得
-    // お気に入り情報をAPIから取得（function key追加）
-    fetch(`https://0x0-showevent-hbbadxcxh9a4bzhu.japaneast-01.azurewebsites.net/api/favorites?user_id=${userId}&code=zsOO_WgPGY9dtEN_tkki1bHWPy8XYJQoQPo2G7ONmvsoAzFusJrTJg%3D%3D`)
+    fetch(`https://0x0-showevent-hbbadxcxh9a4bzhu.japaneast-01.azurewebsites.net/api/favorites?user_id=${id}&code=zsOO_WgPGY9dtEN_tkki1bHWPy8XYJQoQPo2G7ONmvsoAzFusJrTJg%3D%3D`)
       .then(res => res.json())
       .then(data => {
         setFavorites(Array.isArray(data) ? data : []);
       })
       .catch(() => setFavorites([]));
 
-    // イベント一覧取得API（function keyは既存でOK）
+    // イベント一覧取得API
     fetch("https://0x0-showevent-hbbadxcxh9a4bzhu.japaneast-01.azurewebsites.net/api/showEvent?code=KjUCLx4igb6FiJ3ZtQKowVUUk9MgUtPSuBhPrMam2RwxAzFuTt1T_w%3D%3D")
       .then((res) => res.json())
       .then((data) => {
@@ -84,7 +84,7 @@ export default function EventsPage() {
         setError("データ取得エラー: " + err.message);
       });
 
-    // カテゴリー一覧取得API（function key追加）
+    // カテゴリー一覧取得API
     fetch("https://0x0-showevent-hbbadxcxh9a4bzhu.japaneast-01.azurewebsites.net/api/categories?code=qPu7q4iQBMrEMTPaYXSYNOrzTnAm5yplhzIJ9JfIq-vWAzFukZ5pSA%3D%3D")
       .then(res => res.json())
       .then(data => {
@@ -95,7 +95,7 @@ export default function EventsPage() {
       });
 
     // 参加済みイベント取得API
-    fetch("https://0x0-participation-d7fqb7h3dpcqcxek.japaneast-01.azurewebsites.net/api/event/participate?code=IqAEzEm_tdgsaLYblJjNZChDOjX7TKk2FDdM9zV2yMqFAzFufBImGw%3D%3D&user_id=" + userId)
+    fetch("https://0x0-participation-d7fqb7h3dpcqcxek.japaneast-01.azurewebsites.net/api/event/participate?code=IqAEzEm_tdgsaLYblJjNZChDOjX7TKk2FDdM9zV2yMqFAzFufBImGw%3D%3D&user_id=" + id)
       .then(res => res.json())
       .then(data => {
         setParticipatedEvents(Array.isArray(data) ? data : []);
@@ -105,7 +105,6 @@ export default function EventsPage() {
 
   // 表示するカラムを限定
   const filteredKeys = ["event_title", "event_datetime", "deadline", "location"];
-  const displayKeys = ["event_title", "event_datetime", "deadline", "location", "participants_status"];
 
   return (
     <div>
@@ -221,7 +220,7 @@ export default function EventsPage() {
                   ))}
                   <td>{`${event.current_participants ?? 0}/${event.max_participants ?? 0}`}</td>
                   <td style={{ textAlign: 'center' }}>
-                    <button onClick={() => window.location.href = `/event/${event.event_id}`}>詳細</button>
+                    <button onClick={() => window.location.href = `/event/detail?event_id=${event.event_id}&id=${id}`}>詳細</button>
                   </td>
                   <td style={{ textAlign: 'center' }}>
                     <button
@@ -246,3 +245,4 @@ export default function EventsPage() {
     </div>
   );
 }
+
