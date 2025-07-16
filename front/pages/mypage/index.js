@@ -22,7 +22,7 @@ export default function MyPage() {
       return;
     }
 
-    fetch("https://0x0-mypage.azurewebsites.net/api/mypage?code=rzWYX4Wg009BE4aqcvISI2-bYJ3FDJleE8xzJD7ogYF2AzFuf0Xu9A%3D%3D", {
+    fetch("https://0x0-usermanagement-test.azurewebsites.net/api/get_user?code=WWA9EuuKLWhCNVqQ70YYMs0kKDJq8oAMgyZbzsahrfg0AzFuZuhknw%3D%3D", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id }),
