@@ -56,6 +56,17 @@ jobs:
         
       - name: Copy .next/static to standalone
         run: cp -r ./front/.next/static ./front/.next/standalone/.next/static
+
+      - name: Set Azure App Service App Settings
+        uses: Azure/appservice-settings@v1
+        with:
+          app-name: '0x0-eventservice'
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_8335D02BE17C40F78C5B173CEBD8E27A }}
+          app-settings-json: |
+            [
+              { "name": "IS_MAIN_PRODUCT", "value": "true" },
+              { "name": "***", "value": "***" }
+            ]
       
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
@@ -63,4 +74,4 @@ jobs:
         with:
           app-name: '0x0-eventservice'
           package: ./front/.next/standalone
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_APP_PRODUCT }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_8335D02BE17C40F78C5B173CEBD8E27A }}
