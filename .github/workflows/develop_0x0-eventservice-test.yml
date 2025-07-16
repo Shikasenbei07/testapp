@@ -57,6 +57,11 @@ jobs:
       - name: Copy .next/static to standalone
         run: cp -r ./front/.next/static ./front/.next/standalone/.next/static
 
+      - name: Azure CLI Debug
+        run: az webapp list --output table
+        env:
+          AZURE_HTTP_USER_AGENT: github-actions
+
       - name: Set Azure App Service App Settings
         uses: Azure/appservice-settings@v1
         with:
