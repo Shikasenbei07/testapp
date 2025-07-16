@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
 
-const API_URL_LOGIN = null;
+let API_URL_LOGIN = null;
 if (process.env.IS_MAIN_PRODUCT === "true") {
   API_URL_LOGIN = process.env.API_URL_LOGIN_PRODUCT;
 } else {

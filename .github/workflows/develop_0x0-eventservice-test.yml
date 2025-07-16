@@ -61,7 +61,6 @@ jobs:
         uses: Azure/appservice-settings@v1
         with:
           app-name: '0x0-eventservice-test'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_60E95571A45D498DBBC22F5A6D23C2B7 }}
           app-settings-json: |
             [
               { "name": "IS_MAIN_PRODUCT", "value": "false" },
