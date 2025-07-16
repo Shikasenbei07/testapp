@@ -3,21 +3,42 @@ import { useRouter } from "next/router";
 
 export default function EventDetailPage() {
   const router = useRouter();
-  const { event_id } = router.query;
+  const { event_id, user_id } = router.query; // user_idもクエリから取得
   const [event, setEvent] = useState(null);
   const [error, setError] = useState("");
+  const [isParticipated, setIsParticipated] = useState(false);
 
   useEffect(() => {
     if (!event_id) return;
     fetch(`https://0x0-showevent-hbbadxcxh9a4bzhu.japaneast-01.azurewebsites.net/api/showevent?code=KjUCLx4igb6FiJ3ZtQKowVUUk9MgUtPSuBhPrMam2RwxAzFuTt1T_w%3D%3D&event_id=${event_id}`)
       .then((res) => res.json())
       .then((data) => {
-        setEvent(data);
+        if (Array.isArray(data)) {
+          setEvent(data[0]);
+        } else {
+          setEvent(data);
+        }
       })
       .catch((err) => {
         setError("データ取得エラー: " + err.message);
       });
   }, [event_id]);
+
+  // 参加済みかどうかを判定
+  useEffect(() => {
+    if (!event_id || !user_id) return;
+    fetch(`https://0x0-participation-d7fqb7h3dpcqcxek.japaneast-01.azurewebsites.net/api/event/participate?code=IqAEzEm_tdgsaLYblJjNZChDOjX7TKk2FDdM9zV2yMqFAzFufBImGw%3D%3D&user_id=${user_id}`)
+      .then(res => res.json())
+      .then(data => {
+        // dataがイベントIDの配列の場合
+        if (Array.isArray(data)) {
+          setIsParticipated(data.includes(Number(event_id)) || data.includes(event_id));
+        } else {
+          setIsParticipated(false);
+        }
+      })
+      .catch(() => setIsParticipated(false));
+  }, [event_id, user_id]);
 
   if (error) return <div style={{ color: "red" }}>{error}</div>;
   if (!event) return <div>読み込み中...</div>;
@@ -59,10 +80,50 @@ export default function EventDetailPage() {
         </div>
       )}
       <button onClick={() => router.back()}>戻る</button>
-      <button
-        style={{ marginLeft: '1rem', background: '#1976d2', color: 'white', padding: '0.5rem 1.5rem', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-        onClick={() => router.push(`/event/confirm?event_id=${event_id}`)}
-      >参加</button>
+      {isParticipated ? (
+        <button
+          style={{
+            marginLeft: '1rem',
+            background: '#a10000',
+            color: 'white',
+            padding: '0.5rem 1.5rem',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer'
+          }}
+          onClick={() => {
+            // 参加取り消しAPI呼び出し例
+            fetch(`https://0x0-participation-d7fqb7h3dpcqcxek.japaneast-01.azurewebsites.net/api/event/cancel?code=YOUR_CANCEL_FUNCTION_KEY`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ event_id, user_id })
+            })
+              .then(res => res.json())
+              .then(() => {
+                alert("参加を取り消しました");
+                setIsParticipated(false);
+              })
+              .catch(() => alert("取り消しに失敗しました"));
+          }}
+        >
+          参加取り消し
+        </button>
+      ) : (
+        <button
+          style={{
+            marginLeft: '1rem',
+            background: '#1976d2',
+            color: 'white',
+            padding: '0.5rem 1.5rem',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer'
+          }}
+          onClick={() => router.push(`/event/confirm?event_id=${event_id}`)}
+        >
+          参加
+        </button>
+      )}
     </div>
   );
 }

@@ -16,7 +16,7 @@ export default function Login() {
     e.preventDefault();
     setError("");
     try {
-      const res = await fetch(API_URL_LOGIN, {
+      const res = await fetch("https://0x0-login.azurewebsites.net/api/login?code=9L4lUJuBIQvolKJrqK4EUFKUpvZFevZKRN8DLkhkr-5qAzFucYp7_Q%3D%3D", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id, password }),

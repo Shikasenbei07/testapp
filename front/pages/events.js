@@ -2,17 +2,16 @@ import { useEffect, useState } from "react";
 
 export default function EventsPage() {
   const [favorites, setFavorites] = useState([]);
+  const [participatedEvents, setParticipatedEvents] = useState([]);
   const userId = '0738';
 
+  // toggleFavorite関数を定義
   function toggleFavorite(eventId) {
-    const userId = '0738';
     setFavorites(prev => {
-      // すでにお気に入りの場合は何もしない（色も維持）
       if (prev.includes(eventId)) {
         return prev;
       }
       const updated = [...prev, eventId];
-      // お気に入り追加時のみAPI呼び出し
       fetch("https://0x0-showevent-hbbadxcxh9a4bzhu.japaneast-01.azurewebsites.net/api/favorite?code=zsOO_WgPGY9dtEN_tkki1bHWPy8XYJQoQPo2G7ONmvsoAzFusJrTJg%3D%3D", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -37,11 +36,9 @@ export default function EventsPage() {
         return res.text();
       })
       .then(data => {
-        // 登録成功時に通知
         alert('お気に入りに登録しました');
       })
       .catch(err => {
-        // 既にalert済みなのでconsoleのみ
         console.error("お気に入り登録APIエラー", err);
       });
       localStorage.setItem("favorites", JSON.stringify(updated));
@@ -96,6 +93,14 @@ export default function EventsPage() {
       .catch(err => {
         setError("カテゴリー取得エラー: " + err.message);
       });
+
+    // 参加済みイベント取得API
+    fetch("https://0x0-participation-d7fqb7h3dpcqcxek.japaneast-01.azurewebsites.net/api/event/participate?code=IqAEzEm_tdgsaLYblJjNZChDOjX7TKk2FDdM9zV2yMqFAzFufBImGw%3D%3D&user_id=" + userId)
+      .then(res => res.json())
+      .then(data => {
+        setParticipatedEvents(Array.isArray(data) ? data : []);
+      })
+      .catch(() => setParticipatedEvents([]));
   }, []);
 
   // 表示するカラムを限定
@@ -216,7 +221,7 @@ export default function EventsPage() {
                   ))}
                   <td>{`${event.current_participants ?? 0}/${event.max_participants ?? 0}`}</td>
                   <td style={{ textAlign: 'center' }}>
-                    <button onClick={() => window.location.href = `/event-detail?event_id=${event.event_id}`}>詳細</button>
+                    <button onClick={() => window.location.href = `/event/${event.event_id}`}>詳細</button>
                   </td>
                   <td style={{ textAlign: 'center' }}>
                     <button
