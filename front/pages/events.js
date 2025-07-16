@@ -69,7 +69,7 @@ export default function EventsPage() {
       .catch(() => setFavorites([]));
 
     // イベント一覧取得API（function keyは既存でOK）
-    fetch("https://0x0-showevent-hbbadxcxh9a4bzhu.japaneast-01.azurewebsites.net/api/showevent?code=KjUCLx4igb6FiJ3ZtQKowVUUk9MgUtPSuBhPrMam2RwxAzFuTt1T_w%3D%3D")
+    fetch("https://0x0-showevent-hbbadxcxh9a4bzhu.japaneast-01.azurewebsites.net/api/showEvent?code=KjUCLx4igb6FiJ3ZtQKowVUUk9MgUtPSuBhPrMam2RwxAzFuTt1T_w%3D%3D")
       .then((res) => res.json())
       .then((data) => {
         const now = new Date();
@@ -88,7 +88,7 @@ export default function EventsPage() {
       });
 
     // カテゴリー一覧取得API（function key追加）
-    fetch("https://0x0-showevent-hbbadxcxh9a4bzhu.japaneast-01.azurewebsites.net/api/categories?code=zsOO_WgPGY9dtEN_tkki1bHWPy8XYJQoQPo2G7ONmvsoAzFusJrTJg%3D%3D")
+    fetch("https://0x0-showevent-hbbadxcxh9a4bzhu.japaneast-01.azurewebsites.net/api/categories?code=qPu7q4iQBMrEMTPaYXSYNOrzTnAm5yplhzIJ9JfIq-vWAzFukZ5pSA%3D%3D")
       .then(res => res.json())
       .then(data => {
         setCategories(Array.isArray(data) ? data.map(cat => ({ id: cat.category_id, name: cat.category_name })) : []);

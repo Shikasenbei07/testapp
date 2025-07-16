@@ -1,5 +1,10 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
+if (process.env.IS_MAIN_PRODUCT === "true") {
+  const API_URL_LOGIN = process.env.NEXT_PUBLIC_API_URL + "/login";
+} else {
+  const API_URL_LOGIN = "https://0x0-login.azurewebsites.net/api/login?code=9L4lUJuBIQvolKJrqK4EUFKUpvZFevZKRN8DLkhkr-5qAzFucYp7_Q%3D%3D";
+}
 
 export default function Login() {
   const [id, setId] = useState("");
@@ -11,7 +16,7 @@ export default function Login() {
     e.preventDefault();
     setError("");
     try {
-      const res = await fetch("https://0x0-login.azurewebsites.net/api/login?code=9L4lUJuBIQvolKJrqK4EUFKUpvZFevZKRN8DLkhkr-5qAzFucYp7_Q%3D%3D", {
+      const res = await fetch(API_URL_LOGIN, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id, password }),
