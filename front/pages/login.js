@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
+
+let API_URL_LOGIN = null;
 if (process.env.IS_MAIN_PRODUCT === "true") {
-  const API_URL_LOGIN = process.env.NEXT_PUBLIC_API_URL + "/login";
+  API_URL_LOGIN = process.env.API_URL_LOGIN_PRODUCT;
 } else {
-  const API_URL_LOGIN = "https://0x0-login.azurewebsites.net/api/login?code=9L4lUJuBIQvolKJrqK4EUFKUpvZFevZKRN8DLkhkr-5qAzFucYp7_Q%3D%3D";
+  API_URL_LOGIN = process.env.API_URL_LOGIN_TEST;
 }
 
 export default function Login() {

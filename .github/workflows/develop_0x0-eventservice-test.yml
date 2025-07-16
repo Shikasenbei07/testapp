@@ -1,12 +1,12 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 
-name: Build and deploy Node.js app to Azure Web App - 0x0-eventservice
+name: Build and deploy Node.js app to Azure Web App - 0x0-eventservice-test
 
 on:
   push:
     branches:
-      - main
+      - develop
   workflow_dispatch:
 
 jobs:
@@ -56,22 +56,21 @@ jobs:
         
       - name: Copy .next/static to standalone
         run: cp -r ./front/.next/static ./front/.next/standalone/.next/static
-
-      - name: Set Azure App Service App Settings
-        uses: Azure/appservice-settings@v1
-        with:
-          app-name: '0x0-eventservice'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_8335D02BE17C40F78C5B173CEBD8E27A }}
-          app-settings-json: |
-            [
-              { "name": "IS_MAIN_PRODUCT", "value": "true" },
-              { "name": "***", "value": "***" }
-            ]
+        
+      # - name: Set Azure App Service App Settings
+      #   uses: Azure/appservice-settings@v1
+      #   with:
+      #     app-name: '0x0-eventservice-test'
+      #     app-settings-json: |
+      #       [
+      #         { "name": "IS_MAIN_PRODUCT", "value": "false" },
+      #         { "name": "API_URL_LOGIN_TEST", "value": "https://0x0-login.azurewebsites.net/api/login?code=9L4lUJuBIQvolKJrqK4EUFKUpvZFevZKRN8DLkhkr-5qAzFucYp7_Q%3D%3D" }
+      #       ]
       
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: '0x0-eventservice'
+          app-name: '0x0-eventservice-test'
           package: ./front/.next/standalone
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_8335D02BE17C40F78C5B173CEBD8E27A }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_60E95571A45D498DBBC22F5A6D23C2B7 }}
