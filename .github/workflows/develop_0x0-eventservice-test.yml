@@ -56,21 +56,16 @@ jobs:
         
       - name: Copy .next/static to standalone
         run: cp -r ./front/.next/static ./front/.next/standalone/.next/static
-
-      - name: Azure CLI Debug
-        run: az webapp list --output table
-        env:
-          AZURE_HTTP_USER_AGENT: github-actions
-
-      - name: Set Azure App Service App Settings
-        uses: Azure/appservice-settings@v1
-        with:
-          app-name: '0x0-eventservice-test'
-          app-settings-json: |
-            [
-              { "name": "IS_MAIN_PRODUCT", "value": "false" },
-              { "name": "API_URL_LOGIN_TEST", "value": "https://0x0-login.azurewebsites.net/api/login?code=9L4lUJuBIQvolKJrqK4EUFKUpvZFevZKRN8DLkhkr-5qAzFucYp7_Q%3D%3D" }
-            ]
+        
+      # - name: Set Azure App Service App Settings
+      #   uses: Azure/appservice-settings@v1
+      #   with:
+      #     app-name: '0x0-eventservice-test'
+      #     app-settings-json: |
+      #       [
+      #         { "name": "IS_MAIN_PRODUCT", "value": "false" },
+      #         { "name": "API_URL_LOGIN_TEST", "value": "https://0x0-login.azurewebsites.net/api/login?code=9L4lUJuBIQvolKJrqK4EUFKUpvZFevZKRN8DLkhkr-5qAzFucYp7_Q%3D%3D" }
+      #       ]
       
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
