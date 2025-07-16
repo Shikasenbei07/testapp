@@ -9,19 +9,25 @@ export default function Login() {
   const [error, setError] = useState("");
   const router = useRouter();
 
+  const validity_time = 60 * 60 * 1000; // ログインの有効時間（ミリ秒） 
+
   async function handleSubmit(e) {
     e.preventDefault();
+    setPassword("");
     setError("");
     try {
-      const res = await fetch(API_URL_LOGIN, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, password }),
-      });
-      // 保存時（例：1時間後に期限切れ）
+      const res = await fetch(
+        API_URL_LOGIN,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ "id": id, "password": password }),
+        }
+      );
+      
       if (res.ok) {
         const data = await res.json();
-        const expire = Date.now() + 60 * 60 * 1000; // 1時間（ミリ秒）
+        const expire = Date.now() + validity_time;
         localStorage.setItem("id", data.id);
         localStorage.setItem("id_expire", expire);
         router.push("/event");

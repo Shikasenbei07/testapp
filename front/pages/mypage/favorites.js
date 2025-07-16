@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
 
+const API_URL_GET_FAVORITES = process.env.NEXT_PUBLIC_API_URL_GET_FAVORITES;
+const API_URL_REMOVE_FAVORITE = process.env.NEXT_PUBLIC_API_URL_REMOVE_FAVORITE;
+
 export default function FavoritesPage() {
   const [favorites, setFavorites] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("https://0x0-favorites-list.azurewebsites.net/api/favorites?code=zzyPmL0sN_rUEbSrao2nHRMb4xME2aDHTidr9DtDXsjRAzFu7br4HA%3D%3D")
+    fetch(API_URL_GET_FAVORITES)
       .then(res => res.json())
       .then(data => {
         setFavorites(data);
@@ -86,8 +89,7 @@ export default function FavoritesPage() {
 
     if (!confirmed) return;
 
-    const res = await fetch(
-      `https://0x0-favorites-list.azurewebsites.net/api/favorites/${event_id}?code=RWHWy8MdJ3Eep-1GcX-eQgsHVLIc6rB5CZ2OX2O4bNmuAzFuJr3suA%3D%3D`,
+    const res = await fetch(API_URL_REMOVE_FAVORITE + `?event_id=${event_id}`,
       {
         method: "DELETE",
       }

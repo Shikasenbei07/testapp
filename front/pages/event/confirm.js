@@ -16,7 +16,7 @@ export default function EventConfirm() {
   useEffect(() => {
     if (!event_id) return
     setLoading(true)
-    fetch(`${API_URL_GET_EVENT_DETAIL}&event_id=${event_id}`)
+    fetch(API_URL_GET_EVENT_DETAIL + `&event_id=${event_id}`)
       .then(res => res.json())
       .then(data => {
         if (data.error) setError(data.error)

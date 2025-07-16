@@ -2,18 +2,9 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { getValidId } from "../../utils/getValidId";
 
-let API_URL_SEARCH_EVENTS = null;
-let API_URL_GET_FAVORITES = null;
-let API_URL_GET_CATEGORIES = null;
-if (process.env.IS_MAIN_PRODUCT === "true") {
-  API_URL_SEARCH_EVENTS = process.env.NEXT_PUBLIC_API_URL_SEARCH_EVENTS_PRODUCT;
-  API_URL_GET_FAVORITES = process.env.NEXT_PUBLIC_API_URL_GET_FAVORITES_PRODUCT;
-  API_URL_GET_CATEGORIES = process.env.NEXT_PUBLIC_API_URL_GET_CATEGORIES_PRODUCT;
-} else {
-  API_URL_SEARCH_EVENTS = process.env.NEXT_PUBLIC_API_URL_SEARCH_EVENTS_TEST;
-  API_URL_GET_FAVORITES = process.env.NEXT_PUBLIC_API_URL_GET_FAVORITES_TEST;
-  API_URL_GET_CATEGORIES = process.env.NEXT_PUBLIC_API_URL_GET_CATEGORIES_TEST;
-}
+const API_URL_SEARCH_EVENTS = process.env.NEXT_PUBLIC_API_URL_SEARCH_EVENTS;
+const API_URL_GET_FAVORITES = process.env.NEXT_PUBLIC_API_URL_GET_FAVORITES;
+const API_URL_GET_CATEGORIES = process.env.NEXT_PUBLIC_API_URL_GET_CATEGORIES;
 
 export default function EventsPage() {
   const [favorites, setFavorites] = useState([]);

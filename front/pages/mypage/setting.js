@@ -1,16 +1,10 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
+import { getValidId } from "../../utils/getValidId";
 
-function getValidId() {
-  const id = localStorage.getItem("id");
-  const expire = localStorage.getItem("id_expire");
-  if (!id || !expire || Date.now() > Number(expire)) {
-    localStorage.removeItem("id");
-    localStorage.removeItem("id_expire");
-    return null;
-  }
-  return id;
-}
+const API_URL_GET_USER = process.env.NEXT_PUBLIC_API_URL_GET_USER;
+const API_URL_UPDATE_USER = process.env.NEXT_PUBLIC_API_URL_UPDATE_USER;
+const API_URL_UPLOAD_PROFILE_IMG = process.env.NEXT_PUBLIC_API_URL_UPLOAD_PROFILE_IMG;
 
 export default function Setting() {
   const [lName, setLName] = useState("");
@@ -28,7 +22,7 @@ export default function Setting() {
       return;
     }
     
-    fetch("https://0x0-login.azurewebsites.net/api/mypage?code=EzjjwAEIjnxywfEksi9uz-ixU-8Qet_ZjJCegzf8abomAzFu6xZbzw%3D%3D", {
+    fetch(API_URL_GET_USER, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id }),
@@ -76,7 +70,7 @@ export default function Setting() {
       const formData = new FormData();
       formData.append("id", id);
       formData.append("profile_img", profileImg);
-      const res = await fetch("https://0x0-mypage.azurewebsites.net/api/upload_profile_img?code=cviITIhg8eHig53MaBOTRv7-nw8B9V9H6eMhYD-ho46VAzFu8QllRw%3D%3D", {
+      const res = await fetch(API_URL_UPLOAD_PROFILE_IMG, {
         method: "POST",
         body: formData,
       });
@@ -89,7 +83,7 @@ export default function Setting() {
     }
 
     // ユーザ情報更新API呼び出し例
-    const res = await fetch("https://0x0-mypage.azurewebsites.net/api/update_user?code=zLvDKpdGpctGkH6ysOU4978S5vx31ofMN6fNwxo7vJ0UAzFuN8Sz_Q%3D%3D", {
+    const res = await fetch(API_URL_UPDATE_USER, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id, l_name: lName, profile_img: imgUrl }),
