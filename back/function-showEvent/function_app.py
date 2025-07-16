@@ -78,8 +78,31 @@ def showevent(req: func.HttpRequest) -> func.HttpResponse:
         logging.error(f"DBエラー: {e}")
         return func.HttpResponse(f"DB接続エラー: {e}", status_code=500)
 
-# お気に入り登録
-@app.route(route="favorite", methods=["POST"])
+# お気に入り取得（GET）
+@app.route(route="get_favorites", methods=["GET"])
+def get_favorites(req: func.HttpRequest) -> func.HttpResponse:
+    user_id = req.params.get("user_id")
+    if not user_id:
+        return func.HttpResponse("user_idが指定されていません", status_code=400)
+    try:
+        conn_str = os.environ.get("CONNECTION_STRING")
+        if not conn_str:
+            logging.error("CONNECTION_STRINGが環境変数に設定されていません")
+            return func.HttpResponse("DB接続情報がありません", status_code=500)
+        conn = pyodbc.connect(conn_str)
+        cursor = conn.cursor()
+        sql = "SELECT event_id FROM favorites WHERE id = ?"
+        cursor.execute(sql, (user_id,))
+        rows = cursor.fetchall()
+        conn.close()
+        result = [row[0] for row in rows]
+        return func.HttpResponse(json.dumps(result), mimetype="application/json")
+    except Exception as e:
+        logging.error(f"お気に入り取得DBエラー: {e}")
+        return func.HttpResponse(f"DB接続エラー: {e}", status_code=500)
+
+# お気に入り登録（POST）
+@app.route(route="favorites", methods=["POST"])
 def add_favorite(req: func.HttpRequest) -> func.HttpResponse:
     try:
         req_body = req.get_json()
