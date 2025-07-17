@@ -11,7 +11,8 @@ export default function EventCreateDone() {
                     ? "イベントの下書き保存が完了しました。"
                     : "イベントの登録が完了しました。"}
             </p>
-            <a href="/event-create" style={{ color: "#1976d2" }}>新しいイベントを作成する</a>
+            <a href="/event/create" style={{ color: "#1976d2" }}>別のイベントを作成する</a>
+            <a href="/event" style={{ color: "#1976d2" }}>イベント一覧に戻る</a>
         </div>
     );
 }

@@ -55,6 +55,11 @@ export default function SideMenu({ open, setOpen }) {
               イベント編集
             </Link>
           </li>
+          <li style={{ margin: '1em' }}>
+            <Link href="/mypage/reservation" style={{ color: '#000' }} onClick={() => setOpen(false)}>
+              参加予約一覧
+            </Link>
+          </li>
         </ul>
       </nav>
     </>

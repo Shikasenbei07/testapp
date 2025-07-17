@@ -34,8 +34,13 @@ export default function EventConfirm() {
     const userId = getValidId();
     const res = await fetch(API_URL_PARTICIPATE, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ event_id: event_id, id: userId })
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        event_id: event_id, // イベントID
+        id: userId         // ユーザーID
+      })
     })
     let data = {}
     try {

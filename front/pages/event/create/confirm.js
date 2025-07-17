@@ -1,6 +1,8 @@
 import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
 
+const API_URL_CREATE_EVENT = process.env.NEXT_PUBLIC_API_URL_CREATE_EVENT;
+
 function EventCreateConfirm() {
     const router = useRouter();
     const [formValues, setFormValues] = useState(null);
@@ -89,12 +91,12 @@ function EventCreateConfirm() {
         formData.append("is_draft", isDraft ? 1 : 0);
         // creatorは省略（API側で処理）
         try {
-            const res = await fetch(`https://0x0-event-management.azurewebsites.net/api/events?code=K5myTaihTLRS_ET12lo8kreI7HEeKqkyDYYIEMgaxXTDAzFu7tLFng%3D%3D`, {
+            const res = await fetch(API_URL_CREATE_EVENT, {
                 method: "POST",
                 body: formData
             });
             if (res.ok) {
-                router.push(`/event-create-done?is_draft=${isDraft ? 1 : 0}`);
+                router.push(`/event/create/complete?is_draft=${isDraft ? 1 : 0}`);
             } else {
                 let err;
                 const contentType = res.headers.get("content-type");
