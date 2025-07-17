@@ -75,6 +75,17 @@ jobs:
           package: ./front/.next/standalone
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_60E95571A45D498DBBC22F5A6D23C2B7 }}
 
-      - name: Set App Settings
+      - name: Load .env.local
         run: |
-          python ./front/scripts/set_env.py
+          cp ./front/.env.local .env
+
+      - name: Convert .env.local to app-settings-json
+        id: env-to-json
+        run: |
+          cat .env | grep -v '^#' | grep -v '^$' | awk -F= '{print "{\"name\": \""$1"\", \"value\": \""$2"\"},"}' | sed '$ s/,$//' | awk 'BEGIN{print "["}{print}{print "]"}' > appsettings.json
+
+      - name: Set Azure App Service App Settings
+        uses: Azure/appservice-settings@v1
+        with:
+          app-name: '0x0-eventservice-test'
+          app-settings-json: ${{ steps.env-to-json.outputs.appsettings }}
