@@ -78,4 +78,4 @@ jobs:
       - name: Set App Settings
         run: |
           pip install dotenv
-          python ./front/scripts/set_app_settings.py
+          python ./front/scripts/set_env.py
