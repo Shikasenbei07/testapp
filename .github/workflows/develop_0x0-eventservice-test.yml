@@ -78,28 +78,28 @@ jobs:
       - name: Copy .next/static to standalone
         run: cp -r ./front/.next/static ./front/.next/standalone/.next/static
 
-      - name: Create .env.local from secrets
-        run: echo "${{ secrets.ENV_LOCAL_TEST }}" > ./front/.env.local
+      # - name: Create .env.local from secrets
+      #   run: echo "${{ secrets.ENV_LOCAL_TEST }}" > ./front/.env.local
 
-      - name: Load .env.local
-        run: cp ./front/.env.local .env
+      # - name: Load .env.local
+      #   run: cp ./front/.env.local .env
 
-      - name: Convert .env.local to app-settings-json
-        id: env-to-json
-        run: |
-          cat .env | grep -v '^#' | grep -v '^$' \
-          | awk -F= '{val=$0; sub(/^[^=]+=/,"",val); gsub(/"/, "\\\"", val); print "{\"name\":\"" $1 "\", \"value\":\"" val "\"}"}' \
-          | jq -s '.' > appsettings.json
-          echo "appsettings=$(cat appsettings.json | jq -c .)" >> $GITHUB_OUTPUT
+      # - name: Convert .env.local to app-settings-json
+      #   id: env-to-json
+      #   run: |
+      #     cat .env | grep -v '^#' | grep -v '^$' \
+      #     | awk -F= '{val=$0; sub(/^[^=]+=/,"",val); gsub(/"/, "\\\"", val); print "{\"name\":\"" $1 "\", \"value\":\"" val "\"}"}' \
+      #     | jq -s '.' > appsettings.json
+      #     echo "appsettings=$(cat appsettings.json | jq -c .)" >> $GITHUB_OUTPUT
 
-      - name: Debug appsettings.json
-        run: cat appsettings.json
+      # - name: Debug appsettings.json
+      #   run: cat appsettings.json
 
-      - name: Set Azure App Service App Settings
-        uses: Azure/appservice-settings@v1
-        with:
-          app-name: '0x0-eventservice-test'
-          app-settings-json: ${{ steps.env-to-json.outputs.appsettings }}
+      # - name: Set Azure App Service App Settings
+      #   uses: Azure/appservice-settings@v1
+      #   with:
+      #     app-name: '0x0-eventservice-test'
+      #     app-settings-json: ${{ steps.env-to-json.outputs.appsettings }}
 
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
