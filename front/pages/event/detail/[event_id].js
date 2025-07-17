@@ -1,7 +1,7 @@
 import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
 
-const API_URL_GET_EVENT_DETAIL = NEXT_PUBLIC_API_URL_GET_EVENT_DETAIL;
+const API_URL_GET_EVENT_DETAIL = process.env.NEXT_PUBLIC_API_URL_GET_EVENT_DETAIL;
 
 export default function EventDetail() {
   const router = useRouter()

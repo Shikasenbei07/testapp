@@ -1,5 +1,9 @@
 import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
+import { getValidId } from "../../../utils/getValidId";
+
+const API_URL_GET_EVENT_DETAIL = process.env.NEXT_PUBLIC_API_URL_GET_EVENT_DETAIL;
+const API_URL_DELETE_EVENT = process.env.NEXT_PUBLIC_API_URL_DELETE_EVENT;
 
 export default function EventDeleteConfirm() {
     const router = useRouter();
@@ -10,11 +14,11 @@ export default function EventDeleteConfirm() {
 
     useEffect(() => {
         if (!router.isReady) return;
-        const { id } = router.query;
-        setEventId(id);
-        if (id) {
-            // バグ修正: 取得APIのURL末尾に`/${id}`が重複していたので削除
-            fetch(`https://0x0-event-management.azurewebsites.net/api/events/${id}?code=B6FHqDqDwJVTfMUFAC6ZptbH_KME7rndWP2yayBkPrHcAzFuKEsPFw%3D%3D`)
+        const { event_id } = router.query;
+        setEventId(event_id);
+        if (event_id) {
+            // イベント詳細取得
+            fetch(API_URL_GET_EVENT_DETAIL + `&event_id=${event_id}`)
                 .then(res => res.json())
                 .then(data => setEventData(data))
                 .catch(() => setEventData(null));
@@ -25,11 +29,13 @@ export default function EventDeleteConfirm() {
         setLoading(true);
         setError("");
         try {
-            // バグ修正: 削除APIのURLでidが未定義になる場合があるのでeventIdを使う
-            const res = await fetch(`https://0x0-event-management.azurewebsites.net/api/events/${eventId}?code=Epb_sHIPMHqmDwwPK2AuEPhhB_tDFbLy5GlK0thCRkg8AzFuS0i5bA%3D%3D`, {
+            const url = API_URL_DELETE_EVENT.replace("%7Bevent_id%7D", eventId);
+            const res = await fetch(url, {
                 method: "DELETE",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ "creator": id }),
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ creator: getValidId() }) // userIdはログインユーザーのID
             });
             if (res.ok) {
                 router.push("/event-delete-done");
@@ -41,12 +47,13 @@ export default function EventDeleteConfirm() {
                 } else {
                     err = { error: await res.text() };
                 }
-                setError("削除失敗: " + (err.error || res.status));
+                setError(err.error || "削除に失敗しました");
             }
-        } catch (err) {
-            setError("通信エラー: " + err);
+        } catch (e) {
+            setError("通信エラーが発生しました");
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     };
 
     if (!eventData) {

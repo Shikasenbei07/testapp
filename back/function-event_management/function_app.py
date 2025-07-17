@@ -173,12 +173,12 @@ def get_draft(req: func.HttpRequest) -> func.HttpResponse:
 
 @app.route(route="update_event", methods=["PUT"])
 def update_event(req: func.HttpRequest) -> func.HttpResponse:
-    event_id = req.route_params.get('event_id')
+    event_id = int(req.route_params.get('event_id'))
     try:
         data, _ = parse_multipart(req)
         with get_db_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT creator FROM EVENTS WHERE event_id=?", event_id)
+            cursor.execute("SELECT creator FROM EVENTS WHERE event_id=?", (event_id,))
             row = cursor.fetchone()
             if not row:
                 return error_response("イベントが存在しません", 404)
@@ -213,13 +213,13 @@ def update_event(req: func.HttpRequest) -> func.HttpResponse:
         logging.error(tb)
         return error_response(str(e), 500, tb)
 
-@app.route(route="delete_event", methods=["DELETE"])
+@app.route(route="delete_event/{event_id}", methods=["DELETE"])
 def delete_event(req: func.HttpRequest) -> func.HttpResponse:
     event_id = req.route_params.get('event_id')
     try:
         with get_db_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT creator FROM EVENTS WHERE event_id=?", event_id)
+            cursor.execute("SELECT creator FROM EVENTS WHERE event_id=?", (event_id,))
             row = cursor.fetchone()
             if not row:
                 return error_response("イベントが存在しません", 404)
@@ -231,9 +231,10 @@ def delete_event(req: func.HttpRequest) -> func.HttpResponse:
             request_creator = str(data.get("creator", ""))
             if not request_creator or request_creator != str(event_creator):
                 return error_response("イベント作成者のみ削除可能です", 403)
-            cursor.execute("DELETE FROM EVENTS_KEYWORDS WHERE event_id=?", event_id)
-            cursor.execute("DELETE FROM EVENTS_PARTICIPANTS WHERE event_id=?", event_id)
-            cursor.execute("DELETE FROM EVENTS WHERE event_id=?", event_id)
+            cursor.execute("DELETE FROM EVENTS_KEYWORDS WHERE event_id=?", (event_id,))
+            cursor.execute("DELETE FROM EVENTS_PARTICIPANTS WHERE event_id=?", (event_id,))
+            cursor.execute("DELETE FROM favorites WHERE event_id=?", (event_id,))  # ←追加
+            cursor.execute("DELETE FROM EVENTS WHERE event_id=?", (event_id,))
             conn.commit()
         return func.HttpResponse(json.dumps({"message": "イベント削除完了", "event_id": event_id}), mimetype="application/json", status_code=200)
     except Exception as e:

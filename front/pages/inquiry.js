@@ -1,12 +1,15 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 
+const API_URL_GET_EVENT_DETAIL = process.env.NEXT_PUBLIC_API_URL_GET_EVENT_DETAIL;
+const API_URL_CREATE_INQUIRY = process.env.NEXT_PUBLIC_API_URL_CREATE_INQUIRY;
+
 async function fetchEventInfo(event_id) {
   try {
     console.log('Fetching event info for ID:', event_id);
     
     // Next.jsのAPIルートを使用（推奨）
-    const res = await fetch(`/api/eventinfo?event_id=${event_id}`, {
+    const res = await fetch(API_URL_GET_EVENT_DETAIL, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -41,7 +44,7 @@ async function fetchEventInfo(event_id) {
 async function sendInquiry(event_id, subject, message, sender_id, recipient_id, reply_to_inquiry_id) {
   try {
     console.log('Sending inquiry...');
-    const res = await fetch('/api/inquiry', {
+    const res = await fetch(API_URL_CREATE_INQUIRY, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

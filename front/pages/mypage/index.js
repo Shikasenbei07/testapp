@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { getValidId } from "../../utils/getValidId";
 
+const API_URL_GET_USER = process.env.NEXT_PUBLIC_API_URL_GET_USER;
+
 export default function MyPage() {
   const [lName, setLName] = useState("");
   const [profileImg, setProfileImg] = useState(null);
@@ -22,7 +24,7 @@ export default function MyPage() {
       return;
     }
 
-    fetch("https://0x0-usermanagement-test.azurewebsites.net/api/get_user?code=WWA9EuuKLWhCNVqQ70YYMs0kKDJq8oAMgyZbzsahrfg0AzFuZuhknw%3D%3D", {
+    fetch(API_URL_GET_USER, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id }),
