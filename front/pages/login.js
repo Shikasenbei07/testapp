@@ -10,6 +10,8 @@ export default function Login() {
   const [error, setError] = useState("");
   const router = useRouter();
 
+  console.log("API_URL_LOGIN:", API_URL_LOGIN);
+
   const validity_time = 60 * 60 * 1000; // ログインの有効時間（ミリ秒） 
 
   async function handleSubmit(e) {
