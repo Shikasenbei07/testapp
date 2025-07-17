@@ -1,4 +1,5 @@
-const isMain = process.env.NEXT_PUBLIC_IS_MAIN_PRODUCT === "true";
+//const isMain = process.env.NEXT_PUBLIC_IS_MAIN_PRODUCT === "true";
+isMain = true;
 
 module.exports = {
     output: 'standalone',
