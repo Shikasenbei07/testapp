@@ -67,21 +67,22 @@ jobs:
       #         { "name": "API_URL_LOGIN_TEST", "value": "https://0x0-login.azurewebsites.net/api/login?code=9L4lUJuBIQvolKJrqK4EUFKUpvZFevZKRN8DLkhkr-5qAzFucYp7_Q%3D%3D" }
       #       ]
       
-      - name: Deploy to Azure Web App
-        id: deploy-to-webapp
-        uses: azure/webapps-deploy@v3
+      - name: Download artifact from build job
+        uses: actions/download-artifact@v4
         with:
-          app-name: '0x0-eventservice-test'
-          package: ./front/.next/standalone
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_60E95571A45D498DBBC22F5A6D23C2B7 }}
+          name: node-app
+
+      - name: Unzip artifact for deployment
+        run: unzip release.zip -d ./front
+
+      - name: Copy .next/static to standalone
+        run: cp -r ./front/.next/static ./front/.next/standalone/.next/static
 
       - name: Create .env.local from secrets
-        run: |
-          echo "${{ secrets.ENV_LOCAL_TEST }}" > ./front/.env.local
+        run: echo "${{ secrets.ENV_LOCAL_TEST }}" > ./front/.env.local
 
       - name: Load .env.local
-        run: |
-          cp ./front/.env.local .env
+        run: cp ./front/.env.local .env
 
       - name: Convert .env.local to app-settings-json
         id: env-to-json
@@ -94,3 +95,11 @@ jobs:
         with:
           app-name: '0x0-eventservice-test'
           app-settings-json: ${{ steps.env-to-json.outputs.appsettings }}
+
+      - name: Deploy to Azure Web App
+        id: deploy-to-webapp
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: '0x0-eventservice-test'
+          package: ./front/.next/standalone
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_60E95571A45D498DBBC22F5A6D23C2B7 }}
