@@ -2,6 +2,11 @@ import { useState, useEffect } from "react";
 import EventForm from "../../components/EventForm";
 import { useRouter } from "next/router";
 
+const API_URL_GET_CATEGORIES = process.env.NEXT_PUBLIC_API_URL_GET_CATEGORIES;
+const API_URL_GET_KEYWORDS = process.env.NEXT_PUBLIC_API_URL_GET_KEYWORDS;
+const API_URL_UPDATE_EVENT = process.env.NEXT_PUBLIC_API_URL_UPDATE_EVENT;
+
+
 // イベント編集ページ
 export default function EventEdit() {
     const router = useRouter();
@@ -26,10 +31,10 @@ export default function EventEdit() {
     const [categoryOptions, setCategoryOptions] = useState([]);
     const [keywordOptions, setKeywordOptions] = useState([]);
     useEffect(() => {
-        fetch(`https://0x0-event-management.azurewebsites.net/api/get_categories_keywords/categories?code=fAanZK6Io30u2CZlxXnipF3G88zykyIaL6TZkIjz3IW7AzFuGesvgA%3D%3D`)
+        fetch(API_URL_GET_CATEGORIES)
             .then(res => res.json())
             .then(json => setCategoryOptions(json.map(c => ({ value: String(c.category_id), label: c.category_name }))));
-        fetch(`https://0x0-event-management.azurewebsites.net/api/get_categories_keywords/keywords?code=fAanZK6Io30u2CZlxXnipF3G88zykyIaL6TZkIjz3IW7AzFuGesvgA%3D%3D`)
+        fetch(API_URL_GET_KEYWORDS)
             .then(res => res.json())
             .then(json => setKeywordOptions(json.map(k => ({ value: String(k.keyword_id), label: k.keyword_name }))));
     }, []);
@@ -40,7 +45,7 @@ export default function EventEdit() {
         const eventId = router.query.event_id || (typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("event_id") : "");
         if (!eventId) return;
         setLoading(true);
-        fetch(`https://0x0-event-management.azurewebsites.net/api/events/${eventId}?code=B6FHqDqDwJVTfMUFAC6ZptbH_KME7rndWP2yayBkPrHcAzFuKEsPFw%3D%3D`)
+        fetch(API_URL_UPDATE_EVENT + `?event_id=${eventId}`)
             .then(async res => {
                 if (!res.ok) {
                     // 404や500の場合

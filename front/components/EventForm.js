@@ -17,10 +17,24 @@ export default function EventForm({
     draftLabel = "下書き保存",
     deleteLabel = "イベント取り消し"
 }) {
-    // props型例:
-    // form: {title, date, ...}, errors: {...}, preview: string, eventData: {...}, categoryOptions: [], keywordOptions: [], isEdit: bool, onChange: fn, onSubmit: fn, onDraft: fn, onDelete: fn, isFormComplete: fn
+    // スタイル定義
+    const styles = {
+        container: { maxWidth: 600, margin: "2rem auto", fontFamily: "sans-serif" },
+        keywordLabel: { display: "flex", alignItems: "center", gap: "0.2rem", margin: 0 },
+        keywordWrap: { display: "flex", flexWrap: "wrap", gap: "0.5rem" },
+        image: { maxWidth: "100%", maxHeight: 200, marginTop: "0.5rem" },
+        submitBtn: (enabled) => ({
+            background: enabled ? "#1976d2" : "#ccc",
+            color: enabled ? "#fff" : "#888",
+            cursor: enabled ? "pointer" : "not-allowed",
+            opacity: enabled ? 1 : 0.6
+        }),
+        draftBtn: { marginLeft: 8 },
+        deleteBtn: { marginLeft: 8, background: "#d32f2f", color: "#fff" }
+    };
+
     return (
-        <div style={{ maxWidth: 600, margin: "2rem auto", fontFamily: "sans-serif" }}>
+        <div style={styles.container}>
             <h1>{isEdit ? "イベント編集" : "イベント作成"}</h1>
             <form onSubmit={onSubmit}>
                 <div className="row">
@@ -54,9 +68,9 @@ export default function EventForm({
                 </div>
                 <div className="row">
                     <label>キーワード</label>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+                    <div style={styles.keywordWrap}>
                         {keywordOptions.map(opt => (
-                            <label key={opt.value} style={{ display: "flex", alignItems: "center", gap: "0.2rem", margin: 0 }}>
+                            <label key={opt.value} style={styles.keywordLabel}>
                                 <input
                                     type="checkbox"
                                     name="keywords"
@@ -75,10 +89,10 @@ export default function EventForm({
                         <input type="file" name="image" accept="image/*" onChange={onChange} />
                     </label>
                     {(preview && form.image && typeof form.image !== "string") && (
-                        <img src={preview} alt="プレビュー" style={{ maxWidth: "100%", maxHeight: 200, marginTop: "0.5rem" }} />
+                        <img src={preview} alt="プレビュー" style={styles.image} />
                     )}
                     {(!preview && eventData && eventData.image_url) && (
-                        <img src={eventData.image_url} alt="保存済み画像" style={{ maxWidth: "100%", maxHeight: 200, marginTop: "0.5rem" }} />
+                        <img src={eventData.image_url} alt="保存済み画像" style={styles.image} />
                     )}
                     {errors.image && <div style={{ color: 'red' }}>{errors.image}</div>}
                 </div>
@@ -109,20 +123,15 @@ export default function EventForm({
                 <button
                     type="submit"
                     disabled={!isFormComplete()}
-                    style={{
-                        background: isFormComplete() ? "#1976d2" : "#ccc",
-                        color: isFormComplete() ? "#fff" : "#888",
-                        cursor: isFormComplete() ? "pointer" : "not-allowed",
-                        opacity: isFormComplete() ? 1 : 0.6
-                    }}
+                    style={styles.submitBtn(isFormComplete())}
                 >
                     {submitLabel}
                 </button>
-                <button type="button" style={{ marginLeft: 8 }} onClick={onDraft}>{draftLabel}</button>
+                <button type="button" style={styles.draftBtn} onClick={onDraft}>{draftLabel}</button>
                 {isEdit && (
                     <button
                         type="button"
-                        style={{ marginLeft: 8, background: "#d32f2f", color: "#fff" }}
+                        style={styles.deleteBtn}
                         onClick={onDelete}
                     >{deleteLabel}</button>
                 )}

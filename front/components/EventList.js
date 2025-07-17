@@ -4,44 +4,88 @@ import { useRouter } from "next/router";
 export default function EventList({ events, onEdit, title }) {
     const router = useRouter();
     const handleCancel = (eventId) => {
-        // 取り消し確認画面URLは仮で /event_cancel/[event_id]
-        router.push(`/event_cancel/${eventId}`);
+        router.push(`/event/delete/confirm?event_id=${eventId}`);
     };
     return (
         <div>
             <h2>{title}</h2>
-            <div style={{ display: "flex", flexDirection: "column", gap: "1.2em", alignItems: "center" }}>
+            <div className="event-list-container">
                 {events.map((event) => (
-                    <div key={event.event_id} style={{
-                        border: "1px solid #ccc",
-                        borderRadius: "8px",
-                        padding: "1em",
-                        background: "#fafafa",
-                        boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "1em",
-                        maxWidth: "700px",
-                        width: "100%"
-                    }}>
-                        <div style={{ color: "#555", minWidth: "120px", textAlign: "left" }}>
+                    <div key={event.event_id} className="event-list-item">
+                        <div className="event-list-date">
                             {event.event_datetime ? event.event_datetime.slice(0, 10) : ""}
                         </div>
                         <div
-                            style={{ flex: 1, fontWeight: "bold", fontSize: "1.1em", textAlign: "center", cursor: "pointer", textDecoration: "underline" }}
+                            className="event-list-title"
                             onClick={() => onEdit(event.event_id)}
                         >
                             {event.event_title}
                         </div>
-                        <button onClick={() => onEdit(event.event_id)} style={{ padding: "0.4em 1em", borderRadius: "4px", border: "none", background: "#1976d2", color: "#fff", cursor: "pointer", marginRight: "0.5em" }}>
+                        <button
+                            className="event-list-edit-btn"
+                            onClick={() => onEdit(event.event_id)}
+                        >
                             編集
                         </button>
-                        <button onClick={() => handleCancel(event.event_id)} style={{ padding: "0.4em 1em", borderRadius: "4px", border: "none", background: "#d32f2f", color: "#fff", cursor: "pointer" }}>
+                        <button
+                            className="event-list-cancel-btn"
+                            onClick={() => handleCancel(event.event_id)}
+                        >
                             取り消し
                         </button>
                     </div>
                 ))}
             </div>
+            <style jsx>{`
+                .event-list-container {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 1.2em;
+                    align-items: center;
+                }
+                .event-list-item {
+                    border: 1px solid #ccc;
+                    border-radius: 8px;
+                    padding: 1em;
+                    background: #fafafa;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+                    display: flex;
+                    align-items: center;
+                    gap: 1em;
+                    max-width: 700px;
+                    width: 100%;
+                }
+                .event-list-date {
+                    color: #555;
+                    min-width: 120px;
+                    text-align: left;
+                }
+                .event-list-title {
+                    flex: 1;
+                    font-weight: bold;
+                    font-size: 1.1em;
+                    text-align: center;
+                    cursor: pointer;
+                    text-decoration: underline;
+                }
+                .event-list-edit-btn {
+                    padding: 0.4em 1em;
+                    border-radius: 4px;
+                    border: none;
+                    background: #1976d2;
+                    color: #fff;
+                    cursor: pointer;
+                    margin-right: 0.5em;
+                }
+                .event-list-cancel-btn {
+                    padding: 0.4em 1em;
+                    border-radius: 4px;
+                    border: none;
+                    background: #d32f2f;
+                    color: #fff;
+                    cursor: pointer;
+                }
+            `}</style>
         </div>
     );
 }
