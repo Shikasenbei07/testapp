@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import { getValidId } from "../../utils/getValidId";
+import { getValidId } from "../utils/getValidId";
 import EventList from "../components/EventList";
 
 const API_URL_GET_DRAFT = process.env.NEXT_PUBLIC_API_URL_GET_DRAFT;
