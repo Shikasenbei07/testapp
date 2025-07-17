@@ -94,32 +94,9 @@ export default function EventDetailPage() {
       {(() => {
         if (isParticipated === true) {
           return (
-            <button
-              style={{
-                marginLeft: '1rem',
-                background: '#a10000',
-                color: 'white',
-                padding: '0.5rem 1.5rem',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer'
-              }}
-              onClick={() => {
-                fetch(`https://0x0-participation-d7fqb7h3dpcqcxek.japaneast-01.azurewebsites.net/api/event/cancel?code=YOUR_CANCEL_FUNCTION_KEY`, {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ event_id, id })
-                })
-                  .then(res => res.json())
-                  .then(() => {
-                    alert("参加を取り消しました");
-                    setIsParticipated(false);
-                  })
-                  .catch(() => alert("取り消しに失敗しました"));
-              }}
-            >
-              参加取り消し
-            </button>
+            <div style={{ color: "#a10000", margin: "1rem 0" }}>
+              あなたはすでにこのイベントに参加済みです
+            </div>
           );
         } else {
           return (
