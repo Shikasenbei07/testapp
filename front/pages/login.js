@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
 
-// const API_URL_LOGIN = process.env.NEXT_PUBLIC_API_URL_LOGIN
-const API_URL_LOGIN = "https://0x0-login-test.azurewebsites.net/api/login?code=XPLwjpTWEWYvk2UTopDvY2R9cdFjgXX28vjqZfvIkw3FAzFuxyVGQg%3D%3D";
+const API_URL_LOGIN = process.env.NEXT_PUBLIC_API_URL_LOGIN
+// const API_URL_LOGIN = "https://0x0-login-test.azurewebsites.net/api/login?code=XPLwjpTWEWYvk2UTopDvY2R9cdFjgXX28vjqZfvIkw3FAzFuxyVGQg%3D%3D";
 
 export default function Login() {
   const [id, setId] = useState("");
