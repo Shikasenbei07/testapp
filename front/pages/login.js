@@ -1,25 +1,34 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
 
+// const API_URL_LOGIN = process.env.NEXT_PUBLIC_API_URL_LOGIN
+const API_URL_LOGIN = "https://0x0-login-test.azurewebsites.net/api/login?code=XPLwjpTWEWYvk2UTopDvY2R9cdFjgXX28vjqZfvIkw3FAzFuxyVGQg%3D%3D";
+
 export default function Login() {
   const [id, setId] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const router = useRouter();
 
+  const validity_time = 60 * 60 * 1000; // ログインの有効時間（ミリ秒） 
+
   async function handleSubmit(e) {
     e.preventDefault();
+    setPassword("");
     setError("");
     try {
-      const res = await fetch("https://0x0-login.azurewebsites.net/api/login?code=9L4lUJuBIQvolKJrqK4EUFKUpvZFevZKRN8DLkhkr-5qAzFucYp7_Q%3D%3D", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, password }),
-      });
-      // 保存時（例：1時間後に期限切れ）
+      const res = await fetch(
+        API_URL_LOGIN,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ "id": id, "password": password }),
+        }
+      );
+      
       if (res.ok) {
         const data = await res.json();
-        const expire = Date.now() + 60 * 60 * 1000; // 1時間（ミリ秒）
+        const expire = Date.now() + validity_time;
         localStorage.setItem("id", data.id);
         localStorage.setItem("id_expire", expire);
         router.push("/event");

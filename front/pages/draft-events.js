@@ -1,14 +1,18 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
+import { getValidId } from "../utils/getValidId";
 import EventList from "../components/EventList";
+
+const API_URL_GET_DRAFT = process.env.NEXT_PUBLIC_API_URL_GET_DRAFT;
 
 export default function DraftEventsContainer() {
     const [events, setEvents] = useState([]);
     const router = useRouter();
-    const userId = "0738";
+    const userId = getValidId();
 
     useEffect(() => {
-        fetch(`https://0x0-my-created-events-bpc3aghwg9bsb6fh.japaneast-01.azurewebsites.net/api/my_draft_events?user_id=${userId}`)
+        fetch(API_URL_GET_DRAFT + `?id=${userId}`, {
+            method: "GET"})
             .then((res) => res.json())
             .then(setEvents);
     }, [userId]);

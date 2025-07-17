@@ -5,6 +5,11 @@ import os
 
 app = func.FunctionApp(http_auth_level=func.AuthLevel.FUNCTION)
 
+if os.environ.get("IS_MAIN_PRODUCT") == "true":
+    CONNECTION_STRING = os.environ.get("CONNECTION_STRING_PRODUCT")
+else:
+    CONNECTION_STRING = os.environ.get("CONNECTION_STRING_TEST")
+
 @app.route(route="login", methods=["POST"])
 def login(req: func.HttpRequest) -> func.HttpResponse:
     try:
@@ -21,8 +26,7 @@ def login(req: func.HttpRequest) -> func.HttpResponse:
             )
 
         # local.settings.json の Values から接続文字列を取得
-        conn_str = os.environ.get("CONNECTION_STRING")
-        if not conn_str:
+        if not CONNECTION_STRING:
             return func.HttpResponse(
                 json.dumps({"error": "DB接続情報が設定されていません"}),
                 status_code=500,
@@ -30,7 +34,7 @@ def login(req: func.HttpRequest) -> func.HttpResponse:
             )
 
         try:
-            with pyodbc.connect(conn_str) as conn:
+            with pyodbc.connect(CONNECTION_STRING) as conn:
                 cursor = conn.cursor()
                 cursor.execute(
                     "SELECT COUNT(*) FROM users WHERE id=? AND password=?",
