@@ -110,33 +110,28 @@ def participate(req: func.HttpRequest) -> func.HttpResponse:
 
 @app.route(route="get_mylist")
 def get_mylist(req: func.HttpRequest) -> func.HttpResponse:
-
     user_id = "0738"  # 固定
-
-    # local.settings.json の CONNECTION_STRING を利用
-    if not CONNECTION_STRING:
+    conn_str = os.environ.get("CONNECTION_STRING")
+    if not conn_str:
         return func.HttpResponse("DB connection string not found.", status_code=500)
-
     try:
-        with pyodbc.connect(CONNECTION_STRING) as conn:
+        with pyodbc.connect(conn_str) as conn:
             cursor = conn.cursor()
             sql = """
             SELECT
-              ep.event_id,  -- これを追加
-              e.event_title,
-              c.category_name,
-              e.event_datetime,
-              ISNULL(e.location, '') AS location,
-              ISNULL(e.description, '') AS description,
-              ISNULL(e.content, '') AS content
+                ep.event_id,
+                e.event_title,
+                e.event_datetime,
+                e.location,
+                e.creator,
+                e.image
             FROM
-              EVENTS_PARTICIPANTS ep
-              JOIN EVENTS e ON ep.event_id = e.event_id
-              JOIN CATEGORYS c ON e.event_category = c.category_id
+                EVENTS_PARTICIPANTS ep
+                LEFT JOIN EVENTS e ON ep.event_id = e.event_id
             WHERE
-              ep.id = ?
+                ep.id = ?
             ORDER BY
-              ep.registered_at DESC
+                e.event_datetime DESC
             """
             cursor.execute(sql, (user_id,))
             columns = [column[0] for column in cursor.description]
@@ -151,37 +146,27 @@ def get_mylist(req: func.HttpRequest) -> func.HttpResponse:
     )
 
 
-@app.route(route="cancel_participation", methods=["POST"])
+@app.route(route="cancel-participation")
 def cancel_participation(req: func.HttpRequest) -> func.HttpResponse:
     try:
-        req_body = req.get_json()
-        event_id = req_body.get("event_id")
-        if not event_id:
-            return func.HttpResponse("event_idが空です", status_code=400)
-        user_id = "0738"
-        if not CONNECTION_STRING:
-            return func.HttpResponse("DB connection string not found.", status_code=500)
-        with pyodbc.connect(CONNECTION_STRING) as conn:
+        data = req.get_json()
+        event_id = data.get("event_id")
+        user_id = data.get("user_id")
+        if not event_id or not user_id:
+            return func.HttpResponse("event_id and user_id required", status_code=400)
+
+        conn_str = os.environ.get("CONNECTION_STRING")
+        with pyodbc.connect(conn_str) as conn:
             cursor = conn.cursor()
-            try:
-                event_id_int = int(event_id)
-            except Exception as e:
-                return func.HttpResponse("event_id型エラー", status_code=400)
-            # 削除前に該当レコードが存在するか確認
-            cursor.execute(
-                "SELECT COUNT(*) FROM EVENTS_PARTICIPANTS WHERE event_id = ? AND id = ?",
-                (event_id_int, user_id)
-            )
-            count = cursor.fetchone()[0]
-            if count == 0:
-                return func.HttpResponse("Not found", status_code=404)
-            # 削除処理
-            cursor.execute(
-                "DELETE FROM EVENTS_PARTICIPANTS WHERE event_id = ? AND id = ?",
-                (event_id_int, user_id)
-            )
-            deleted = cursor.rowcount
+            # レコード削除
+            cursor.execute("""
+                DELETE FROM EVENTS_PARTICIPANTS
+                WHERE event_id = ? AND id = ?
+            """, (event_id, user_id))
             conn.commit()
+            if cursor.rowcount == 0:
+                return func.HttpResponse("キャンセル対象がありません", status_code=400)
         return func.HttpResponse("OK", status_code=200)
     except Exception as e:
+        logging.error(f"Cancel participation error: {e}")
         return func.HttpResponse("DB error", status_code=500)

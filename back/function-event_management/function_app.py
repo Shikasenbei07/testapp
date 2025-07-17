@@ -102,7 +102,7 @@ def create_event(req: func.HttpRequest) -> func.HttpResponse:
         required_fields = ["title", "date", "location", "category", "keywords", "summary", "detail", "deadline"]
         if is_draft:
             data.setdefault("title", "（未入力）")
-            data.setdefault("creator", "0738")
+            data.setdefault("creator", "")
             data.setdefault("is_draft", 1)
         else:
             for f in required_fields:
