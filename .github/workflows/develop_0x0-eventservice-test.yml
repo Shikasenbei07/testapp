@@ -83,6 +83,7 @@ jobs:
         id: env-to-json
         run: |
           cat .env | grep -v '^#' | grep -v '^$' | awk -F= '{print "{\"name\": \""$1"\", \"value\": \""$2"\"},"}' | sed '$ s/,$//' | awk 'BEGIN{print "["}{print}{print "]"}' > appsettings.json
+          echo "appsettings=$(cat appsettings.json | tr -d '\n')" >> $GITHUB_OUTPUT
 
       - name: Set Azure App Service App Settings
         uses: Azure/appservice-settings@v1
