@@ -101,18 +101,18 @@ jobs:
       #     app-name: '0x0-eventservice-test'
       #     app-settings-json: ${{ steps.env-to-json.outputs.appsettings }}
 
-      # - name: Deploy to Azure Web App
-      #   id: deploy-to-webapp
-      #   uses: azure/webapps-deploy@v3
-      #   with:
-      #     app-name: '0x0-eventservice-test'
-      #     package: ./front/.next/standalone
-      #     publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_60E95571A45D498DBBC22F5A6D23C2B7 }}
-
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: '0x0-eventservice-test2'
+          app-name: '0x0-eventservice-test'
           package: ./front/.next/standalone
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_TEST2 }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_60E95571A45D498DBBC22F5A6D23C2B7 }}
+
+      # - name: Deploy to Azure Web App
+      #   id: deploy-to-webapp
+      #   uses: azure/webapps-deploy@v3
+      #   with:
+      #     app-name: '0x0-eventservice-test2'
+      #     package: ./front/.next/standalone
+      #     publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_TEST2 }}
