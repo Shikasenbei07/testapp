@@ -9,7 +9,7 @@
 			"isBackground": true,
 			"dependsOn": "pip install (functions)",
 			"options": {
-				"cwd": "${workspaceFolder}/back\\function-login"
+				"cwd": "${workspaceFolder}/back\\function-user_management"
 			}
 		},
 		{
@@ -26,7 +26,7 @@
 			},
 			"problemMatcher": [],
 			"options": {
-				"cwd": "${workspaceFolder}/back\\function-login"
+				"cwd": "${workspaceFolder}/back\\function-user_management"
 			}
 		}
 	]
