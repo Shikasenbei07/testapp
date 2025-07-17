@@ -92,6 +92,9 @@ jobs:
           | jq -s '.' > appsettings.json
           echo "appsettings=$(cat appsettings.json | jq -c .)" >> $GITHUB_OUTPUT
 
+      - name: Debug appsettings.json
+        run: cat appsettings.json
+
       - name: Set Azure App Service App Settings
         uses: Azure/appservice-settings@v1
         with:
