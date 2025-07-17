@@ -1,32 +1,30 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
 
-let API_URL_LOGIN = null;
-if (process.env.IS_MAIN_PRODUCT === "true") {
-  API_URL_LOGIN = process.env.API_URL_LOGIN_PRODUCT;
-} else {
-  API_URL_LOGIN = process.env.API_URL_LOGIN_TEST;
-}
-
 export default function Login() {
   const [id, setId] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const router = useRouter();
 
+  const validity_time = 60 * 60 * 1000; // ログインの有効時間（ミリ秒） 
+
   async function handleSubmit(e) {
     e.preventDefault();
+    setPassword("");
     setError("");
     try {
-      const res = await fetch("https://0x0-login.azurewebsites.net/api/login?code=9L4lUJuBIQvolKJrqK4EUFKUpvZFevZKRN8DLkhkr-5qAzFucYp7_Q%3D%3D", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, password }),
-      });
-      // 保存時（例：1時間後に期限切れ）
+      const res = await fetch(
+        "https://0x0-login-test.azurewebsites.net/api/login?code=XPLwjpTWEWYvk2UTopDvY2R9cdFjgXX28vjqZfvIkw3FAzFuxyVGQg%3D%3D",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id, password }),
+        }
+      );
       if (res.ok) {
         const data = await res.json();
-        const expire = Date.now() + 60 * 60 * 1000; // 1時間（ミリ秒）
+        const expire = Date.now() + validity_time;
         localStorage.setItem("id", data.id);
         localStorage.setItem("id_expire", expire);
         router.push("/event");

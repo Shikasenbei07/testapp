@@ -1,5 +1,9 @@
 import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
+import { getValidId } from "../../utils/getValidId";
+
+const API_URL_GET_EVENT_DETAIL = process.env.NEXT_PUBLIC_API_URL_GET_EVENT_DETAIL;
+const API_URL_PARTICIPATE = process.env.NEXT_PUBLIC_API_URL_PARTICIPATE;
 
 export default function EventConfirm() {
   const router = useRouter()
@@ -12,7 +16,7 @@ export default function EventConfirm() {
   useEffect(() => {
     if (!event_id) return
     setLoading(true)
-    fetch(`https://0x0-participation-d7fqb7h3dpcqcxek.japaneast-01.azurewebsites.net/api/event/detail?code=qC-HX3KjdRcFo7l_yVWZY56v5DwOoRWVjlzW99WcfgchAzFuzYe8QA%3D%3D&event_id=${event_id}`)
+    fetch(API_URL_GET_EVENT_DETAIL + `&event_id=${event_id}`)
       .then(res => res.json())
       .then(data => {
         if (data.error) setError(data.error)
@@ -27,9 +31,8 @@ export default function EventConfirm() {
 
   const handleJoin = async () => {
     setJoining(true)
-    const userId = "0738"
-    console.log("event_id:", event_id, "id:", userId);
-    const res = await fetch('https://0x0-participation-d7fqb7h3dpcqcxek.japaneast-01.azurewebsites.net/api/event/participate?code=IqAEzEm_tdgsaLYblJjNZChDOjX7TKk2FDdM9zV2yMqFAzFufBImGw%3D%3D', {
+    const userId = getValidId();
+    const res = await fetch(API_URL_PARTICIPATE, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ event_id: event_id, id: userId })

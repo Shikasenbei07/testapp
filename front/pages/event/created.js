@@ -1,16 +1,19 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
+import { getValidId } from "../../utils/getValidId";
 import EventList from "../../components/EventList";
+
+const API_URL_GET_SELF_CREATED_EVENTS = process.env.NEXT_PUBLIC_API_URL_GET_SELF_CREATED_EVENTS;
 
 export default function CreatedEventsContainer() {
     const [events, setEvents] = useState([]);
     const [error, setError] = useState("");
     const router = useRouter();
-    const userId = "0738";
+    const userId = getValidId();
 
     useEffect(() => {
         if (!userId) return;
-        fetch(`https://0x0-my-created-events-bpc3aghwg9bsb6fh.japaneast-01.azurewebsites.net/api/my_created_events?code=ySei4_1PSXAQo0-wKbHWgNOEC81pkALwA2bgaMN7JkzjAzFu4VKmeQ%3D%3D&user_id=${userId}`)
+        fetch(`${API_URL_GET_SELF_CREATED_EVENTS}&user_id=${userId}`)
             .then((res) => {
                 if (!res.ok) {
                     throw new Error(`取得失敗: ${res.status}`);

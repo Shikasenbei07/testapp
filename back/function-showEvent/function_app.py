@@ -127,3 +127,70 @@ def add_favorite(req: func.HttpRequest) -> func.HttpResponse:
     except Exception as e:
         logging.error(f"お気に入り登録DBエラー: {e}")
         return func.HttpResponse(f"DB接続エラー: {e}", status_code=500)
+
+# 参加履歴確認（GET）
+@app.route(route="check_history", methods=["GET"])
+def check_history(req: func.HttpRequest) -> func.HttpResponse:
+    event_id = req.params.get("event_id")
+    user_id = req.params.get("id")
+    if not event_id or not user_id:
+        return func.HttpResponse("event_idまたはidが指定されていません", status_code=400)
+    try:
+        conn_str = os.environ.get("CONNECTION_STRING")
+        if not conn_str:
+            logging.error("CONNECTION_STRINGが環境変数に設定されていません")
+            return func.HttpResponse("DB接続情報がありません", status_code=500)
+        conn = pyodbc.connect(conn_str)
+        cursor = conn.cursor()
+        sql = "SELECT COUNT(*) FROM EVENTS_PARTICIPANTS WHERE event_id = ? AND id = ?"
+        cursor.execute(sql, (event_id, user_id))
+        count = cursor.fetchone()[0]
+        conn.close()
+        result = {"is_participated": count > 0}
+        return func.HttpResponse(json.dumps(result), mimetype="application/json")
+    except Exception as e:
+        logging.error(f"参加履歴取得DBエラー: {e}")
+        return func.HttpResponse(f"DB接続エラー: {e}", status_code=500)
+
+@app.route(route="cancel-reservation", methods=["POST"])
+def CancelReservation(req: func.HttpRequest) -> func.HttpResponse:
+    try:
+        req_body = req.get_json()
+        event_id = req_body.get("event_id")
+        user_id = req_body.get("id")  # ←修正
+        if not event_id or not user_id:
+            logging.error("event_idまたはidが空です")
+            return func.HttpResponse("event_idまたはidが空です", status_code=400)
+        logging.info(f"受信 event_id: {event_id} (type: {type(event_id)}), user_id: {user_id} (type: {type(user_id)})")
+        conn_str = os.environ.get("CONNECTION_STRING")
+        if not conn_str:
+            return func.HttpResponse("DB connection string not found.", status_code=500)
+        with pyodbc.connect(conn_str) as conn:
+            cursor = conn.cursor()
+            try:
+                event_id_int = int(event_id)
+            except Exception as e:
+                logging.error(f"event_id型変換エラー: {e}")
+                return func.HttpResponse("event_id型エラー", status_code=400)
+            # 削除前に該当レコードが存在するか確認
+            cursor.execute(
+                "SELECT COUNT(*) FROM EVENTS_PARTICIPANTS WHERE event_id = ? AND id = ?",
+                (event_id_int, user_id)
+            )
+            count = cursor.fetchone()[0]
+            logging.info(f"削除対象件数: {count}")
+            if count == 0:
+                return func.HttpResponse("Not found", status_code=404)
+            # 削除処理
+            cursor.execute(
+                "DELETE FROM EVENTS_PARTICIPANTS WHERE event_id = ? AND id = ?",
+                (event_id_int, user_id)
+            )
+            deleted = cursor.rowcount
+            conn.commit()
+        logging.info(f"削除件数: {deleted}")
+        return func.HttpResponse("OK", status_code=200)
+    except Exception as e:
+        logging.error(f"Cancel error: {e}")
+        return func.HttpResponse("DB error", status_code=500)
+

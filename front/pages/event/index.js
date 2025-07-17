@@ -2,6 +2,10 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { getValidId } from "../../utils/getValidId";
 
+const API_URL_SEARCH_EVENTS = process.env.NEXT_PUBLIC_API_URL_SEARCH_EVENTS;
+const API_URL_GET_FAVORITES = process.env.NEXT_PUBLIC_API_URL_GET_FAVORITES;
+const API_URL_GET_CATEGORIES = process.env.NEXT_PUBLIC_API_URL_GET_CATEGORIES;
+
 export default function EventsPage() {
   const [favorites, setFavorites] = useState([]);
   const [id, setId] = useState(null);
@@ -30,7 +34,7 @@ export default function EventsPage() {
   useEffect(() => {
     if (!id) return;
 
-    fetch(`https://0x0-favorites-list.azurewebsites.net/api/favorites?code=zzyPmL0sN_rUEbSrao2nHRMb4xME2aDHTidr9DtDXsjRAzFu7br4HA%3D%3D`,
+    fetch(API_URL_GET_FAVORITES,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -43,7 +47,7 @@ export default function EventsPage() {
       })
       .catch(() => setFavorites([]));
 
-    fetch("https://0x0-showevent-hbbadxcxh9a4bzhu.japaneast-01.azurewebsites.net/api/showevent?code=KjUCLx4igb6FiJ3ZtQKowVUUk9MgUtPSuBhPrMam2RwxAzFuTt1T_w%3D%3D")
+    fetch(API_URL_SEARCH_EVENTS)
       .then((res) => res.json())
       .then((data) => {
         const now = new Date();
@@ -61,7 +65,7 @@ export default function EventsPage() {
         setError("データ取得エラー: " + err.message);
       });
 
-    fetch("https://0x0-showevent-hbbadxcxh9a4bzhu.japaneast-01.azurewebsites.net/api/categories?code=qPu7q4iQBMrEMTPaYXSYNOrzTnAm5yplhzIJ9JfIq-vWAzFukZ5pSA%3D%3D")
+    fetch(API_URL_GET_CATEGORIES)
       .then(res => res.json())
       .then(data => {
         setCategories(Array.isArray(data) ? data.map(cat => ({ id: cat.category_id, name: cat.category_name })) : []);
@@ -191,7 +195,7 @@ export default function EventsPage() {
                   ))}
                   <td>{`${event.current_participants ?? 0}/${event.max_participants ?? 0}`}</td>
                   <td style={{ textAlign: 'center' }}>
-                    <button onClick={() => window.location.href = `/event/detail?event_id=${event.event_id}`}>詳細</button>
+                    <button onClick={() => window.location.href = `/event/detail/${event.event_id}`}>詳細</button>
                   </td>
                   <td style={{ textAlign: 'center' }}>
                     <button

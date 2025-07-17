@@ -94,9 +94,36 @@ export default function EventDetailPage() {
       {(() => {
         if (isParticipated === true) {
           return (
-            <div style={{ color: "#a10000", margin: "1rem 0" }}>
-              あなたはすでにこのイベントに参加済みです
-            </div>
+            <>
+              <div style={{ color: "#a10000", margin: "1rem 0" }}>
+                あなたはすでにこのイベントに参加済みです
+              </div>
+              <button
+                style={{
+                  marginLeft: '1rem',
+                  background: '#a10000',
+                  color: 'white',
+                  padding: '0.5rem 1.5rem',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer'
+                }}
+                onClick={async () => {
+                  await fetch(
+                    "https://0x0-showevent-hbbadxcxh9a4bzhu.japaneast-01.azurewebsites.net/api/cancel-reservation?code=K9ouie7C3VojHFxgXf-RvwVgIS0m6Qj1c1faidSDKtKQAzFulToH2Q%3D%3D",
+                    {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ event_id, id })
+                    }
+                  );
+                  alert("参加をキャンセルしました");
+                  setIsParticipated(false);
+                }}
+              >
+                参加キャンセル
+              </button>
+            </>
           );
         } else {
           return (
@@ -112,11 +139,11 @@ export default function EventDetailPage() {
               }}
               onClick={() => router.push(`/event/confirm?event_id=${event_id}`)}
             >
-              参加
-            </button>
-          );
-        }
-      })()}
+            参加
+          </button>
+        );
+      }
+    })()}
     </div>
   );
 }

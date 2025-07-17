@@ -12,13 +12,13 @@ export default function EventConfirmed() {
   }
 
   const handleBackToDetail = () => {
-    router.push(`/event/detail?event_id=${event_id}`)
+    router.push(`/event`)
   }
 
   return (
     <div>
       <h1>{message}</h1>
-      <button onClick={handleBackToDetail}>イベント詳細へ戻る</button>
+      <button onClick={handleBackToDetail}>イベント一覧へ戻る</button>
     </div>
   )
 }
