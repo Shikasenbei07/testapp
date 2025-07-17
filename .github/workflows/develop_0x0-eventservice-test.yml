@@ -75,6 +75,10 @@ jobs:
           package: ./front/.next/standalone
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_60E95571A45D498DBBC22F5A6D23C2B7 }}
 
+      - name: Create .env.local from secrets
+        run: |
+          echo "${{ secrets.ENV_LOCAL_TEST }}" > ./front/.env.local
+
       - name: Load .env.local
         run: |
           cp ./front/.env.local .env
