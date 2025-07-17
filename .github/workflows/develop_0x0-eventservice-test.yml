@@ -52,7 +52,7 @@ jobs:
           name: node-app
 
       - name: Unzip artifact for deployment
-        run: unzip release.zip -d ./front
+        run: unzip -o release.zip -d ./front
         
       - name: Copy .next/static to standalone
         run: cp -r ./front/.next/static ./front/.next/standalone/.next/static
@@ -73,7 +73,7 @@ jobs:
           name: node-app
 
       - name: Unzip artifact for deployment
-        run: unzip release.zip -d ./front
+        run: unzip -o release.zip -d ./front
 
       - name: Copy .next/static to standalone
         run: cp -r ./front/.next/static ./front/.next/standalone/.next/static
