@@ -49,19 +49,25 @@ export default function EventEditConfirm() {
         setLoading(true);
         setError("");
         const formData = new FormData();
-        // event_idはURLパラメータで渡すため、FormDataには含めない
+        // update_eventエンドポイントの仕様に合わせて値をセット
         formData.append("title", formValues.title);
         formData.append("date", formValues.date);
         formData.append("location", formValues.location);
         formData.append("category", formValues.category);
-        formData.append("summary", formValues.summary);
-        formData.append("detail", formValues.detail);
+        formData.append("summary", formValues.summary); // descriptionに相当
+        formData.append("detail", formValues.detail);   // contentに相当
         formData.append("deadline", formValues.deadline);
         formData.append("max_participants", formValues.max_participants);
+        formData.append("creator", localStorage.getItem("user_id") || "0738"); // creatorを必ず送る
         // keywordsは配列として送る
         (formValues.keywords || []).forEach(k => formData.append("keywords", k));
+        // is_draftは常に0（本番更新）
+        formData.append("is_draft", "0");
+        // 画像があれば追加
+        if (formValues.image) {
+            formData.append("image", formValues.image);
+        }
         try {
-            // event_idはURLパラメータとして渡す
             const res = await fetch(API_URL_UPDATE_EVENT.replace("{event_id}", formValues.event_id), {
                 method: "PUT",
                 body: formData
