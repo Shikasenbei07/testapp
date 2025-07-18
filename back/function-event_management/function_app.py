@@ -9,7 +9,10 @@ from datetime import datetime
 
 app = func.FunctionApp()
 
-CONNECTION_STRING = os.environ.get("CONNECTION_STRING_PRODUCT") if os.environ.get("IS_MAIN_PRODUCT") == "true" else os.environ.get("CONNECTION_STRING_TEST")
+if os.environ.get("IS_MAIN_PRODUCT") == "true":
+    CONNECTION_STRING = os.environ.get("CONNECTION_STRING_PRODUCT")
+else:
+    CONNECTION_STRING = os.environ.get("CONNECTION_STRING_TEST")
 
 def get_db_connection():
     if not CONNECTION_STRING:
