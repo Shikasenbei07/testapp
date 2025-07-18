@@ -1,8 +1,6 @@
 import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
 
-const API_URL_UPDATE_EVENT = process.env.NEXT_PUBLIC_API_URL_UPDATE_EVENT;
-
 export default function EventEditConfirm() {
     const router = useRouter();
     const [formValues, setFormValues] = useState(null);
@@ -48,28 +46,22 @@ export default function EventEditConfirm() {
     const handleConfirm = async () => {
         setLoading(true);
         setError("");
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL_UPDATE_EVENT_PRODUCT || "http://localhost:7071";
+        const API_UPDATE_PATH = `/api/update_event/${formValues.event_id}`;
+        const codeParam = process.env.NEXT_PUBLIC_API_CODE ? `?code=${process.env.NEXT_PUBLIC_API_CODE}` : "";
         const formData = new FormData();
-        // event_idはURLパラメータで渡しているため、FormDataには含めない
         formData.append("title", formValues.title);
         formData.append("date", formValues.date);
         formData.append("location", formValues.location);
-        formData.append("category", String(formValues.category));
+        formData.append("category", formValues.category);
         formData.append("summary", formValues.summary);
         formData.append("detail", formValues.detail);
         formData.append("deadline", formValues.deadline);
-        formData.append("max_participants", String(formValues.max_participants));
-        formData.append("creator", localStorage.getItem("user_id") || "0738");
-        // keywordsは空配列の場合は送らない
-        if (Array.isArray(formValues.keywords) && formValues.keywords.length > 0) {
-            formValues.keywords.forEach(k => formData.append("keywords", k));
-        }
-        formData.append("is_draft", "0");
-        if (formValues.image) {
-            formData.append("image", formValues.image);
-        }
+        formData.append("max_participants", formValues.max_participants);
+        (formValues.keywords || []).forEach(k => formData.append("keywords", k));
         try {
-            const res = await fetch("https://0x0-event-management.azurewebsites.net/api/events/" + formValues.event_id + "?code=5MGhxzw3f_UuYagMjPnBJFYAcZy1B_p0igSKainlCHBuAzFuBdeFrA%3D%3D", {
-                method: "PUT",
+            const res = await fetch(`${API_BASE_URL}${API_UPDATE_PATH}${codeParam}`, {
+                method: "POST",
                 body: formData
             });
             if (res.ok) {

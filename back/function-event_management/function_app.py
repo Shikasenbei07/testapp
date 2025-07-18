@@ -211,8 +211,7 @@ def create_event(req: func.HttpRequest) -> func.HttpResponse:
             event_id = int(cursor.fetchone()[0])
             if data.get("keywords"):
                 for kw in data["keywords"]:
-                    if kw:
-                        cursor.execute("INSERT INTO EVENTS_KEYWORDS (event_id, keyword_id) VALUES (?, ?)", event_id, int(kw))
+                    cursor.execute("INSERT INTO EVENTS_KEYWORDS (event_id, keyword_id) VALUES (?, ?)", event_id, int(kw))
             conn.commit()
         return func.HttpResponse(json.dumps({"message": "イベント登録完了", "event_id": event_id}), mimetype="application/json", status_code=200)
     except Exception as e:
@@ -349,13 +348,17 @@ def get_event_detail(req: func.HttpRequest) -> func.HttpResponse:
                 (event_id,)
             )
             row = cursor.fetchone()
+            # ...
             if row:
                 keys = ["event_id", "event_title", "event_category", "event_datetime", "deadline", "location", "max_participants", "current_participants", "creator", "description", "content", "image", "is_draft"]
                 event = dict(zip(keys, row))
+                # ...
                 return func.HttpResponse(json.dumps(event, default=str), status_code=200, mimetype="application/json")
             else:
+                # ...
                 return error_response("イベントが見つかりません", 404)
     except Exception as e:
+        # ...
         return error_response(str(e), 400)
 
 
@@ -365,6 +368,8 @@ def get_participants(req: func.HttpRequest) -> func.HttpResponse:
     event_id = req.params.get('event_id')
     if not event_id:
         return func.HttpResponse("event_id is required", status_code=400)
+        print("[DEBUG] get_event_detail req.params:", getattr(req, 'params', None))
+        print("[DEBUG] get_event_detail req.route_params:", getattr(req, 'route_params', None))
 
     conn_str = os.environ["CONNECTION_STRING"]
     conn = pyodbc.connect(conn_str)
