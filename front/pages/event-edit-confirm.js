@@ -1,6 +1,8 @@
 import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
 
+const API_URL_UPDATE_EVENT = process.env.NEXT_PUBLIC_API_URL_UPDATE_EVENT;
+
 export default function EventEditConfirm() {
     const router = useRouter();
     const [formValues, setFormValues] = useState(null);
@@ -46,9 +48,6 @@ export default function EventEditConfirm() {
     const handleConfirm = async () => {
         setLoading(true);
         setError("");
-        const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:7071";
-        const API_UPDATE_PATH = `/api/update_event/${formValues.event_id}`;
-        const codeParam = process.env.NEXT_PUBLIC_API_CODE ? `?code=${process.env.NEXT_PUBLIC_API_CODE}` : "";
         const formData = new FormData();
         formData.append("title", formValues.title);
         formData.append("date", formValues.date);
@@ -60,7 +59,7 @@ export default function EventEditConfirm() {
         formData.append("max_participants", formValues.max_participants);
         (formValues.keywords || []).forEach(k => formData.append("keywords", k));
         try {
-            const res = await fetch(`${API_BASE_URL}${API_UPDATE_PATH}${codeParam}`, {
+            const res = await fetch(API_URL_UPDATE_EVENT, {
                 method: "PUT",
                 body: formData
             });
