@@ -49,21 +49,21 @@ export default function EventEditConfirm() {
         setLoading(true);
         setError("");
         const formData = new FormData();
-        // update_eventエンドポイントの仕様に合わせて値をセット
+        // event_idはURLパラメータで渡しているため、FormDataには含めない
         formData.append("title", formValues.title);
         formData.append("date", formValues.date);
         formData.append("location", formValues.location);
-        formData.append("category", formValues.category);
-        formData.append("summary", formValues.summary); // descriptionに相当
-        formData.append("detail", formValues.detail);   // contentに相当
+        formData.append("category", String(formValues.category));
+        formData.append("summary", formValues.summary);
+        formData.append("detail", formValues.detail);
         formData.append("deadline", formValues.deadline);
-        formData.append("max_participants", formValues.max_participants);
-        formData.append("creator", localStorage.getItem("user_id") || "0738"); // creatorを必ず送る
-        // keywordsは配列として送る
-        (formValues.keywords || []).forEach(k => formData.append("keywords", k));
-        // is_draftは常に0（本番更新）
+        formData.append("max_participants", String(formValues.max_participants));
+        formData.append("creator", localStorage.getItem("user_id") || "0738");
+        // keywordsは空配列の場合は送らない
+        if (Array.isArray(formValues.keywords) && formValues.keywords.length > 0) {
+            formValues.keywords.forEach(k => formData.append("keywords", k));
+        }
         formData.append("is_draft", "0");
-        // 画像があれば追加
         if (formValues.image) {
             formData.append("image", formValues.image);
         }
