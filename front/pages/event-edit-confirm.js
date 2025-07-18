@@ -68,7 +68,7 @@ export default function EventEditConfirm() {
             formData.append("image", formValues.image);
         }
         try {
-            const res = await fetch(API_URL_UPDATE_EVENT.replace("{event_id}", formValues.event_id), {
+            const res = await fetch("https://0x0-event-management.azurewebsites.net/api/events/" + formValues.event_id + "?code=5MGhxzw3f_UuYagMjPnBJFYAcZy1B_p0igSKainlCHBuAzFuBdeFrA%3D%3D", {
                 method: "PUT",
                 body: formData
             });

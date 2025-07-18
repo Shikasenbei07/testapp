@@ -171,42 +171,30 @@ def get_draft(req: func.HttpRequest) -> func.HttpResponse:
         logging.error(str(e))
         return error_response("DB error", 500)
 
-@app.route(route="update_event/{event_id}", methods=["PUT", "OPTIONS"])
-def update_event(req: func.HttpRequest) -> func.HttpResponse:
-    if req.method == "OPTIONS":
-        # CORSプリフライトリクエストへの応答
-        return func.HttpResponse(
-            "",
-            status_code=204,
-            headers={
-                "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Methods": "PUT, OPTIONS",
-                "Access-Control-Allow-Headers": "Content-Type, Authorization"
-            }
-        )
+@app.route(route="create_event", methods=["POST"])
+def create_event(req: func.HttpRequest) -> func.HttpResponse:
     try:
-        event_id = req.route_params.get('event_id')
-        if not event_id:
-            return error_response("event_idが指定されていません", 400)
-        try:
-            event_id = int(event_id)
-        except ValueError:
-            return error_response("event_idの形式が不正です", 400)
-
-        # SQL実行時は必ずタプルで渡す
+        data, _ = parse_multipart(req)
+        data["category"] = data.get("category") or None
+        data["max_participants"] = data.get("max_participants") or None
+        is_draft = int(data.get("is_draft", 1))
+        data["is_draft"] = is_draft
+        required_fields = ["title", "date", "location", "category", "keywords", "summary", "detail", "deadline"]
+        if is_draft:
+            data.setdefault("title", "（未入力）")
+            data.setdefault("creator", "")
+            data.setdefault("is_draft", 1)
+        else:
+            for f in required_fields:
+                if not data.get(f):
+                    return error_response(f"{f}は必須です")
         with get_db_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT creator FROM EVENTS WHERE event_id=?", (event_id,))
-            row = cursor.fetchone()
-            if not row:
-                return error_response("イベントが存在しません", 404)
-            event_creator = row.creator if hasattr(row, "creator") else row[0]
-            request_creator = str(data.get("creator", ""))
-            if not request_creator or request_creator != str(event_creator):
-                return error_response("イベント作成者のみ編集可能です", 403)
             cursor.execute(
                 '''
-                UPDATE EVENTS SET event_title=?, event_category=?, event_datetime=?, deadline=?, location=?, max_participants=?, description=?, content=?, image=? WHERE event_id=?
+                INSERT INTO EVENTS (event_title, event_category, event_datetime, deadline, location, max_participants, creator, description, content, image, is_draft)
+                OUTPUT INSERTED.event_id
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ''',
                 data.get("title"),
                 int(data.get("category")) if data.get("category") else None,
@@ -214,18 +202,19 @@ def update_event(req: func.HttpRequest) -> func.HttpResponse:
                 to_db_date(data.get("deadline")),
                 data.get("location"),
                 int(data.get("max_participants")) if data.get("max_participants") else None,
+                str(data.get("creator", "0738")),
                 data.get("summary"),
                 data.get("detail"),
                 data.get("image"),
-                event_id
+                is_draft
             )
-            cursor.execute("DELETE FROM EVENTS_KEYWORDS WHERE event_id=?", (event_id,))
+            event_id = int(cursor.fetchone()[0])
             if data.get("keywords"):
                 for kw in data["keywords"]:
                     if kw:
                         cursor.execute("INSERT INTO EVENTS_KEYWORDS (event_id, keyword_id) VALUES (?, ?)", event_id, int(kw))
             conn.commit()
-        return func.HttpResponse(json.dumps({"message": "イベント更新完了", "event_id": event_id}), mimetype="application/json", status_code=200)
+        return func.HttpResponse(json.dumps({"message": "イベント登録完了", "event_id": event_id}), mimetype="application/json", status_code=200)
     except Exception as e:
         import traceback
         tb = traceback.format_exc()
