@@ -46,7 +46,7 @@ export default function EventEditConfirm() {
     const handleConfirm = async () => {
         setLoading(true);
         setError("");
-        const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:7071";
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL_UPDATE_EVENT_PRODUCT || "http://localhost:7071";
         const API_UPDATE_PATH = `/api/update_event/${formValues.event_id}`;
         const codeParam = process.env.NEXT_PUBLIC_API_CODE ? `?code=${process.env.NEXT_PUBLIC_API_CODE}` : "";
         const formData = new FormData();
