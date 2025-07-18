@@ -128,6 +128,7 @@ export default function EventForm({
                     {submitLabel}
                 </button>
                 <button type="button" style={styles.draftBtn} onClick={onDraft}>{draftLabel}</button>
+                {/*
                 {isEdit && (
                     <button
                         type="button"
@@ -135,6 +136,7 @@ export default function EventForm({
                         onClick={onDelete}
                     >{deleteLabel}</button>
                 )}
+                */}
             </form>
         </div>
     );

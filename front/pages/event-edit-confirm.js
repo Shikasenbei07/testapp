@@ -47,8 +47,8 @@ export default function EventEditConfirm() {
         setLoading(true);
         setError("");
         const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:7071";
-        const isLocal = API_BASE_URL.includes("localhost") || API_BASE_URL.includes("127.0.0.1");
-        const API_EVENTS_PATH = isLocal ? "/api/events" : "/events";
+        const API_UPDATE_PATH = `/api/update_event/${formValues.event_id}`;
+        const codeParam = process.env.NEXT_PUBLIC_API_CODE ? `?code=${process.env.NEXT_PUBLIC_API_CODE}` : "";
         const formData = new FormData();
         formData.append("title", formValues.title);
         formData.append("date", formValues.date);
@@ -60,7 +60,7 @@ export default function EventEditConfirm() {
         formData.append("max_participants", formValues.max_participants);
         (formValues.keywords || []).forEach(k => formData.append("keywords", k));
         try {
-            const res = await fetch(`${API_BASE_URL}${API_EVENTS_PATH}/${formValues.event_id}`, {
+            const res = await fetch(`${API_BASE_URL}${API_UPDATE_PATH}${codeParam}`, {
                 method: "PUT",
                 body: formData
             });

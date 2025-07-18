@@ -6,13 +6,10 @@ import azure.functions as func
 from requests_toolbelt.multipart import decoder
 import uuid
 from datetime import datetime
-
+print(os.environ)
 app = func.FunctionApp()
 
-if os.environ.get("IS_MAIN_PRODUCT") == "true":
-    CONNECTION_STRING = os.environ.get("CONNECTION_STRING_PRODUCT")
-else:
-    CONNECTION_STRING = os.environ.get("CONNECTION_STRING_TEST")
+CONNECTION_STRING = os.environ.get("CONNECTION_STRING_PRODUCT") if os.environ.get("IS_MAIN_PRODUCT") == "true" else os.environ.get("CONNECTION_STRING_TEST")
 
 def get_db_connection():
     if not CONNECTION_STRING:
@@ -174,11 +171,25 @@ def get_draft(req: func.HttpRequest) -> func.HttpResponse:
         logging.error(str(e))
         return error_response("DB error", 500)
 
-@app.route(route="update_event", methods=["PUT"])
+@app.route(route="update_event/{event_id}", methods=["PUT", "OPTIONS"])
 def update_event(req: func.HttpRequest) -> func.HttpResponse:
+    if req.method == "OPTIONS":
+        # CORSプリフライトリクエストへの応答
+        return func.HttpResponse(
+            "",
+            status_code=204,
+            headers={
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "PUT, OPTIONS",
+                "Access-Control-Allow-Headers": "Content-Type, Authorization"
+            }
+        )
     event_id = int(req.route_params.get('event_id'))
     try:
         data, _ = parse_multipart(req)
+        # ローカル実行時は作成者を0738に仮指定
+        if os.environ.get("IS_MAIN_PRODUCT") != "true":
+            data["creator"] = "0738"
         with get_db_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("SELECT creator FROM EVENTS WHERE event_id=?", (event_id,))
