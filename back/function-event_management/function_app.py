@@ -6,8 +6,8 @@ import azure.functions as func
 from requests_toolbelt.multipart import decoder
 import uuid
 from datetime import datetime
-print(os.environ)
-app = func.FunctionApp()
+
+app = func.FunctionApp(http_auth_level=func.AuthLevel.FUNCTION)
 
 CONNECTION_STRING = os.environ.get("CONNECTION_STRING_PRODUCT") if os.environ.get("IS_MAIN_PRODUCT") == "true" else os.environ.get("CONNECTION_STRING_TEST")
 
