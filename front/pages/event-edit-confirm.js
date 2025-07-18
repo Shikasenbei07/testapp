@@ -59,7 +59,7 @@ export default function EventEditConfirm() {
         formData.append("max_participants", formValues.max_participants);
         (formValues.keywords || []).forEach(k => formData.append("keywords", k));
         try {
-            const res = await fetch(API_URL_UPDATE_EVENT, {
+            const res = await fetch(API_URL_UPDATE_EVENT.replace("%7Bevent_id%7D", event_id), {
                 method: "PUT",
                 body: formData
             });
