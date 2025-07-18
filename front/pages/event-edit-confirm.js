@@ -49,6 +49,7 @@ export default function EventEditConfirm() {
         setLoading(true);
         setError("");
         const formData = new FormData();
+        // event_idはURLパラメータで渡すため、FormDataには含めない
         formData.append("title", formValues.title);
         formData.append("date", formValues.date);
         formData.append("location", formValues.location);
@@ -57,9 +58,11 @@ export default function EventEditConfirm() {
         formData.append("detail", formValues.detail);
         formData.append("deadline", formValues.deadline);
         formData.append("max_participants", formValues.max_participants);
+        // keywordsは配列として送る
         (formValues.keywords || []).forEach(k => formData.append("keywords", k));
         try {
-            const res = await fetch(API_URL_UPDATE_EVENT.replace("%7Bevent_id%7D", event_id), {
+            // event_idはURLパラメータとして渡す
+            const res = await fetch(API_URL_UPDATE_EVENT.replace("{event_id}", formValues.event_id), {
                 method: "PUT",
                 body: formData
             });

@@ -184,12 +184,26 @@ def update_event(req: func.HttpRequest) -> func.HttpResponse:
                 "Access-Control-Allow-Headers": "Content-Type, Authorization"
             }
         )
-    event_id = int(req.route_params.get('event_id'))
     try:
+        event_id = req.route_params.get('event_id')
+        if not event_id:
+            return error_response("event_idが指定されていません", 400)
+        try:
+            event_id = int(event_id)
+        except ValueError:
+            return error_response("event_idの形式が不正です", 400)
+
         data, _ = parse_multipart(req)
         # ローカル実行時は作成者を0738に仮指定
         if os.environ.get("IS_MAIN_PRODUCT") != "true":
             data["creator"] = "0738"
+
+        # 必須項目チェック
+        required_fields = ["title", "date", "location", "category", "keywords", "summary", "detail", "deadline"]
+        for f in required_fields:
+            if not data.get(f):
+                return error_response(f"{f}は必須です", 400)
+
         with get_db_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("SELECT creator FROM EVENTS WHERE event_id=?", (event_id,))
@@ -215,10 +229,11 @@ def update_event(req: func.HttpRequest) -> func.HttpResponse:
                 data.get("image"),
                 event_id
             )
-            cursor.execute("DELETE FROM EVENTS_KEYWORDS WHERE event_id=?", event_id)
+            cursor.execute("DELETE FROM EVENTS_KEYWORDS WHERE event_id=?", (event_id,))
             if data.get("keywords"):
                 for kw in data["keywords"]:
-                    cursor.execute("INSERT INTO EVENTS_KEYWORDS (event_id, keyword_id) VALUES (?, ?)", event_id, int(kw))
+                    if kw:
+                        cursor.execute("INSERT INTO EVENTS_KEYWORDS (event_id, keyword_id) VALUES (?, ?)", event_id, int(kw))
             conn.commit()
         return func.HttpResponse(json.dumps({"message": "イベント更新完了", "event_id": event_id}), mimetype="application/json", status_code=200)
     except Exception as e:
