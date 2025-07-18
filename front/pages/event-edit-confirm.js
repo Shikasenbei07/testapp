@@ -46,9 +46,9 @@ export default function EventEditConfirm() {
     const handleConfirm = async () => {
         setLoading(true);
         setError("");
-        const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL_UPDATE_EVENT_PRODUCT || "http://localhost:7071";
-        const API_UPDATE_PATH = `/api/update_event/${formValues.event_id}`;
-        const codeParam = process.env.NEXT_PUBLIC_API_CODE ? `?code=${process.env.NEXT_PUBLIC_API_CODE}` : "";
+        // APIのURLは環境変数で直接指定（event_idはクエリパラメータで付与）
+        const API_URL = process.env.NEXT_PUBLIC_API_URL_UPDATE_EVENT_PRODUCT || "http://localhost:7071/api/update_event";
+        const url = `${API_URL}?event_id=${encodeURIComponent(formValues.event_id)}`;
         const formData = new FormData();
         formData.append("title", formValues.title);
         formData.append("date", formValues.date);
@@ -60,7 +60,7 @@ export default function EventEditConfirm() {
         formData.append("max_participants", formValues.max_participants);
         (formValues.keywords || []).forEach(k => formData.append("keywords", k));
         try {
-            const res = await fetch(`${API_BASE_URL}${API_UPDATE_PATH}${codeParam}`, {
+            const res = await fetch(url, {
                 method: "POST",
                 body: formData
             });
