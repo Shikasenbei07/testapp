@@ -27,10 +27,14 @@ export default function MyPage() {
     fetch(API_URL_GET_USER, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id }),
+      body: JSON.stringify({ id: id }), // ← バックエンドは"id"で受け取る
     })
-      .then(res => {
-        if (!res.ok) throw new Error("取得失敗");
+      .then(async res => {
+        if (!res.ok) {
+          // サーバーからのエラー詳細を取得してthrow
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.error || "取得失敗");
+        }
         return res.json();
       })
       .then(data => {
@@ -38,8 +42,8 @@ export default function MyPage() {
         setProfileImg(data.profile_img ?? null);
         setLoading(false);
       })
-      .catch(() => {
-        setError("データ取得エラー");
+      .catch((e) => {
+        setError("データ取得エラー: " + e.message);
         setLoading(false);
       });
   }, [router]);

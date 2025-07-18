@@ -193,17 +193,7 @@ def update_event(req: func.HttpRequest) -> func.HttpResponse:
         except ValueError:
             return error_response("event_idの形式が不正です", 400)
 
-        data, _ = parse_multipart(req)
-        # ローカル実行時は作成者を0738に仮指定
-        if os.environ.get("IS_MAIN_PRODUCT") != "true":
-            data["creator"] = "0738"
-
-        # 必須項目チェック
-        required_fields = ["title", "date", "location", "category", "keywords", "summary", "detail", "deadline"]
-        for f in required_fields:
-            if not data.get(f):
-                return error_response(f"{f}は必須です", 400)
-
+        # SQL実行時は必ずタプルで渡す
         with get_db_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("SELECT creator FROM EVENTS WHERE event_id=?", (event_id,))

@@ -71,6 +71,7 @@ def get_user(req: func.HttpRequest) -> func.HttpResponse:
     try:
         data = req.get_json()
         user_id = data.get("id")
+        print("con_str: " + CONNECTION_STRING)
         if not user_id:
             return error_response("idがありません")
         if not CONNECTION_STRING:
@@ -81,7 +82,11 @@ def get_user(req: func.HttpRequest) -> func.HttpResponse:
             result = cursor.fetchone()
             if result:
                 l_name, profile_img = result
-                img_url = get_blob_sas_url(user_id, os.path.splitext(profile_img)[1]) if profile_img else None
+                if profile_img and isinstance(profile_img, str) and profile_img.strip():
+                    ext = os.path.splitext(profile_img)[1]
+                    img_url = get_blob_sas_url(user_id, ext)
+                else:
+                    img_url = None
                 return success_response({"l_name": l_name, "profile_img": img_url})
             else:
                 return error_response("ユーザーが見つかりません", 404)
