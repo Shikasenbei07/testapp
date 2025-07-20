@@ -110,7 +110,7 @@ def participate(req: func.HttpRequest) -> func.HttpResponse:
 
 @app.route(route="get_mylist")
 def get_mylist(req: func.HttpRequest) -> func.HttpResponse:
-    user_id = "0738"  # 固定
+    id = req.params.get("id")
     conn_str = os.environ.get("CONNECTION_STRING")
     if not conn_str:
         return func.HttpResponse("DB connection string not found.", status_code=500)
@@ -133,7 +133,7 @@ def get_mylist(req: func.HttpRequest) -> func.HttpResponse:
             ORDER BY
                 e.event_datetime DESC
             """
-            cursor.execute(sql, (user_id,))
+            cursor.execute(sql, (id,))
             columns = [column[0] for column in cursor.description]
             rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
     except Exception as e:
@@ -151,9 +151,9 @@ def cancel_participation(req: func.HttpRequest) -> func.HttpResponse:
     try:
         data = req.get_json()
         event_id = data.get("event_id")
-        user_id = data.get("user_id")
-        if not event_id or not user_id:
-            return func.HttpResponse("event_id and user_id required", status_code=400)
+        id = data.get("id")
+        if not event_id or not id:
+            return func.HttpResponse("event_id and id required", status_code=400)
 
         conn_str = os.environ.get("CONNECTION_STRING")
         with pyodbc.connect(conn_str) as conn:
@@ -162,7 +162,7 @@ def cancel_participation(req: func.HttpRequest) -> func.HttpResponse:
             cursor.execute("""
                 DELETE FROM EVENTS_PARTICIPANTS
                 WHERE event_id = ? AND id = ?
-            """, (event_id, user_id))
+            """, (event_id, id))
             conn.commit()
             if cursor.rowcount == 0:
                 return func.HttpResponse("キャンセル対象がありません", status_code=400)
