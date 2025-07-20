@@ -113,7 +113,11 @@ def get_mylist(req: func.HttpRequest) -> func.HttpResponse:
     id = req.params.get("id")
     conn_str = os.environ.get("CONNECTION_STRING")
     if not conn_str:
-        return func.HttpResponse("DB connection string not found.", status_code=500)
+        return func.HttpResponse(
+            json.dumps({"error": "DB接続エラー: 接続文字列がありません"}),
+            status_code=500,
+            mimetype="application/json"
+        )
     try:
         with pyodbc.connect(conn_str) as conn:
             cursor = conn.cursor()
@@ -137,7 +141,11 @@ def get_mylist(req: func.HttpRequest) -> func.HttpResponse:
             columns = [column[0] for column in cursor.description]
             rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
     except Exception as e:
-        return func.HttpResponse("DB error", status_code=500)
+        return func.HttpResponse(
+            json.dumps({"error": f"DB接続エラー: {str(e)}"}),
+            status_code=500,
+            mimetype="application/json"
+        )
 
     return func.HttpResponse(
         json.dumps(rows, ensure_ascii=False, default=str),
