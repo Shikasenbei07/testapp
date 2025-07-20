@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
+import { getValidId } from "../../utils/getValidId";
 
 export default function EventsPage() {
   const [favorites, setFavorites] = useState([]);
   const [participatedEvents, setParticipatedEvents] = useState([]);
-  // idを直接定義
-  const id = '0738';
+  // idをローカルストレージから取得
+  const id = getValidId();
+
 
   // toggleFavorite関数を定義
   function toggleFavorite(eventId) {
@@ -58,7 +60,7 @@ export default function EventsPage() {
 
   useEffect(() => {
     // お気に入り情報をAPIから取得
-    fetch(`https://0x0-showevent-hbbadxcxh9a4bzhu.japaneast-01.azurewebsites.net/api/favorites?user_id=${id}&code=zsOO_WgPGY9dtEN_tkki1bHWPy8XYJQoQPo2G7ONmvsoAzFusJrTJg%3D%3D`)
+    fetch(`https://0x0-showevent-hbbadxcxh9a4bzhu.japaneast-01.azurewebsites.net/api/favorites?id=${id}&code=zsOO_WgPGY9dtEN_tkki1bHWPy8XYJQoQPo2G7ONmvsoAzFusJrTJg%3D%3D`)
       .then(res => res.json())
       .then(data => {
         setFavorites(Array.isArray(data) ? data : []);
@@ -95,8 +97,7 @@ export default function EventsPage() {
       });
 
     // 参加済みイベント取得API
-    fetch("https://0x0-participation-d7fqb7h3dpcqcxek.japaneast-01.azurewebsites.net/api/event/participate?code=IqAEzEm_tdgsaLYblJjNZChDOjX7TKk2FDdM9zV2yMqFAzFufBImGw%3D%3D&user_id=" + id)
-      .then(res => res.json())
+    fetch("https://0x0-participation-test.azurewebsites.net/api/get_mylist?code=j6Iy8Se_keedcQIBmyZKzXRss7pfBX-kmyk8UNLdjY1MAzFuQzWOaw%3D%3D&id=" + id)
       .then(data => {
         setParticipatedEvents(Array.isArray(data) ? data : []);
       })

@@ -1,4 +1,6 @@
+import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
+import { getValidId } from "../../utils/getValidId";
 
 function formatDate(dateStr) {
   if (!dateStr) return "";
@@ -12,6 +14,10 @@ function formatDate(dateStr) {
 }
 
 export default function ReservationHistory() {
+  const router = useRouter();
+  const queryId = router.query.id;
+  const id = getValidId();
+
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [canceling, setCanceling] = useState(false);
@@ -19,10 +25,12 @@ export default function ReservationHistory() {
   const [alertMsg, setAlertMsg] = useState("");
   const [showAlert, setShowAlert] = useState(false);
 
+  console.log("localStorage id:", id);
+
   // 履歴取得
   const fetchHistory = () => {
     setLoading(true);
-    fetch("https://0x0-history2-dwcdfzgnc0gygud2.japaneast-01.azurewebsites.net/api/reservation-history?code=BGoaNitryntYOD81o8D7K6k0s1_VN8-TVf5q2utl-3QKAzFusq7Zkg%3D%3D")
+    fetch(`https://0x0-participation-test.azurewebsites.net/api/get_mylist?code=j6Iy8Se_keedcQIBmyZKzXRss7pfBX-kmyk8UNLdjY1MAzFuQzWOaw%3D%3D&id=${id}`)
       .then(res => {
         if (!res.ok) throw new Error("履歴取得失敗");
         return res.json();
@@ -36,7 +44,7 @@ export default function ReservationHistory() {
 
   useEffect(() => {
     fetchHistory();
-  }, []);
+  }, [id]);
 
   // デザイン付きアラート
   function showCustomAlert(msg) {
@@ -49,10 +57,10 @@ export default function ReservationHistory() {
   async function handleCancel(event_id) {
     setCanceling(true);
     try {
-      const res = await fetch("https://0x0-history2-dwcdfzgnc0gygud2.japaneast-01.azurewebsites.net/api/cancel-participation?code=2w2yTWReAwYkW2QnECrJYVsSD4s4g-qx-OTAufJIMJ9rAzFuTaTVzA%3D%3D", {
+      const res = await fetch(`https://0x0-participation-test.azurewebsites.net/api/cancel_participation?code=lg6z2CItkdkWJ01FZGSTMb0W0e7HfGW9hHGRwMsq_bpFAzFuADr_nQ%3D%3D&id=${id}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ event_id, user_id: "0738" })
+        body: JSON.stringify({ event_id, id })
       });
       if (res.ok) {
         fetchHistory();
