@@ -171,55 +171,6 @@ def get_draft(req: func.HttpRequest) -> func.HttpResponse:
         logging.error(str(e))
         return error_response("DB error", 500)
 
-@app.route(route="create_event", methods=["POST"])
-def create_event(req: func.HttpRequest) -> func.HttpResponse:
-    try:
-        data, _ = parse_multipart(req)
-        data["category"] = data.get("category") or None
-        data["max_participants"] = data.get("max_participants") or None
-        is_draft = int(data.get("is_draft", 1))
-        data["is_draft"] = is_draft
-        required_fields = ["title", "date", "location", "category", "keywords", "summary", "detail", "deadline"]
-        if is_draft:
-            data.setdefault("title", "（未入力）")
-            data.setdefault("creator", "")
-            data.setdefault("is_draft", 1)
-        else:
-            for f in required_fields:
-                if not data.get(f):
-                    return error_response(f"{f}は必須です")
-        with get_db_connection() as conn:
-            cursor = conn.cursor()
-            cursor.execute(
-                '''
-                INSERT INTO EVENTS (event_title, event_category, event_datetime, deadline, location, max_participants, creator, description, content, image, is_draft)
-                OUTPUT INSERTED.event_id
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                ''',
-                data.get("title"),
-                int(data.get("category")) if data.get("category") else None,
-                to_db_date(data.get("date")),
-                to_db_date(data.get("deadline")),
-                data.get("location"),
-                int(data.get("max_participants")) if data.get("max_participants") else None,
-                str(data.get("creator", "0738")),
-                data.get("summary"),
-                data.get("detail"),
-                data.get("image"),
-                is_draft
-            )
-            event_id = int(cursor.fetchone()[0])
-            if data.get("keywords"):
-                for kw in data["keywords"]:
-                    cursor.execute("INSERT INTO EVENTS_KEYWORDS (event_id, keyword_id) VALUES (?, ?)", event_id, int(kw))
-            conn.commit()
-        return func.HttpResponse(json.dumps({"message": "イベント登録完了", "event_id": event_id}), mimetype="application/json", status_code=200)
-    except Exception as e:
-        import traceback
-        tb = traceback.format_exc()
-        logging.error(tb)
-        return error_response(str(e), 500, tb)
-
 @app.route(route="delete_event/{event_id}", methods=["DELETE"])
 def delete_event(req: func.HttpRequest) -> func.HttpResponse:
     event_id = req.route_params.get('event_id')
@@ -255,7 +206,7 @@ def get_categories(req: func.HttpRequest) -> func.HttpResponse:
     try:
         with get_db_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT category_id, category_name FROM CATEGORYS")
+            cursor.execute("SELECT category_id, category_name FROM CATEGORIES")
             rows = cursor.fetchall()
             result = [{"category_id": row.category_id, "category_name": row.category_name} for row in rows]
         return func.HttpResponse(json.dumps(result), mimetype="application/json")
@@ -287,7 +238,7 @@ def search_events(req: func.HttpRequest) -> func.HttpResponse:
                     sql = '''
                         SELECT e.*, c.category_name
                         FROM events e
-                        LEFT JOIN CATEGORYS c ON e.event_category = c.category_id
+                        LEFT JOIN CATEGORIES c ON e.event_category = c.category_id
                     '''
                     cursor.execute(sql)
                     columns = [column[0] for column in cursor.description]
@@ -302,7 +253,7 @@ def search_events(req: func.HttpRequest) -> func.HttpResponse:
                     sql = '''
                         SELECT e.*, c.category_name
                         FROM events e
-                        LEFT JOIN CATEGORYS c ON e.event_category = c.category_id
+                        LEFT JOIN CATEGORIES c ON e.event_category = c.category_id
                         WHERE e.event_id = ?
                     '''
                     cursor.execute(sql, (event_id_int,))
