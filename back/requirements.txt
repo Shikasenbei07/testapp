@@ -4,4 +4,4 @@
 
 azure-functions
 pyodbc
-requests_toolbelt
+requests-toolbelt
