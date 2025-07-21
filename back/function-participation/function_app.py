@@ -111,12 +111,23 @@ def participate(req: func.HttpRequest) -> func.HttpResponse:
 
 @app.route(route="get_mylist")
 def get_mylist(req: func.HttpRequest) -> func.HttpResponse:
-    data = req.get_json()
-    user_id = data.get("id")
-    conn_str = CONNECTION_STRING
-    if not conn_str:
-        return func.HttpResponse("DB connection string not found.", status_code=500)
+    # 修正: POST/GET両対応
     try:
+        if req.method == "POST":
+            try:
+                data = req.get_json()
+            except Exception:
+                return func.HttpResponse(
+                    json.dumps({"error": "リクエストボディが不正です"}),
+                    status_code=400,
+                    mimetype="application/json"
+                )
+            user_id = data.get("id")
+        else:
+            user_id = req.params.get("id")
+        conn_str = CONNECTION_STRING
+        if not conn_str:
+            return func.HttpResponse("DB connection string not found.", status_code=500)
         with pyodbc.connect(conn_str) as conn:
             cursor = conn.cursor()
             sql = """
