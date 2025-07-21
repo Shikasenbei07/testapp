@@ -25,7 +25,13 @@ ALLOWED_UPDATE_FIELDS = {
 def sanitize_filename(filename):
     # ファイル名から拡張子のみ取得し、ユーザーID+拡張子に限定
     ext = os.path.splitext(filename)[1]
-    if not ext or len(ext) > 10 or any(c in ext for c in ['/', '\\', ':', '*', '?', '"', '<', '>', '|']):
+    # 禁止文字が拡張子に含まれていないかチェック
+    if (
+        not ext
+        or len(ext) > 10
+        or any(c in ext for c in ['/', '\\', ':', '*', '?', '"', '<', '>', '|'])
+        or any(c in os.path.splitext(filename)[0] for c in ['/', '\\', ':', '*', '?', '"', '<', '>', '|'])
+    ):
         raise Exception("不正なファイル拡張子です")
     return ext
 
@@ -226,9 +232,9 @@ def update_user(req: func.HttpRequest) -> func.HttpResponse:
             params = update_values
             cursor.execute(sql, params)
             if cursor.rowcount == 0:
-                return func.HttpResponse("ユーザーが見つかりません", status_code=404)
+                return error_response("ユーザーが見つかりません", 404)
 
         return success_response(message="更新しました")
     except Exception as e:
         logging.error(f"update_user error: {e}")
-        return func.HttpResponse(str(e), status_code=500)
+        return error_response(str(e), 500)

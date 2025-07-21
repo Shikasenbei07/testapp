@@ -57,7 +57,6 @@ export default function MyPage() {
 
   if (loading) return <div>読み込み中...</div>;
   if (error) return <div style={{color:"red"}}>{error}</div>;
-  console.log("Profile Image:", profileImg);
 
   return (
     <div>

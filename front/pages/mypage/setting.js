@@ -5,7 +5,6 @@ import UserSettingForm from "../../components/UserSettingForm";
 
 const API_URL_GET_USER = process.env.NEXT_PUBLIC_API_URL_GET_USER;
 const API_URL_UPDATE_USER = process.env.NEXT_PUBLIC_API_URL_UPDATE_USER;
-const API_URL_UPLOAD_PROFILE_IMG = process.env.NEXT_PUBLIC_API_URL_UPLOAD_PROFILE_IMG;
 
 export default function Setting() {
   const [email, setEmail] = useState("");
@@ -79,27 +78,22 @@ export default function Setting() {
       return;
     }
 
-    // let imgUrl = preview; // 既存画像URLを初期値に
-    // if (profileImg && profileImg instanceof File) {
-    //   // 画像アップロードAPI呼び出し例
-    //   const formData = new FormData();
-    //   formData.append("id", id);
-    //   formData.append("profile_img", profileImg);
-    //   const res = await fetch(API_URL_UPLOAD_PROFILE_IMG, {
-    //     method: "POST",
-    //     body: formData,
-    //   });
-    //   if (!res.ok) {
-    //     setError("画像アップロード失敗");
-    //     return;
-    //   }
-    //   const data = await res.json();
-    //   imgUrl = data.url;
-    // }
+    let imgUrl = preview; // 既存画像URLを初期値に
 
-    // ユーザ情報更新API呼び出し例
+    // 画像アップロードがある場合のみアップロードAPIを呼ぶ
+    if (profileImg && profileImg instanceof File) {
+      const formData = new FormData();
+      formData.append("id", id);
+      formData.append("profile_img", profileImg);
+      const res = await fetch(API_URL_UPDATE_USER, {
+        method: "PATCH",
+        body: formData,
+      });
+    }
+
+    // ユーザ情報更新API呼び出し
     const res = await fetch(API_URL_UPDATE_USER, {
-      method: "POST",
+      method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         id,
@@ -114,6 +108,7 @@ export default function Setting() {
         profile_img: imgUrl,
       }),
     });
+
     if (res.ok) {
       setSuccess("更新しました");
       if (imgUrl) setPreview(imgUrl);
