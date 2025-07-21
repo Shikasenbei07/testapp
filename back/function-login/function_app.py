@@ -33,14 +33,13 @@ def login(req: func.HttpRequest) -> func.HttpResponse:
         data = req.get_json()
         id, password, error = validate_credentials(data)
         if error:
-            return error
+            return error_response(error, status=400)
         if not CONNECTION_STRING:
             return error_response("接続文字列が設定されていません", status=500)
         user_exists = check_user(id, password)
         if user_exists is None:
             return error_response("データベースエラーが発生しました", status=500)
         if user_exists:
-            # 必要ならidを返す
             resp_data = {"id": id}
             return success_response(data=resp_data)
         else:
