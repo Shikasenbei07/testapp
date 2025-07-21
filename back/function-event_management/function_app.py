@@ -145,16 +145,16 @@ def create_event(req: func.HttpRequest) -> func.HttpResponse:
 def get_self_created_events(req: func.HttpRequest) -> func.HttpResponse:
     user_id = req.params.get('user_id')
     if not user_id:
-        try:
-            user_id = req.get_json().get('user_id')
-        except Exception:
-            return error_response("user_id is required")
+        return error_response("user_id is required", 400)
     try:
         events = fetch_events(user_id, 0)
-        return func.HttpResponse(json.dumps(events, ensure_ascii=False), mimetype="application/json")
+        return func.HttpResponse(
+            json.dumps(events, ensure_ascii=False),
+            status_code=200,
+            mimetype="application/json"
+        )
     except Exception as e:
-        logging.error(str(e))
-        return error_response("DB error", 500)
+        return error_response(str(e), 500)
 
 @app.route(route="get_draft")
 def get_draft(req: func.HttpRequest) -> func.HttpResponse:
@@ -287,11 +287,11 @@ def get_event_detail(req: func.HttpRequest) -> func.HttpResponse:
     try:
         event_id = req.params.get("event_id")
         if not event_id:
-            return error_response("event_idは必須です")
+            return error_response("event_idは必須です", 400)
         try:
             event_id = int(event_id)
         except ValueError:
-            return error_response("event_idは整数で指定してください")
+            return error_response("event_idは整数で指定してください", 400)
         with get_db_connection() as conn:
             cursor = conn.cursor()
             cursor.execute(
@@ -299,18 +299,14 @@ def get_event_detail(req: func.HttpRequest) -> func.HttpResponse:
                 (event_id,)
             )
             row = cursor.fetchone()
-            # ...
             if row:
                 keys = ["event_id", "event_title", "event_category", "event_datetime", "deadline", "location", "max_participants", "current_participants", "creator", "description", "content", "image", "is_draft"]
                 event = dict(zip(keys, row))
-                # ...
                 return func.HttpResponse(json.dumps(event, default=str), status_code=200, mimetype="application/json")
             else:
-                # ...
                 return error_response("イベントが見つかりません", 404)
     except Exception as e:
-        # ...
-        return error_response(str(e), 400)
+        return error_response(str(e), 500)
 
 
 @app.route(route="events/{event_id}", methods=["PUT"])
@@ -440,3 +436,5 @@ def get_participants(req: func.HttpRequest) -> func.HttpResponse:
         mimetype="application/json",
         status_code=200
     )
+
+get_event = get_event_detail  # ファイル末尾などに追加
