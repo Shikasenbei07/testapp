@@ -11,7 +11,7 @@ def validate_credentials(data):
     id = data.get("id")
     password = data.get("password")
     if not id or not password or not id.strip() or not password.strip():
-        return None, None, error_response("IDとパスワードの両方を入力してください", status=400)
+        return None, None, "IDとパスワードの両方を入力してください"
     return id, password, None
 
 def check_user(id, password):

@@ -30,14 +30,14 @@ export default function Login() {
 
       setForm((prev) => ({ ...prev, password: "" }));
 
+      const data = await res.json();
       if (res.ok) {
-        const data = await res.json();
         const expire = Date.now() + validity_time;
         localStorage.setItem("id", data.id);
         localStorage.setItem("id_expire", expire);
         router.push("/event");
       } else {
-        setError("ログイン失敗");
+        setError("ログイン失敗: " + data.error);
       }
     } catch (err) {
       setError("通信エラー");

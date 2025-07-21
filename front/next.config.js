@@ -1,5 +1,5 @@
-const isLocal = process.env.NEXT_PUBLIC_IS_LOCAL === "false";
-const isMain = process.env.NEXT_PUBLIC_IS_MAIN_PRODUCT === "false";
+const isLocal = process.env.NEXT_PUBLIC_IS_LOCAL === "true";
+const isMain = process.env.NEXT_PUBLIC_IS_MAIN_PRODUCT === "true";
 
 module.exports = {
     output: 'standalone',
