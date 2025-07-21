@@ -1,5 +1,5 @@
 {
-    "azureFunctions.deploySubpath": "back\\function-participation",
+    "azureFunctions.deploySubpath": "back\\function-CSS",
     "azureFunctions.scmDoBuildDuringDeployment": true,
     "azureFunctions.pythonVenv": ".venv",
     "azureFunctions.projectLanguage": "Python",
