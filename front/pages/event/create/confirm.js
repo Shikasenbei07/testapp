@@ -1,5 +1,6 @@
 import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
+import { getValidId } from "../../utils/getValidId";
 
 const API_URL_CREATE_EVENT = process.env.NEXT_PUBLIC_API_URL_CREATE_EVENT;
 
