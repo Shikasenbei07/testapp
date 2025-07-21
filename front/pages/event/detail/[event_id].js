@@ -5,7 +5,7 @@ const API_URL_GET_EVENT_DETAIL = process.env.NEXT_PUBLIC_API_URL_GET_EVENT_DETAI
 
 export default function EventDetail() {
   const router = useRouter();
-  const { event_id } = router.query;
+  const { event_id, participated } = router.query;
   const [event, setEvent] = useState(null);
   const [error, setError] = useState(null);
 
@@ -21,6 +21,51 @@ export default function EventDetail() {
     return <div style={{ color: "red" }}>{error}</div>;
   if (!event)
     return <div>読み込み中...</div>;
+
+  let participatedContent;
+  if (participated === "0") {
+    participatedContent = (
+      <button
+        style={{
+          marginLeft: '1rem',
+          background: '#1976d2',
+          color: 'white',
+          padding: '0.5rem 1.5rem',
+          border: 'none',
+          borderRadius: '4px',
+          cursor: 'pointer'
+        }}
+        onClick={() => router.push(`/event/confirm?event_id=${event_id}`)}
+      >
+        参加
+      </button>
+    );
+  } else if (participated === "1") {
+    participatedContent = (
+      <button
+        style={{
+          marginLeft: '1rem',
+          background: '#d32f2f',
+          color: 'white',
+          padding: '0.5rem 1.5rem',
+          border: 'none',
+          borderRadius: '4px',
+          cursor: 'pointer'
+        }}
+        onClick={() => router.push(`/event/cancel?event_id=${event_id}`)}
+      >
+        参加キャンセル
+      </button>
+    );
+  } else if (participated === null || typeof participated === "undefined") {
+    participatedContent = (
+      <div style={{ color: "#a10000", margin: "1rem 0" }}>
+        パラメータがありません
+      </div>
+    );
+  } else {
+    participatedContent = <div>参加状況確認中...</div>;
+  }
 
   return (
     <div style={{ padding: "2rem" }}>
@@ -63,20 +108,7 @@ export default function EventDetail() {
         </div>
       )}
       <button onClick={() => router.back()}>戻る</button>
-      <button
-        style={{
-          marginLeft: '1rem',
-          background: '#1976d2',
-          color: 'white',
-          padding: '0.5rem 1.5rem',
-          border: 'none',
-          borderRadius: '4px',
-          cursor: 'pointer'
-        }}
-        onClick={() => router.push(`/event/confirm?event_id=${event_id}`)}
-      >
-        参加
-      </button>
+      {participatedContent}
     </div>
   );
 }
