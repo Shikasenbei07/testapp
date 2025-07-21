@@ -89,6 +89,9 @@ function EventCreateConfirm() {
         (formValues.keywords || []).forEach(k => formData.append("keywords", k));
         if (image) formData.append("image", image, imageName);
         formData.append("is_draft", isDraft ? 1 : 0);
+        const creatorId = getValidId && getValidId();
+
+        formData.append("creator", creatorId); // 追加
         // creatorは省略（API側で処理）
         try {
             const res = await fetch(API_URL_CREATE_EVENT, {
