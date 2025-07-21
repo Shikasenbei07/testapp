@@ -3,6 +3,8 @@ import os
 import pyodbc
 import os.path
 import logging
+import cgi
+import io
 
 from azure.storage.blob import BlobServiceClient, generate_blob_sas, BlobSasPermissions
 from datetime import datetime, timedelta
@@ -110,7 +112,11 @@ def get_user(req: func.HttpRequest) -> func.HttpResponse:
         conn = get_db_connection()
         with conn.cursor() as cursor:
             cursor.execute(
-                "SELECT email, second_email, tel, l_name, f_name, l_name_furi, f_name_furi, birthday, profile_img FROM users WHERE id = ?",
+                '''
+                SELECT email, second_email, tel, l_name, f_name, l_name_furi, f_name_furi, birthday, profile_img
+                FROM users
+                WHERE id = ?
+                ''',
                 (user_id,)
             )
             row = cursor.fetchone()
@@ -132,7 +138,8 @@ def get_user(req: func.HttpRequest) -> func.HttpResponse:
                 "l_name_furi": result["l_name_furi"],
                 "f_name_furi": result["f_name_furi"],
                 "birthday": result["birthday"].isoformat() if result["birthday"] else None,
-                "img_url": get_blob_sas_url(result["profile_img"]) if result["profile_img"] else None
+                # 修正: profile_imgの値を直接返す（img_urlではなくprofile_imgキーで返す）
+                "profile_img": get_blob_sas_url(result["profile_img"]) if result["profile_img"] else None
             }
             return success_response(resp_data)
     except Exception as e:
@@ -143,13 +150,32 @@ def get_user(req: func.HttpRequest) -> func.HttpResponse:
 def parse_multipart_form(req: func.HttpRequest):
     """
     Content-Typeに応じてmultipart/form-dataまたはapplication/jsonをパースする。
-    multipartの場合はファイル名・バイナリも返す。未対応時はNone。
+    multipartの場合はファイル名・バイナリも返す。
     """
     content_type = req.headers.get("Content-Type", "")
     if content_type.startswith("multipart/form-data"):
-        # 本番運用時はpython-multipart等のライブラリ利用を推奨
-        # ここでは未対応のためエラー返却
-        return {}, None, None
+        # cgi.FieldStorageを使ってmultipartをパース
+        environ = {
+            "REQUEST_METHOD": "POST",
+            "CONTENT_TYPE": content_type,
+        }
+        fp = io.BytesIO(req.get_body())
+        form = cgi.FieldStorage(fp=fp, environ=environ, keep_blank_values=True)
+        data = {}
+        file_bytes = None
+        filename = None
+
+        for key in form.keys():
+            field_item = form[key]
+            if field_item.filename:
+                # ファイルの場合
+                filename = field_item.filename
+                file_bytes = field_item.file.read()
+            else:
+                data[key] = field_item.value
+
+        return data, file_bytes, filename
+
     try:
         # application/json
         return req.get_json(), None, None
@@ -160,8 +186,15 @@ def parse_multipart_form(req: func.HttpRequest):
 @app.route(route="update_user", methods=["PATCH"])
 def update_user(req: func.HttpRequest) -> func.HttpResponse:
     try:
-        # JSONのみ対応。ファイルアップロードはparse_multipart_formで拡張可
-        data, file_bytes, filename = parse_multipart_form(req)
+        # multipart/form-dataとapplication/jsonの両方に対応
+        content_type = req.headers.get("Content-Type", "")
+        if content_type.startswith("multipart/form-data"):
+            # multipartの場合はファイルアップロード対応
+            data, file_bytes, filename = parse_multipart_form(req)
+        else:
+            # JSONの場合
+            data, file_bytes, filename = req.get_json(), None, None
+
         user_id = data.get("id")
         if not user_id:
             return error_response("idがありません")
@@ -192,7 +225,6 @@ def update_user(req: func.HttpRequest) -> func.HttpResponse:
             sql = f"UPDATE users SET {', '.join(update_fields)} WHERE id=?"
             params = update_values
             cursor.execute(sql, params)
-            # ここで rowcount をチェック
             if cursor.rowcount == 0:
                 return func.HttpResponse("ユーザーが見つかりません", status_code=404)
 

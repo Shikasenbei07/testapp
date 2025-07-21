@@ -1,13 +1,21 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { getValidId } from "../../utils/getValidId";
+import UserSettingForm from "../../components/UserSettingForm";
 
 const API_URL_GET_USER = process.env.NEXT_PUBLIC_API_URL_GET_USER;
 const API_URL_UPDATE_USER = process.env.NEXT_PUBLIC_API_URL_UPDATE_USER;
 const API_URL_UPLOAD_PROFILE_IMG = process.env.NEXT_PUBLIC_API_URL_UPLOAD_PROFILE_IMG;
 
 export default function Setting() {
+  const [email, setEmail] = useState("");
+  const [secondEmail, setSecondEmail] = useState("");
+  const [tel, setTel] = useState("");
   const [lName, setLName] = useState("");
+  const [fName, setFName] = useState("");
+  const [lNameFuri, setLNameFuri] = useState("");
+  const [fNameFuri, setFNameFuri] = useState("");
+  const [birthday, setBirthday] = useState("");
   const [profileImg, setProfileImg] = useState(null);
   const [preview, setPreview] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -21,7 +29,7 @@ export default function Setting() {
       router.push("/login");
       return;
     }
-    
+
     fetch(API_URL_GET_USER, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -29,7 +37,14 @@ export default function Setting() {
     })
       .then(res => res.json())
       .then(data => {
+        setEmail(data.email ?? "");
+        setSecondEmail(data.second_email ?? "");
+        setTel(data.tel ?? "");
         setLName(data.l_name ?? "");
+        setFName(data.f_name ?? "");
+        setLNameFuri(data.l_name_furi ?? "");
+        setFNameFuri(data.f_name_furi ?? "");
+        setBirthday(data.birthday ?? "");
         setProfileImg(data.profile_img ?? null);
         setPreview(data.profile_img ?? null); // 画像URLをプレビューにセット
         setLoading(false);
@@ -64,29 +79,40 @@ export default function Setting() {
       return;
     }
 
-    let imgUrl = preview; // 既存画像URLを初期値に
-    if (profileImg && profileImg instanceof File) {
-      // 画像アップロードAPI呼び出し例
-      const formData = new FormData();
-      formData.append("id", id);
-      formData.append("profile_img", profileImg);
-      const res = await fetch(API_URL_UPLOAD_PROFILE_IMG, {
-        method: "POST",
-        body: formData,
-      });
-      if (!res.ok) {
-        setError("画像アップロード失敗");
-        return;
-      }
-      const data = await res.json();
-      imgUrl = data.url;
-    }
+    // let imgUrl = preview; // 既存画像URLを初期値に
+    // if (profileImg && profileImg instanceof File) {
+    //   // 画像アップロードAPI呼び出し例
+    //   const formData = new FormData();
+    //   formData.append("id", id);
+    //   formData.append("profile_img", profileImg);
+    //   const res = await fetch(API_URL_UPLOAD_PROFILE_IMG, {
+    //     method: "POST",
+    //     body: formData,
+    //   });
+    //   if (!res.ok) {
+    //     setError("画像アップロード失敗");
+    //     return;
+    //   }
+    //   const data = await res.json();
+    //   imgUrl = data.url;
+    // }
 
     // ユーザ情報更新API呼び出し例
     const res = await fetch(API_URL_UPDATE_USER, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, l_name: lName, profile_img: imgUrl }),
+      body: JSON.stringify({
+        id,
+        email,
+        second_email: secondEmail,
+        tel,
+        l_name: lName,
+        f_name: fName,
+        l_name_furi: lNameFuri,
+        f_name_furi: fNameFuri,
+        birthday,
+        profile_img: imgUrl,
+      }),
     });
     if (res.ok) {
       setSuccess("更新しました");
@@ -97,40 +123,45 @@ export default function Setting() {
     }
   }
 
+  // 値変更用ハンドラ
+  const handleChange = (key, value) => {
+    switch (key) {
+      case "secondEmail": setSecondEmail(value); break;
+      case "tel": setTel(value); break;
+      case "lName": setLName(value); break;
+      case "fName": setFName(value); break;
+      case "lNameFuri": setLNameFuri(value); break;
+      case "fNameFuri": setFNameFuri(value); break;
+      case "birthday": setBirthday(value); break;
+      default: break;
+    }
+  };
+
   if (loading) return <div>読み込み中...</div>;
-  if (error) return <div style={{ color: "red" }}>{error}</div>;
+  if (error) return <div style={errorStyle}>{error}</div>;
 
   return (
-    <div style={{ maxWidth: 400, margin: "40px auto", background: "#fff", borderRadius: 12, boxShadow: "0 4px 24px #0001", padding: 36 }}>
-      <h2 style={{ textAlign: "center", marginBottom: 24 }}>ユーザ情報設定</h2>
-      <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: 16 }}>
-          <label>表示名</label>
-          <input
-            type="text"
-            value={lName}
-            onChange={e => setLName(e.target.value)}
-            style={{ width: "100%", padding: 8, marginTop: 4 }}
-          />
-        </div>
-        <div style={{ marginBottom: 16 }}>
-          <label>プロフィール画像</label>
-          <input type="file" accept="image/*" onChange={handleImgChange} />
-          {preview && (
-            <div style={{ marginTop: 8 }}>
-              <img src={preview} alt="preview" style={{ width: 120, height: 120, objectFit: "cover", borderRadius: "50%" }} />
-            </div>
-          )}
-        </div>
-        <button type="submit" style={{ width: "100%", padding: 10, background: "#00c2a0", color: "#fff", border: "none", borderRadius: 6, fontWeight: 700 }}>
-          保存
-        </button>
-        {success && <div style={{ color: "green", marginTop: 12 }}>{success}</div>}
-        {error && <div style={{ color: "red", marginTop: 12 }}>{error}</div>}
-      </form>
+    <div style={containerStyle}>
+      <h2 style={titleStyle}>ユーザ情報設定</h2>
+      <UserSettingForm
+        email={email}
+        secondEmail={secondEmail}
+        tel={tel}
+        lName={lName}
+        fName={fName}
+        lNameFuri={lNameFuri}
+        fNameFuri={fNameFuri}
+        birthday={birthday}
+        preview={preview}
+        success={success}
+        error={error}
+        onChange={handleChange}
+        onImgChange={handleImgChange}
+        onSubmit={handleSubmit}
+      />
       <button
         type="button"
-        style={{ width: "100%", marginTop: 16, padding: 10, background: "#eee", color: "#333", border: "none", borderRadius: 6 }}
+        style={backButtonStyle}
         onClick={() => router.push("/mypage")}
       >
         マイページに戻る
@@ -138,3 +169,27 @@ export default function Setting() {
     </div>
   );
 }
+
+// スタイル定義
+const containerStyle = {
+  maxWidth: 400,
+  margin: "40px auto",
+  background: "#fff",
+  borderRadius: 12,
+  boxShadow: "0 4px 24px #0001",
+  padding: 36,
+};
+const titleStyle = {
+  textAlign: "center",
+  marginBottom: 24,
+};
+const backButtonStyle = {
+  width: "100%",
+  marginTop: 16,
+  padding: 10,
+  background: "#eee",
+  color: "#333",
+  border: "none",
+  borderRadius: 6,
+};
+const errorStyle = { color: "red", marginTop: 16 };
