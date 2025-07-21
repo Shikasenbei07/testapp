@@ -1,29 +1,33 @@
 import { useEffect, useState } from "react";
-import { useRouter } from "next/router";
-import { getValidId } from "../../utils/getValidId"; // ユーティリティ関数をインポート
-
-const id = getValidId();
+import { useRouter, useSearchParams } from "next/navigation";
+import { getValidId } from "../../../utils/getValidId";
 
 export default function EventDetailPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { event_id, id: queryId } = router.query;
+  const participated = searchParams.get('participated');
   const [id, setId] = useState("");
 
   useEffect(() => {
+    // participatedの値をコンソールに表示
+    console.log("participated:", participated);
+  }, [participated]);
+
+  useEffect(() => {
+    if (!router.isReady) return;
     let validId = queryId;
     if (!validId) {
       validId = getValidId();
     }
-    // indexへのリダイレクトは行わず、idがなければ空のまま
     setId(validId ?? "");
   }, [queryId, router]);
 
   const [event, setEvent] = useState(null);
   const [error, setError] = useState("");
-  const [isParticipated, setIsParticipated] = useState(null); // 初期値をnull
 
   useEffect(() => {
-    if (!event_id) return;
+    if (!router.isReady || !event_id) return;
     fetch(`https://0x0-showevent-hbbadxcxh9a4bzhu.japaneast-01.azurewebsites.net/api/showevent?code=KjUCLx4igb6FiJ3ZtQKowVUUk9MgUtPSuBhPrMam2RwxAzFuTt1T_w%3D%3D&event_id=${event_id}`)
       .then((res) => res.json())
       .then((data) => {
@@ -36,33 +40,52 @@ export default function EventDetailPage() {
       .catch((err) => {
         setError("データ取得エラー: " + err.message);
       });
-  }, [event_id]);
-
-  // check_historyで参加履歴を確認
-  useEffect(() => {
-    if (!event_id || !id) return;
-    fetch(`https://0x0-showevent-hbbadxcxh9a4bzhu.japaneast-01.azurewebsites.net/api/check_history?code=0iAKT3swTE1gEjS8rDRJWN44V-z9YG24hfRxGkLC0LmRAzFudLVqtg%3D%3D&event_id=${event_id}&id=${id}`)
-      .then(res => res.json())
-      .then(data => {
-        setIsParticipated(data.is_participated === true);
-      })
-      .catch(() => {
-        setIsParticipated(false);
-      });
-  }, [event_id, id]);
-
-  // idがセットされるまで「参加状況確認中...」を表示
-  if (!event || id === "" || id === null) return <div>参加状況確認中...</div>;
+  }, [event_id, router.isReady]);
 
   if (error) return <div style={{ color: "red" }}>{error}</div>;
   if (!event) return <div>読み込み中...</div>;
 
+  let participatedContent;
+  if (!router.isReady) {
+    participatedContent = <div>参加状況確認中...</div>;
+  } else if (participated === "1") {
+    participatedContent = (
+      <div style={{ color: "#a10000", margin: "1rem 0" }}>
+        あなたはすでにこのイベントに参加済みです
+      </div>
+    );
+  } else if (participated === "0") {
+    participatedContent = (
+      <button
+        style={{
+          marginLeft: '1rem',
+          background: '#1976d2',
+          color: 'white',
+          padding: '0.5rem 1.5rem',
+          border: 'none',
+          borderRadius: '4px',
+          cursor: 'pointer'
+        }}
+        onClick={() => router.push(`/event/confirm?event_id=${event_id}`)}
+      >
+        参加
+      </button>
+    );
+  } else if (participated === null || typeof participated === "undefined") {
+    participatedContent = (
+      <div style={{ color: "#a10000", margin: "1rem 0" }}>
+        パラメータがありません
+      </div>
+    );
+  } else {
+    participatedContent = <div>参加状況確認中...</div>;
+  }
+
   return (
     <div style={{ padding: "2rem" }}>
       <h1>イベント詳細</h1>
-      {/* ここでidを表示して確認 */}
-      <div style={{ color: "#888", fontSize: "0.9rem", marginBottom: "1rem" }}>
-        現在のユーザーID: {id ? id : "未取得"}
+      <div style={{ marginBottom: "1rem", color: "#555" }}>
+        クエリパラメータ participated: {participated !== null ? String(participated) : "未取得"}
       </div>
       <table border="1" cellPadding="8">
         <tbody>
@@ -98,28 +121,8 @@ export default function EventDetailPage() {
         </div>
       )}
       <button onClick={() => router.back()}>戻る</button>
-      {isParticipated === null ? (
-        <div>参加状況確認中...</div>
-      ) : isParticipated === true ? (
-        <div style={{ color: "#a10000", margin: "1rem 0" }}>
-          あなたはすでにこのイベントに参加済みです
-        </div>
-      ) : (
-        <button
-          style={{
-            marginLeft: '1rem',
-            background: '#1976d2',
-            color: 'white',
-            padding: '0.5rem 1.5rem',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer'
-          }}
-          onClick={() => router.push(`/event/confirm?event_id=${event_id}`)}
-        >
-          参加
-        </button>
-      )}
+      {/* 参加状況の条件分岐 */}
+      {participatedContent}
     </div>
   );
 }

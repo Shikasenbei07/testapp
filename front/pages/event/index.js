@@ -18,6 +18,7 @@ export default function EventsPage() {
   const [selectedDate, setSelectedDate] = useState("");
   const [keyword, setKeyword] = useState("");
   const [hideExpired, setHideExpired] = useState(false);
+  const [participatedEvents, setParticipatedEvents] = useState([]);
   const router = useRouter();
 
   // id取得とリダイレクト
@@ -73,7 +74,33 @@ export default function EventsPage() {
       .catch(err => {
         setError("カテゴリー取得エラー: " + err.message);
       });
+
+    // 参加済みイベント一覧取得
+    fetch(`https://0x0-showevent-hbbadxcxh9a4bzhu.japaneast-01.azurewebsites.net/api/check_history?code=0iAKT3swTE1gEjS8rDRJWN44V-z9YG24hfRxGkLC0LmRAzFudLVqtg%3D%3D&id=${id}`)
+      .then(res => res.json())
+      .then(data => {
+        // dataは参加済みevent_idの配列を想定
+        setParticipatedEvents(Array.isArray(data) ? data : []);
+      })
+      .catch(() => setParticipatedEvents([]));
   }, [id]); // ← ここを修正: idがセットされたときのみ実行
+
+  // すべてのイベントに対して参加済みかチェック
+  useEffect(() => {
+    if (!id || events.length === 0) return;
+
+    // 参加済みイベント一覧取得（全イベント分をまとめて取得するAPIがない場合は、個別に判定する必要があります）
+    Promise.all(
+      events.map(event =>
+        fetch(`https://0x0-showevent-hbbadxcxh9a4bzhu.japaneast-01.azurewebsites.net/api/check_history?code=0iAKT3swTE1gEjS8rDRJWN44V-z9YG24hfRxGkLC0LmRAzFudLVqtg%3D%3D&event_id=${event.event_id}&id=${id}`)
+          .then(res => res.json())
+          .then(data => (data.is_participated ? event.event_id : null))
+          .catch(() => null)
+      )
+    ).then(results => {
+      setParticipatedEvents(results.filter(eid => eid !== null));
+    });
+  }, [id, events]);
 
   const filteredKeys = ["event_title", "event_datetime", "deadline", "location"];
 
@@ -151,6 +178,7 @@ export default function EventsPage() {
               <th>参加人数状況</th>
               <th>詳細</th>
               <th>お気に入り</th>
+              <th>参加済み</th>
             </tr>
           </thead>
           <tbody>
@@ -184,36 +212,50 @@ export default function EventsPage() {
                   return bValue - aValue;
                 }
               })
-              .map((event, idx) => (
-                <tr key={idx}>
-                  {filteredKeys.map((key, i) => (
-                    <td key={i}>
-                      {(key === "event_datetime" || key === "deadline") && event[key]
-                        ? event[key].replace(/:\d{2}$/, "")
-                        : event[key]}
+              .map((event, idx) => {
+                const isParticipated = participatedEvents.includes(event.event_id);
+                return (
+                  <tr key={idx}>
+                    {filteredKeys.map((key, i) => (
+                      <td key={i}>
+                        {(key === "event_datetime" || key === "deadline") && event[key]
+                          ? event[key].replace(/:\d{2}$/, "")
+                          : event[key]}
+                      </td>
+                    ))}
+                    <td>{`${event.current_participants ?? 0}/${event.max_participants ?? 0}`}</td>
+                    <td style={{ textAlign: 'center' }}>
+                      {/* 参加済みパラメータを付与して詳細画面へ遷移 */}
+                      <button
+                        onClick={() =>
+                          window.location.href =
+                            `/event/detail/${event.event_id}?participated=${encodeURIComponent(isParticipated ? "1" : "0")}`
+                        }
+                      >
+                        詳細
+                      </button>
                     </td>
-                  ))}
-                  <td>{`${event.current_participants ?? 0}/${event.max_participants ?? 0}`}</td>
-                  <td style={{ textAlign: 'center' }}>
-                    <button onClick={() => window.location.href = `/event/detail/${event.event_id}`}>詳細</button>
-                  </td>
-                  <td style={{ textAlign: 'center' }}>
-                    <button
-                      onClick={() => toggleFavorite(event.event_id)}
-                      title="お気に入り登録"
-                      style={{
-                        backgroundColor: favorites.includes(event.event_id) ? 'yellow' : '',
-                        border: 'none',
-                        fontSize: '1.5rem',
-                        cursor: 'pointer',
-                        padding: '4px 10px',
-                      }}
-                    >
-                      ★
-                    </button>
-                  </td>
-                </tr>
-              ))}
+                    <td style={{ textAlign: 'center' }}>
+                      <button
+                        onClick={() => toggleFavorite(event.event_id)}
+                        title="お気に入り登録"
+                        style={{
+                          backgroundColor: favorites.includes(event.event_id) ? 'yellow' : '',
+                          border: 'none',
+                          fontSize: '1.5rem',
+                          cursor: 'pointer',
+                          padding: '4px 10px',
+                        }}
+                      >
+                        ★
+                      </button>
+                    </td>
+                    <td style={{ textAlign: 'center' }}>
+                      {isParticipated ? "○" : ""}
+                    </td>
+                  </tr>
+                );
+              })}
           </tbody>
         </table>
       </div>

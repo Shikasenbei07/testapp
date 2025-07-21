@@ -194,3 +194,23 @@ def CancelReservation(req: func.HttpRequest) -> func.HttpResponse:
         logging.error(f"Cancel error: {e}")
         return func.HttpResponse("DB error", status_code=500)
 
+@app.route(route="participated_events", methods=["GET"])
+def participated_events(req: func.HttpRequest) -> func.HttpResponse:
+    user_id = req.params.get("id")
+    if not user_id:
+        return func.HttpResponse("idが指定されていません", status_code=400)
+    try:
+        conn_str = os.environ.get("CONNECTION_STRING")
+        if not conn_str:
+            return func.HttpResponse("DB接続情報がありません", status_code=500)
+        conn = pyodbc.connect(conn_str)
+        cursor = conn.cursor()
+        sql = "SELECT event_id FROM EVENTS_PARTICIPANTS WHERE id = ?"
+        cursor.execute(sql, (user_id,))
+        rows = cursor.fetchall()
+        conn.close()
+        result = [row[0] for row in rows]
+        return func.HttpResponse(json.dumps(result), mimetype="application/json")
+    except Exception as e:
+        return func.HttpResponse(f"DB接続エラー: {e}", status_code=500)
+
