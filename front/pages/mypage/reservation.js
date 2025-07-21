@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { getValidId } from "../../utils/getValidId";
 
 function formatDate(dateStr) {
   if (!dateStr) return "";
@@ -19,10 +20,14 @@ export default function ReservationHistory() {
   const [alertMsg, setAlertMsg] = useState("");
   const [showAlert, setShowAlert] = useState(false);
 
+  const userId = getValidId();
+
   // 履歴取得
   const fetchHistory = () => {
     setLoading(true);
-    fetch("https://0x0-history2-dwcdfzgnc0gygud2.japaneast-01.azurewebsites.net/api/reservation-history?code=BGoaNitryntYOD81o8D7K6k0s1_VN8-TVf5q2utl-3QKAzFusq7Zkg%3D%3D")
+    fetch(
+      `https://0x0-participation-d7fqb7h3dpcqcxek.japaneast-01.azurewebsites.net/api/reservation-history?code=62ynEBx_jbHKALdJRcPtSf-Hral22ROdaZFZeR6DVf0bAzFuZZI-Rw%3D%3D&id=${userId}`
+    )
       .then(res => {
         if (!res.ok) throw new Error("履歴取得失敗");
         return res.json();
@@ -52,7 +57,7 @@ export default function ReservationHistory() {
       const res = await fetch("https://0x0-history2-dwcdfzgnc0gygud2.japaneast-01.azurewebsites.net/api/cancel-participation?code=2w2yTWReAwYkW2QnECrJYVsSD4s4g-qx-OTAufJIMJ9rAzFuTaTVzA%3D%3D", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ event_id, user_id: "0738" })
+        body: JSON.stringify({ event_id, user_id: userId })
       });
       if (res.ok) {
         fetchHistory();

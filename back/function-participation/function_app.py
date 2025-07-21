@@ -2,6 +2,7 @@ import azure.functions as func
 import json
 import pyodbc
 import os
+import logging
 
 app = func.FunctionApp(http_auth_level=func.AuthLevel.FUNCTION)
 
@@ -110,8 +111,9 @@ def participate(req: func.HttpRequest) -> func.HttpResponse:
 
 @app.route(route="get_mylist")
 def get_mylist(req: func.HttpRequest) -> func.HttpResponse:
-    user_id = "0738"  # 固定
-    conn_str = os.environ.get("CONNECTION_STRING")
+    data = req.get_json()
+    user_id = data.get("id")
+    conn_str = CONNECTION_STRING
     if not conn_str:
         return func.HttpResponse("DB connection string not found.", status_code=500)
     try:
@@ -146,6 +148,71 @@ def get_mylist(req: func.HttpRequest) -> func.HttpResponse:
     )
 
 
+@app.route(route="reservation-history")
+def reservation_history(req: func.HttpRequest) -> func.HttpResponse:
+    try:
+        # POST/GET両対応
+        if req.method == "POST":
+            try:
+                data = req.get_json()
+            except Exception:
+                return func.HttpResponse(
+                    json.dumps({"error": "リクエストボディが不正です"}),
+                    status_code=400,
+                    mimetype="application/json"
+                )
+            user_id = data.get("id")
+        else:
+            user_id = req.params.get("id")
+
+        if not user_id:
+            return func.HttpResponse(
+                json.dumps({"error": "id（ユーザーID）は必須です"}),
+                status_code=400,
+                mimetype="application/json"
+            )
+
+        conn_str = CONNECTION_STRING
+        if not conn_str:
+            logging.error("CONNECTION_STRING is not set in environment variables.")
+            return func.HttpResponse("DB connection string not found.", status_code=500)
+        with pyodbc.connect(conn_str) as conn:
+            cursor = conn.cursor()
+            sql = """
+            SELECT
+                ep.event_id,
+                e.event_title,
+                e.event_datetime,
+                e.location,
+                e.creator,
+                e.image
+            FROM
+                EVENTS_PARTICIPANTS ep
+                LEFT JOIN EVENTS e ON ep.event_id = e.event_id
+            WHERE
+                ep.id = ?
+            ORDER BY
+                e.event_datetime DESC
+            """
+            cursor.execute(sql, (user_id,))
+            columns = [column[0] for column in cursor.description]
+            rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
+            logging.info(f"取得予約履歴: {rows}")
+    except Exception as e:
+        logging.error(f"DB error: {e}")
+        return func.HttpResponse(
+            json.dumps({"error": "DB error", "detail": str(e)}),
+            status_code=500,
+            mimetype="application/json"
+        )
+
+    return func.HttpResponse(
+        json.dumps(rows, ensure_ascii=False, default=str),
+        mimetype="application/json",
+        status_code=200
+    )
+
+
 @app.route(route="cancel-participation")
 def cancel_participation(req: func.HttpRequest) -> func.HttpResponse:
     try:
@@ -155,7 +222,7 @@ def cancel_participation(req: func.HttpRequest) -> func.HttpResponse:
         if not event_id or not user_id:
             return func.HttpResponse("event_id and user_id required", status_code=400)
 
-        conn_str = os.environ.get("CONNECTION_STRING")
+        conn_str = CONNECTION_STRING
         with pyodbc.connect(conn_str) as conn:
             cursor = conn.cursor()
             # レコード削除

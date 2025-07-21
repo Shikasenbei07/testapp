@@ -43,7 +43,7 @@ export default function MyIcon({ size = 40 }) {
   }, [router]);
 
   const handleClick = () => {
-    router.push("/mypage/setting");
+    router.push("/mypage");
   };
 
   return (
