@@ -2,8 +2,8 @@ import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { getValidId } from '../../../utils/getValidId';
 
-const API_URL_GET_EVENT_DETAIL = 'https://0x0-showevent-hbbadxcxh9a4bzhu.japaneast-01.azurewebsites.net/api/showevent?code=KjUCLx4igb6FiJ3ZtQKowVUUk9MgUtPSuBhPrMam2RwxAzFuTt1T_w%3D%3D';
-const API_URL_CANCEL_PARTICIPATION = 'https://0x0-participation-d7fqb7h3dpcqcxek.japaneast-01.azurewebsites.net/api/cancel-participation?code=A_pQkS9M22eHhdEzHAMDWrwMC5HN7vzWqbSbsbtsf9RRAzFuKdmAVA%3D%3D';
+const API_URL_GET_EVENT_DETAIL = process.env.NEXT_PUBLIC_API_URL_GET_EVENT_DETAIL;
+const API_URL_CANCEL_PARTICIPATION = process.env.NEXT_PUBLIC_API_URL_CANCEL_PARTICIPATION;
 
 export default function EventDetail() {
   const router = useRouter();

@@ -2,10 +2,10 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { getValidId } from "../../utils/getValidId";
 
-const API_URL_SEARCH_EVENTS = 'https://0x0-showevent-hbbadxcxh9a4bzhu.japaneast-01.azurewebsites.net/api/showevent?code=KjUCLx4igb6FiJ3ZtQKowVUUk9MgUtPSuBhPrMam2RwxAzFuTt1T_w%3D%3D';
-const API_URL_GET_FAVORITES = 'https://0x0-showevent-hbbadxcxh9a4bzhu.japaneast-01.azurewebsites.net/api/get_favorites?code=dLqmUGxwi-4r_HhRTrgWmJtCtoqNdiWjaEOtjoqbEs09AzFukhBQqg%3D%3D';
-const API_URL_GET_CATEGORIES = 'https://0x0-showevent-hbbadxcxh9a4bzhu.japaneast-01.azurewebsites.net/api/categories?code=qPu7q4iQBMrEMTPaYXSYNOrzTnAm5yplhzIJ9JfIq-vWAzFukZ5pSA%3D%3D';
-const API_URL_ADD_FAVORITE = 'https://0x0-showevent-hbbadxcxh9a4bzhu.japaneast-01.azurewebsites.net/api/favorites?code=zsOO_WgPGY9dtEN_tkki1bHWPy8XYJQoQPo2G7ONmvsoAzFusJrTJg%3D%3D';
+const API_URL_SEARCH_EVENTS = process.env.NEXT_PUBLIC_API_URL_SEARCH_EVENTS ;
+const API_URL_GET_FAVORITES = process.env.NEXT_PUBLIC_API_URL_GET_FAVORITES;
+const API_URL_GET_CATEGORIES = process.env.NEXT_PUBLIC_API_URL_GET_CATEGORIES;
+const API_URL_ADD_FAVORITE = process.env.NEXT_PUBLIC_API_URL_ADD_FAVORITE;
 
 export default function EventsPage() {
   const [favorites, setFavorites] = useState([]);
@@ -52,7 +52,7 @@ export default function EventsPage() {
   // イベント情報など他のデータ取得
   useEffect(() => {
     if (!id) return;
-
+    // イベント一覧取得
     fetch(API_URL_SEARCH_EVENTS)
       .then((res) => res.json())
       .then((data) => {
@@ -80,23 +80,20 @@ export default function EventsPage() {
         setError("カテゴリー取得エラー: " + err.message);
       });
 
-    fetch(`https://0x0-showevent-hbbadxcxh9a4bzhu.japaneast-01.azurewebsites.net/api/check_history?code=0iAKT3swTE1gEjS8rDRJWN44V-z9YG24hfRxGkLC0LmRAzFudLVqtg%3D%3D&id=${id}`)
-      .then(res => res.json())
-      .then(data => {
-        setParticipatedEvents(Array.isArray(data) ? data : []);
-      })
-      .catch(() => setParticipatedEvents([]));
+    // ここでevent_idを使う場合は、イベントごとにループして取得するなど工夫が必要です
+    // 例: 一覧表示時は参加済みイベントIDリストをAPIで取得し、setParticipatedEventsにセットする
+    // 詳細画面遷移時は、event_idをURLから取得してAPIに渡す
   }, [id]);
 
-  // お気に入り登録処理（★ボタンを光らせる前のシンプルなバージョン）
-  const toggleFavorite = async (eventId) => {
+  // お気に入り登録処理
+  const toggleFavorite = async (event_id) => {
     if (!id) return;
     try {
       const url = API_URL_ADD_FAVORITE;
       const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ event_id: eventId, id })
+        body: JSON.stringify({ event_id, id })
       });
       if (res.ok) {
         alert("お気に入り登録しました");
@@ -227,7 +224,8 @@ export default function EventsPage() {
                 }
               })
               .map((event, idx) => {
-                const isParticipated = participatedEvents.includes(event.event_id);
+                // どちらも文字列に変換して比較
+                const isParticipated = participatedEvents.map(String).includes(String(event.event_id));
                 return (
                   <tr key={idx}>
                     {filteredKeys.map((key, i) => (
