@@ -1,3 +1,4 @@
+import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { getValidId } from "../../utils/getValidId";
 
@@ -13,6 +14,10 @@ function formatDate(dateStr) {
 }
 
 export default function ReservationHistory() {
+  const router = useRouter();
+  const queryId = router.query.id;
+  const id = getValidId();
+
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [canceling, setCanceling] = useState(false);
@@ -41,7 +46,7 @@ export default function ReservationHistory() {
 
   useEffect(() => {
     fetchHistory();
-  }, []);
+  }, [id]);
 
   // デザイン付きアラート
   function showCustomAlert(msg) {
@@ -54,7 +59,7 @@ export default function ReservationHistory() {
   async function handleCancel(event_id) {
     setCanceling(true);
     try {
-      const res = await fetch("https://0x0-history2-dwcdfzgnc0gygud2.japaneast-01.azurewebsites.net/api/cancel-participation?code=2w2yTWReAwYkW2QnECrJYVsSD4s4g-qx-OTAufJIMJ9rAzFuTaTVzA%3D%3D", {
+      const res = await fetch(`https://0x0-participation-test.azurewebsites.net/api/cancel_participation?code=lg6z2CItkdkWJ01FZGSTMb0W0e7HfGW9hHGRwMsq_bpFAzFuADr_nQ%3D%3D&id=${id}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ event_id, user_id: userId })

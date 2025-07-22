@@ -138,6 +138,7 @@ def get_mylist(req: func.HttpRequest) -> func.HttpResponse:
             cursor.execute(sql, (user_id,))
             columns = [column[0] for column in cursor.description]
             rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
+            logging.info(f"取得予約履歴: {rows}")
     except Exception as e:
         return func.HttpResponse("DB error", status_code=500)
 
@@ -213,14 +214,14 @@ def reservation_history(req: func.HttpRequest) -> func.HttpResponse:
     )
 
 
-@app.route(route="cancel-participation")
+@app.route(route="cancel-participation", methods=["POST"])
 def cancel_participation(req: func.HttpRequest) -> func.HttpResponse:
     try:
         data = req.get_json()
         event_id = data.get("event_id")
-        user_id = data.get("user_id")
-        if not event_id or not user_id:
-            return func.HttpResponse("event_id and user_id required", status_code=400)
+        id = data.get("id")
+        if not event_id or not id:
+            return func.HttpResponse("event_id and id required", status_code=400)
 
         conn_str = CONNECTION_STRING
         with pyodbc.connect(conn_str) as conn:
@@ -229,10 +230,17 @@ def cancel_participation(req: func.HttpRequest) -> func.HttpResponse:
             cursor.execute("""
                 DELETE FROM EVENTS_PARTICIPANTS
                 WHERE event_id = ? AND id = ?
-            """, (event_id, user_id))
+            """, (event_id, id))
             conn.commit()
             if cursor.rowcount == 0:
                 return func.HttpResponse("キャンセル対象がありません", status_code=400)
+            # current_participantsをデクリメント
+            cursor.execute("""
+                UPDATE EVENTS
+                SET current_participants = CASE WHEN current_participants > 0 THEN current_participants - 1 ELSE 0 END
+                WHERE event_id = ?
+            """, (event_id,))
+            conn.commit()
         return func.HttpResponse("OK", status_code=200)
     except Exception as e:
         logging.error(f"Cancel participation error: {e}")
