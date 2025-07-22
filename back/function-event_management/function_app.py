@@ -108,6 +108,10 @@ def create_event(req: func.HttpRequest) -> func.HttpResponse:
             for f in required_fields:
                 if not data.get(f):
                     return error_response(f"{f}は必須です")
+        # creatorが空文字やNoneの場合は必ず'0738'にする
+        creator = data.get("creator")
+        if not creator:
+            creator = "0738"
         with get_db_connection() as conn:
             cursor = conn.cursor()
             cursor.execute(
@@ -122,7 +126,7 @@ def create_event(req: func.HttpRequest) -> func.HttpResponse:
                 to_db_date(data.get("deadline")),
                 data.get("location"),
                 int(data.get("max_participants")) if data.get("max_participants") else None,
-                str(data.get("creator", "0738")),
+                str(creator),
                 data.get("summary"),
                 data.get("detail"),
                 data.get("image"),

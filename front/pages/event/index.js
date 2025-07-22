@@ -19,6 +19,7 @@ export default function EventsPage() {
   const [selectedDate, setSelectedDate] = useState("");
   const [keyword, setKeyword] = useState("");
   const [hideExpired, setHideExpired] = useState(false);
+  const [participatedEvents, setParticipatedEvents] = useState([]);
   const router = useRouter();
 
   // id取得とリダイレクト
@@ -74,7 +75,33 @@ export default function EventsPage() {
       .catch(err => {
         setError("カテゴリー取得エラー: " + err.message);
       });
+
+    // 参加済みイベント一覧取得
+    fetch(`https://0x0-showevent-hbbadxcxh9a4bzhu.japaneast-01.azurewebsites.net/api/check_history?code=0iAKT3swTE1gEjS8rDRJWN44V-z9YG24hfRxGkLC0LmRAzFudLVqtg%3D%3D&id=${id}`)
+      .then(res => res.json())
+      .then(data => {
+        // dataは参加済みevent_idの配列を想定
+        setParticipatedEvents(Array.isArray(data) ? data : []);
+      })
+      .catch(() => setParticipatedEvents([]));
   }, [id]); // ← ここを修正: idがセットされたときのみ実行
+
+  // すべてのイベントに対して参加済みかチェック
+  useEffect(() => {
+    if (!id || events.length === 0) return;
+
+    // 参加済みイベント一覧取得（全イベント分をまとめて取得するAPIがない場合は、個別に判定する必要があります）
+    Promise.all(
+      events.map(event =>
+        fetch(`https://0x0-showevent-hbbadxcxh9a4bzhu.japaneast-01.azurewebsites.net/api/check_history?code=0iAKT3swTE1gEjS8rDRJWN44V-z9YG24hfRxGkLC0LmRAzFudLVqtg%3D%3D&event_id=${event.event_id}&id=${id}`)
+          .then(res => res.json())
+          .then(data => (data.is_participated ? event.event_id : null))
+          .catch(() => null)
+      )
+    ).then(results => {
+      setParticipatedEvents(results.filter(eid => eid !== null));
+    });
+  }, [id, events]);
 
   const filteredKeys = ["event_title", "event_datetime", "deadline", "location"];
 
@@ -89,7 +116,7 @@ export default function EventsPage() {
         padding: "2.5rem 1rem",
         maxWidth: "1200px",
         margin: "0 auto",
-        fontFamily: "'Share Tech Mono', 'Fira Mono', 'Consolas', monospace"
+        fontFamily: "'Montserrat', 'Noto Sans JP', 'Helvetica Neue', Arial, 'メイリオ', sans-serif"
       }}>
         <h1 style={{
           color: "#5a5af0",
@@ -97,9 +124,9 @@ export default function EventsPage() {
           fontSize: "2.8em",
           letterSpacing: "0.12em",
           marginBottom: "2.2rem",
-          textShadow: "0 6px 24px #b4b4d880, 0 1px 0 #fff", // 影を強調
+          textShadow: "0 6px 24px #b4b4d880, 0 1px 0 #fff",
           textAlign: "center",
-          fontFamily: "'Bebas Neue', 'Montserrat', 'Share Tech Mono', 'Fira Mono', 'Consolas', monospace",
+          fontFamily: "'Bebas Neue', 'Montserrat', 'Noto Sans JP', 'Helvetica Neue', Arial, 'メイリオ', sans-serif",
           textTransform: "uppercase",
           lineHeight: 1.1,
           letterSpacing: "0.15em"
@@ -113,9 +140,9 @@ export default function EventsPage() {
           marginBottom: "2em",
           alignItems: "center",
           background: "#fff",
-          borderRadius: "12px",
-          boxShadow: "0 2px 12px #b4b4d820",
-          padding: "1.2em 1.5em"
+          borderRadius: "18px",
+          boxShadow: "0 4px 24px #b4b4d850, 0 2px 8px #c7d2fe80",
+          padding: "1.8em 2em"
         }}>
           <div style={{ minWidth: 180 }}>
             <label htmlFor="sort-select">並び順: </label>
@@ -228,18 +255,17 @@ export default function EventsPage() {
             )}
           </div>
         </div>
-        {error && <div style={{ color: "#f43f5e", marginBottom: "1em" }}>{error}</div>}
-        <div style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(2, minmax(420px, 1fr))", // さらに大きく
-          gap: "3em",
-          alignItems: "stretch",
-          justifyItems: "center",
-          justifyContent: "center",
-        }}>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(2, minmax(340px, 1fr))", // 2列固定
+            gap: "2.2em",
+            marginBottom: "2.5em"
+          }}
+        >
           {[...events]
             .filter(ev => !selectedCategory || String(ev.event_category) === String(selectedCategory))
-            .filter(ev => !selectedDate || (ev.event_datetime && ev.event_datetime.slice(0, 10) === selectedDate))
+            .filter(ev => !selectedDate || (ev.event_datetime && ev.event_datetime.slice(0,10) === selectedDate))
             .filter(ev => !keyword || (ev.event_title && ev.event_title.includes(keyword)))
             .filter(ev => {
               if (!hideExpired) return true;
@@ -267,93 +293,172 @@ export default function EventsPage() {
                 return bValue - aValue;
               }
             })
-            .map((event, idx) => (
-              <div key={idx} style={{
-                background: "#fff",
-                borderRadius: "22px",
-                boxShadow: "0 8px 32px 0 #b4b4d880, 0 2px 8px #c7d2fe80", // 立体感を強調
-                padding: "2.5em 2em",
-                display: "flex",
-                flexDirection: "column",
-                gap: "1.2em",
-                border: favorites.includes(event.event_id) ? "3px solid #ffe066" : "2px solid #e0e7ef",
-                position: "relative",
-                width: "100%",
-                maxWidth: "600px",
-                minWidth: "380px",
-                transition: "box-shadow 0.2s, transform 0.2s",
-                textAlign: "center",
-                // 立体感のために少し浮かせる
-                transform: "translateY(0)",
-                willChange: "transform, box-shadow",
-                cursor: "pointer",
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.boxShadow = "0 16px 48px 0 #b4b4d8cc, 0 4px 16px #c7d2fecc";
-                e.currentTarget.style.transform = "translateY(-8px) scale(1.02)";
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.boxShadow = "0 8px 32px 0 #b4b4d880, 0 2px 8px #c7d2fe80";
-                e.currentTarget.style.transform = "translateY(0) scale(1)";
-              }}
-              >
-                <div style={{
-                  fontWeight: "bold",
-                  fontSize: "1.25em",
-                  color: "#5a5af0",
-                  marginBottom: "0.4em"
-                }}>
-                  {event.event_title}
+            .map((event, idx) => {
+              const isParticipated = participatedEvents.includes(event.event_id);
+              return (
+                <div
+                  key={event.event_id}
+                  style={{
+                    background: "#fff",
+                    borderRadius: "22px",
+                    boxShadow: "0 8px 32px #b4b4d880, 0 2px 8px #c7d2fe80, 0 1.5px 0 #fff",
+                    padding: "2.2em 1.7em 1.7em 1.7em",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    transition: "box-shadow 0.25s, transform 0.18s",
+                    border: "2.5px solid #e0e7ef",
+                    minHeight: 340,
+                    position: "relative",
+                    cursor: "pointer",
+                    willChange: "transform, box-shadow",
+                    // 立体感のためのホバー効果
+                    ...(window && {
+                      ":hover": {
+                        boxShadow: "0 16px 48px #b4b4d8cc, 0 4px 16px #c7d2fe80",
+                        transform: "translateY(-6px) scale(1.025)"
+                      }
+                    })
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.boxShadow = "0 16px 48px #b4b4d8cc, 0 4px 16px #c7d2fe80";
+                    e.currentTarget.style.transform = "translateY(-6px) scale(1.025)";
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.boxShadow = "0 8px 32px #b4b4d880, 0 2px 8px #c7d2fe80, 0 1.5px 0 #fff";
+                    e.currentTarget.style.transform = "none";
+                  }}
+                >
+                  {/* --- 文字色を落ち着いた色に統一 --- */}
+                  <div style={{
+                    fontWeight: 900,
+                    fontSize: "1.3em",
+                    color: "#5a5af0", // タイトルはアクセントカラー
+                    marginBottom: "0.7em",
+                    letterSpacing: "0.08em",
+                    textAlign: "center",
+                    textShadow: "0 2px 8px #b4b4d820"
+                  }}>
+                    {event.event_title}
+                  </div>
+                  <div style={{
+                    color: "#2cb67d", // 開催日時はややグリーン
+                    fontWeight: 700,
+                    marginBottom: "0.5em",
+                    fontSize: "1.08em",
+                    textAlign: "center"
+                  }}>
+                    開催日時: {event.event_datetime?.replace(/:\d{2}$/, "")}
+                  </div>
+                  <div style={{
+                    color: "#f43f5e", // 申込期限はややピンク
+                    fontWeight: 700,
+                    marginBottom: "0.5em",
+                    fontSize: "1.08em",
+                    textAlign: "center"
+                  }}>
+                    申込期限: {event.deadline?.replace(/:\d{2}$/, "")}
+                  </div>
+                  <div style={{
+                    color: "#7f5af0", // 開催場所は薄いパープル
+                    fontWeight: 600,
+                    marginBottom: "0.5em",
+                    fontSize: "1.08em",
+                    textAlign: "center"
+                  }}>
+                    開催場所: {event.location}
+                  </div>
+                  <div style={{
+                    color: "#23263a",
+                    fontWeight: 700,
+                    marginBottom: "0.5em",
+                    fontSize: "1.08em",
+                    textAlign: "center"
+                  }}>
+                    参加人数: {`${event.current_participants ?? 0}/${event.max_participants ?? 0}`}
+                  </div>
+                  <div style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    gap: "1em",
+                    marginTop: "1.2em"
+                  }}>
+                    <button
+                      onClick={() =>
+                        window.location.href =
+                          `/event/detail/${event.event_id}?participated=${encodeURIComponent(isParticipated ? "1" : "0")}`
+                      }
+                      style={{
+                        background: "linear-gradient(90deg, #5a5af0 0%, #b4b4d8 100%)",
+                        color: "#fff",
+                        border: "none",
+                        borderRadius: "8px",
+                        padding: "0.6em 1.5em",
+                        fontWeight: "bold",
+                        fontSize: "1em",
+                        cursor: "pointer",
+                        boxShadow: "0 2px 8px #b4b4d820",
+                        letterSpacing: "0.05em",
+                        transition: "background 0.2s"
+                      }}
+                    >
+                      詳細
+                    </button>
+                    <button
+                      onClick={() => toggleFavorite(event.event_id)}
+                      title="お気に入り登録"
+                      style={{
+                        background: "none",
+                        border: "none",
+                        cursor: "pointer",
+                        padding: 0,
+                        margin: 0,
+                        outline: "none",
+                        display: "flex",
+                        alignItems: "center",
+                        transition: "transform 0.15s"
+                      }}
+                    >
+                      <svg
+                        width="32"
+                        height="32"
+                        viewBox="0 0 32 32"
+                        fill={favorites.includes(event.event_id) ? "#ff6b81" : "none"}
+                        stroke={favorites.includes(event.event_id) ? "#ff6b81" : "#b4b4d8"}
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        style={{
+                          filter: favorites.includes(event.event_id)
+                            ? "drop-shadow(0 2px 8px #ff6b8188)"
+                            : "drop-shadow(0 1px 4px #b4b4d820)",
+                          transition: "fill 0.2s, stroke 0.2s, filter 0.2s",
+                          transform: favorites.includes(event.event_id) ? "scale(1.15)" : "scale(1)",
+                          background: "none",
+                          border: "none",
+                          display: "block"
+                        }}
+                      >
+                        <path
+                          d="M16 28s-9-6.2-9-13.2C7 10 9.5 7.5 12.5 7.5c1.7 0 3.3 1 4.1 2.5 0.8-1.5 2.4-2.5 4.1-2.5C22.5 7.5 25 10 25 14.8c0 7-9 13.2-9 13.2z"
+                          fill={favorites.includes(event.event_id) ? "#ff6b81" : "none"}
+                          stroke={favorites.includes(event.event_id) ? "#ff6b81" : "#b4b4d8"}
+                        />
+                      </svg>
+                    </button>
+                    <span style={{
+                      fontWeight: 700,
+                      color: isParticipated ? "#2cb67d" : "#b4b4d8",
+                      fontSize: "1.3em",
+                      marginLeft: "0.5em",
+                      alignSelf: "center"
+                    }}>
+                      {isParticipated ? "参加済" : ""}
+                    </span>
+                  </div>
                 </div>
-                <div style={{ color: "#23263a" }}>
-                  <span style={{ fontWeight: "bold" }}>日時:</span> {event.event_datetime?.replace(/:\d{2}$/, "")}
-                </div>
-                <div style={{ color: "#23263a" }}>
-                  <span style={{ fontWeight: "bold" }}>場所:</span> {event.location}
-                </div>
-                <div style={{ color: "#23263a" }}>
-                  <span style={{ fontWeight: "bold" }}>締切:</span> {event.deadline?.replace(/:\d{2}$/, "")}
-                </div>
-                <div style={{ color: "#2cb67d", fontWeight: "bold" }}>
-                  参加状況: {`${event.current_participants ?? 0}/${event.max_participants ?? 0}`}
-                </div>
-                <div style={{
-                  display: "flex",
-                  gap: "1em",
-                  marginTop: "0.7em",
-                  alignItems: "center",
-                  justifyContent: "center"
-                }}>
-                  <button
-                    onClick={() => window.location.href = `/event/detail/${event.event_id}`}
-                    style={{
-                      padding: "0.7em 1.5em",
-                      borderRadius: "10px",
-                      border: "1.5px solid #b4b4d8",
-                      background: "#e0e7ef",
-                      color: "#23263a",
-                      cursor: "pointer",
-                      fontWeight: "bold",
-                      fontSize: "1em"
-                    }}
-                  >詳細</button>
-                  <button
-                    onClick={() => toggleFavorite(event.event_id)}
-                    title="お気に入り登録"
-                    style={{
-                      backgroundColor: favorites.includes(event.event_id) ? '#ffe066' : '#fff',
-                      border: '1.5px solid #b4b4d8',
-                      fontSize: '1.7rem',
-                      cursor: 'pointer',
-                      padding: '6px 16px',
-                      borderRadius: "10px"
-                    }}
-                  >
-                    ★
-                  </button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
         </div>
         <QandA characterImg="/images/character.png" />
       </div>

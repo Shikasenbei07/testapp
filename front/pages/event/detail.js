@@ -10,6 +10,11 @@ export default function EventDetailPage() {
   const [id, setId] = useState("");
 
   useEffect(() => {
+    // participatedの値をコンソールに表示
+    console.log("participated:", participated);
+  }, [participated]);
+
+  useEffect(() => {
     if (!router.isReady) return;
     let validId = queryId;
     if (!validId) {
@@ -37,21 +42,31 @@ export default function EventDetailPage() {
       });
   }, [event_id, router.isReady]);
 
-  useEffect(() => {
-    // クエリパラメータの値をコンソールで確認
-    console.log("participated:", participated);
-  }, [participated]);
-
   if (error) return <div style={{ color: "red" }}>{error}</div>;
   if (!event) return <div>読み込み中...</div>;
+
+  let participatedContent;
+  if (participated === "1") {
+    participatedContent = (
+      <div style={{ color: "#1976d2", margin: "1rem 0" }}>
+        無事に１を受け取りました
+      </div>
+    );
+  } else if (participated === "0") {
+    participatedContent = null;
+  } else if (participated === null || typeof participated === "undefined") {
+    participatedContent = (
+      <div style={{ color: "#a10000", margin: "1rem 0" }}>
+        パラメータがありません
+      </div>
+    );
+  } else {
+    participatedContent = <div>参加状況確認中...</div>;
+  }
 
   return (
     <div style={{ padding: "2rem" }}>
       <h1>イベント詳細</h1>
-      {/* クエリパラメータ participated の値を明示的に表示 */}
-      <div style={{ marginBottom: "1rem", color: "#555" }}>
-        クエリパラメータ participated: {participated !== null ? String(participated) : "未取得"}
-      </div>
       <table border="1" cellPadding="8">
         <tbody>
           <tr>
@@ -86,31 +101,7 @@ export default function EventDetailPage() {
         </div>
       )}
       <button onClick={() => router.back()}>戻る</button>
-      {/* 参加状況の条件分岐 */}
-      {router.isReady && typeof participated !== "undefined" ? (
-        String(participated) === "1" ? (
-          <div style={{ color: "#a10000", margin: "1rem 0" }}>
-            あなたはすでにこのイベントに参加済みです
-          </div>
-        ) : (
-          <button
-            style={{
-              marginLeft: '1rem',
-              background: '#1976d2',
-              color: 'white',
-              padding: '0.5rem 1.5rem',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer'
-            }}
-            onClick={() => router.push(`/event/confirm?event_id=${event_id}`)}
-          >
-            参加
-          </button>
-        )
-      ) : (
-        <div>参加状況確認中...</div>
-      )}
+      
     </div>
   );
 }

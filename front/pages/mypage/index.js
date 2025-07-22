@@ -60,25 +60,78 @@ export default function MyPage() {
   console.log("Profile Image:", profileImg);
 
   return (
-    <div>
-      {profileImg && (
-        <div style={{ marginBottom: 16 }}>
-          <img
-            src={profileImg}
-            alt="プロフィール画像"
-            style={{ width: 120, height: 120, objectFit: "cover", borderRadius: "50%" }}
-          />
-        </div>
-      )}
-      {lName}さんのページ
-      <br />
-      <button onClick={handleLogout}>ログアウト</button>
-      <button
-        style={{ marginLeft: 12, padding: "8px 16px", background: "#00c2a0", color: "#fff", border: "none", borderRadius: 6, fontWeight: 700 }}
-        onClick={() => router.push("/mypage/setting")}
+    <div
+      style={{
+        minHeight: "100vh",
+        width: "100vw",
+        background: "linear-gradient(120deg, #e0e7ef 0%, #c7d2fe 60%, #a5b4fc 100%)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontFamily: "'Montserrat', 'Noto Sans JP', 'Helvetica Neue', Arial, 'メイリオ', sans-serif"
+      }}
+    >
+      <div
+        style={{
+          background: "#fff",
+          borderRadius: 20,
+          boxShadow: "0 8px 32px 0 #b4b4d880, 0 2px 8px #c7d2fe80",
+          padding: "2.5em 2em",
+          minWidth: "340px",
+          maxWidth: "420px",
+          width: "100%",
+          textAlign: "center"
+        }}
       >
-        設定へ
-      </button>
+        {profileImg && (
+          <div style={{ marginBottom: 16 }}>
+            <img
+              src={profileImg}
+              alt="プロフィール画像"
+              style={{ width: 120, height: 120, objectFit: "cover", borderRadius: "50%", boxShadow: "0 2px 12px #b4b4d820" }}
+            />
+          </div>
+        )}
+        <div style={{ fontWeight: 800, fontSize: "1.25em", marginBottom: "1em", color: "#5a5af0", letterSpacing: "0.06em" }}>
+          {lName}さんのページ
+        </div>
+        <button
+          onClick={handleLogout}
+          style={{
+            padding: "8px 24px",
+            background: "linear-gradient(90deg, #f43f5e 0%, #b4b4d8 100%)",
+            color: "#fff",
+            border: "none",
+            borderRadius: 8,
+            fontWeight: 700,
+            fontSize: "1em",
+            marginBottom: 12,
+            cursor: "pointer",
+            boxShadow: "0 2px 8px #f43f5e40",
+            letterSpacing: "0.05em",
+            marginRight: 10
+          }}
+        >
+          ログアウト
+        </button>
+        <button
+          style={{
+            padding: "8px 24px",
+            background: "linear-gradient(90deg, #5a5af0 0%, #2cb67d 100%)", // 色を変更
+            color: "#fff",
+            border: "none",
+            borderRadius: 8,
+            fontWeight: 700,
+            fontSize: "1em",
+            cursor: "pointer",
+            boxShadow: "0 2px 8px #2cb67d40",
+            letterSpacing: "0.05em"
+          }}
+          onClick={() => router.push("/mypage/setting")}
+        >
+          設定へ
+        </button>
+      </div>
     </div>
   );
 }

@@ -17,14 +17,13 @@ export default function Login() {
     setError("");
     try {
       const res = await fetch(
-        API_URL_LOGIN,
+        "https://0x0-login-test.azurewebsites.net/api/login?code=XPLwjpTWEWYvk2UTopDvY2R9cdFjgXX28vjqZfvIkw3FAzFuxyVGQg%3D%3D",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ "id": id, "password": password }),
+          body: JSON.stringify({ id, password }),
         }
       );
-      
       if (res.ok) {
         const data = await res.json();
         const expire = Date.now() + validity_time;
