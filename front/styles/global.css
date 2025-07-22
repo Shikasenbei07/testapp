@@ -1,21 +1,21 @@
-/* シンプルで見やすいダークブルー基調 */
+/* シンプルで見やすい淡い紫基調 */
 
 html,
 body {
   padding: 0;
   margin: 0;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
-  background: linear-gradient(135deg, #14213d 0%, #1d3557 100%);
-  color: #f5f6fa;
+  background: linear-gradient(135deg, #f3f6fb 0%, #eceafd 60%, #ede7fa 100%);
+  color: #23263a;
   min-height: 100vh;
   letter-spacing: 0.04em;
 }
 
-/* 見出しは明るめのブルー */
+/* 見出しはアクセントのブルーとパープル */
 h1, h2, h3, h4, h5, h6 {
   font-family: 'Inter', sans-serif;
-  color: #4fc3f7;
-  text-shadow: 1px 1px 8px #14213d, 0 0 10px #1976d2;
+  color: #7f5af0;
+  text-shadow: 0 2px 8px #e3eafd, 0 0 10px #b4b4d8;
   letter-spacing: 0.08em;
   font-weight: 700;
 }
@@ -28,10 +28,10 @@ h1, h2, h3, h4, h5, h6 {
   z-index: 10;
   width: 48px;
   height: 48px;
-  background: linear-gradient(135deg, #4fc3f7 60%, #1d3557 100%);
+  background: linear-gradient(135deg, #b4b4d8 60%, #7f5af0 100%);
   border: none;
   border-radius: 50%;
-  box-shadow: 0 2px 12px #1d3557;
+  box-shadow: 0 2px 12px #b4b4d8;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -39,20 +39,20 @@ h1, h2, h3, h4, h5, h6 {
   transition: background 0.2s, transform 0.1s;
 }
 .menu-button:hover {
-  background: linear-gradient(135deg, #b3e5fc 60%, #1976d2 100%);
+  background: linear-gradient(135deg, #e3eafd 60%, #7f5af0 100%);
   transform: scale(1.08) rotate(-8deg);
 }
 .menu-button span {
   display: block;
   width: 28px;
   height: 4px;
-  background: #1976d2;
+  background: #7f5af0;
   border-radius: 2px;
   margin: 3px 0;
-  box-shadow: 0 1px 2px #90caf9;
+  box-shadow: 0 1px 2px #b4b4d8;
 }
 .menu-button span + span {
-  background: #4fc3f7;
+  background: #b4b4d8;
 }
 
 /* イベント一覧をブロック形式で */
@@ -64,14 +64,14 @@ h1, h2, h3, h4, h5, h6 {
   margin: 2rem 0;
 }
 .event-card {
-  background: linear-gradient(135deg, #1d3557 60%, #14213d 100%);
-  border: 2px solid #4fc3f7;
+  background: linear-gradient(135deg, #e3eafd 60%, #ede7fa 100%);
+  border: 2px solid #b4b4d8;
   border-radius: 16px;
-  box-shadow: 0 4px 24px #1d3557, 0 0 12px #1976d2;
+  box-shadow: 0 4px 24px #b4b4d850, 0 0 12px #b4b4d8;
   padding: 1.5rem 2rem;
   min-width: 300px;
   max-width: 360px;
-  color: #f5f6fa;
+  color: #23263a;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -80,27 +80,27 @@ h1, h2, h3, h4, h5, h6 {
 }
 .event-card:hover {
   transform: translateY(-8px) scale(1.03);
-  box-shadow: 0 8px 32px #1976d2, 0 0 16px #4fc3f7;
-  border-color: #1976d2;
+  box-shadow: 0 8px 32px #b4b4d8cc, 0 0 16px #7f5af0;
+  border-color: #7f5af0;
 }
 .event-card .event-title {
   font-size: 1.35rem;
   font-weight: bold;
-  color: #4fc3f7;
+  color: #7f5af0;
   margin-bottom: 0.5rem;
 }
 .event-card .event-date {
-  color: #b3e5fc;
+  color: #5a5af0;
   font-size: 1.08rem;
   margin-bottom: 0.3rem;
 }
 .event-card .event-location {
-  color: #e3f2fd;
+  color: #23263a;
   font-size: 1.05rem;
   margin-bottom: 0.7rem;
 }
 .event-card .event-desc {
-  color: #f5f6fa;
+  color: #23263a;
   font-size: 0.98rem;
   margin-bottom: 1.1rem;
 }
@@ -112,12 +112,12 @@ h1, h2, h3, h4, h5, h6 {
   justify-content: flex-end;
 }
 
-/* ボタンはブルー系でポップに */
+/* ボタンはパープル系でポップに */
 button, .event-card button {
-  background: linear-gradient(135deg, #4fc3f7 0%, #1d3557 100%);
-  color: #1d3557;
-  border: 2px solid #4fc3f7;
-  box-shadow: 0 0 10px #1976d2, 0 0 4px #1d3557;
+  background: linear-gradient(135deg, #b4b4d8 0%, #7f5af0 100%);
+  color: #23263a;
+  border: 2px solid #b4b4d8;
+  box-shadow: 0 0 10px #b4b4d8, 0 0 4px #ede7fa;
   font-family: 'Inter', sans-serif;
   font-size: 1.08rem;
   font-weight: bold;
@@ -128,17 +128,22 @@ button, .event-card button {
   cursor: pointer;
 }
 button:hover, .event-card button:hover {
-  background: #1976d2;
+  background: #7f5af0;
   color: #fff;
-  border-color: #1976d2;
+  border-color: #7f5af0;
   transform: scale(1.07);
 }
 
-/* リンクは明るいブルー */
+/* リンクはパープル系 */
 a {
-  color: #4fc3f7;
-  text-decoration: underline wavy #1976d2 2px;
+  color: #7f5af0;
+  text-decoration: underline wavy #b4b4d8 2px;
   font-weight: bold;
+}
+
+/* ハンバーガーメニュー内のリンクの下線を消す */
+nav a {
+  text-decoration: none !important;
 }
 
 * {
@@ -150,7 +155,7 @@ img {
   height: auto;
   filter: contrast(1.05) brightness(0.98);
   border-radius: 6px;
-  box-shadow: 0 0 10px #1d3557;
+  box-shadow: 0 0 10px #b4b4d8;
 }
 
 /* Google Fonts Pirata One を使う場合は _app.js などでCDNを追加してください */

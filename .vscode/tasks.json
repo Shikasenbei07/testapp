@@ -9,7 +9,11 @@
 			"isBackground": true,
 			"dependsOn": "pip install (functions)",
 			"options": {
+<<<<<<< HEAD
 				"cwd": "${workspaceFolder}/back\\function-showEvent"
+=======
+				"cwd": "${workspaceFolder}/back\\function-CSS"
+>>>>>>> 333d067923f63fa412cce2f20a463e040ecfe1c4
 			}
 		},
 		{
@@ -26,7 +30,11 @@
 			},
 			"problemMatcher": [],
 			"options": {
+<<<<<<< HEAD
 				"cwd": "${workspaceFolder}/back\\function-showEvent"
+=======
+				"cwd": "${workspaceFolder}/back\\function-CSS"
+>>>>>>> 333d067923f63fa412cce2f20a463e040ecfe1c4
 			}
 		}
 	]

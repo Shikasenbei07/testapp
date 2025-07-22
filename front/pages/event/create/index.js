@@ -269,23 +269,75 @@ export default function EventCreate() {
 
   // EventFormへのprops渡し部分
   return (
-    <EventForm
-      form={form}
-      errors={errors}
-      preview={preview}
-      eventData={eventData}
-      categoryOptions={categoryOptions}
-      keywordOptions={keywordOptions}
-      isEdit={isEdit}
-      onChange={handleChange}
-      onSubmit={handleSubmit}
-      onDraft={handleDraft}
-      onDelete={isEdit ? handleDelete : undefined}
-      isFormComplete={isFormComplete}
-      submitLabel={isEdit ? "更新" : "作成"}
-      draftLabel={"下書き保存"}
-      deleteLabel={"イベント取り消し"}
-      deadlineType="datetime-local"
-    />
+    <div
+      style={{
+        minHeight: "100vh",
+        background: "linear-gradient(120deg, #e0e7ef 0%, #c7d2fe 60%, #a5b4fc 100%)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontFamily: "'Montserrat', 'Noto Sans JP', 'Helvetica Neue', Arial, 'メイリオ', sans-serif"
+      }}
+    >
+      <div
+        style={{
+          background: "#fff",
+          borderRadius: 20,
+          boxShadow: "0 8px 32px 0 #b4b4d880, 0 2px 8px #c7d2fe80",
+          padding: "2.5em 2em",
+          minWidth: "340px",
+          maxWidth: "600px",
+          width: "100%",
+        }}
+      >
+        <div
+          style={{
+            color: "#5a5af0",
+            fontWeight: 900,
+            fontSize: "2em", // ここを大きく
+            letterSpacing: "0.08em",
+            textAlign: "center",
+            fontFamily: "'Bebas Neue', 'Montserrat', 'Noto Sans JP', 'Helvetica Neue', Arial, 'メイリオ', sans-serif",
+            marginBottom: "0.7em",
+            textShadow: "0 2px 8px #b4b4d830"
+          }}
+        >
+          イベント作成
+        </div>
+        <h1
+          style={{
+            color: "#5a5af0",
+            fontWeight: 900,
+            fontSize: "2.1em",
+            letterSpacing: "0.12em",
+            marginBottom: "1.5rem",
+            textShadow: "0 4px 16px #b4b4d850, 0 1px 0 #fff",
+            textAlign: "center",
+            fontFamily: "'Bebas Neue', 'Montserrat', 'Noto Sans JP', 'Helvetica Neue', Arial, 'メイリオ', sans-serif",
+            textTransform: "uppercase"
+          }}
+        >
+          {isEdit ? "イベント編集" : ""}
+        </h1>
+        <EventForm
+          form={form}
+          errors={errors}
+          preview={preview}
+          eventData={eventData}
+          categoryOptions={categoryOptions}
+          keywordOptions={keywordOptions}
+          isEdit={isEdit}
+          onChange={handleChange}
+          onSubmit={handleSubmit}
+          onDraft={handleDraft}
+          onDelete={isEdit ? handleDelete : undefined}
+          isFormComplete={isFormComplete}
+          submitLabel={isEdit ? "更新" : "作成"}
+          draftLabel={"下書き保存"}
+          deleteLabel={"イベント取り消し"}
+          deadlineType="datetime-local"
+        />
+      </div>
+    </div>
   );
 }
