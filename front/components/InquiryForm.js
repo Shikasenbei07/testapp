@@ -1,11 +1,9 @@
 import { useEvents } from "../hooks/useEvents";
 import { useState } from "react";
 
-const isLocal = process.env.NEXT_PUBLIC_IS_LOCAL === "true";
 const API_URL_CREATE_INQUIRY = process.env.NEXT_PUBLIC_API_URL_CREATE_INQUIRY;
 
-export default function InquiryForm({  }) {
-  const eventId = 2; // デフォルトのイベントIDを設定
+export default function InquiryForm({ eventId }) {
   if (!eventId) {
     return (
       <div>
@@ -25,7 +23,7 @@ export default function InquiryForm({  }) {
     setSubmitting(true);
 
     try {
-      const result = await fetch("http://localhost:7071/api/create_inquiry", {
+      const result = await fetch(API_URL_CREATE_INQUIRY, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

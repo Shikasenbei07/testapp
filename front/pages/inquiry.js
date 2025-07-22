@@ -7,6 +7,7 @@ import sendInquiry from "./api/sendInquiry";
 export default function InquiryPage() {
   return (
     <InquiryForm
+      eventId = {2}
     />
   );
 }
