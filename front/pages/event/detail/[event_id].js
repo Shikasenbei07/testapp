@@ -2,8 +2,8 @@ import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { getValidId } from '../../../utils/getValidId';
 
-const API_URL_GET_EVENT_DETAIL = process.env.NEXT_PUBLIC_API_URL_GET_EVENT_DETAIL;
-const API_URL_CANCEL_PARTICIPATION = process.env.NEXT_PUBLIC_API_URL_CANCEL_PARTICIPATION;
+const API_URL_GET_EVENT_DETAIL = 'https://0x0-showevent-hbbadxcxh9a4bzhu.japaneast-01.azurewebsites.net/api/showevent?code=KjUCLx4igb6FiJ3ZtQKowVUUk9MgUtPSuBhPrMam2RwxAzFuTt1T_w%3D%3D';
+const API_URL_CANCEL_PARTICIPATION = 'https://0x0-participation-d7fqb7h3dpcqcxek.japaneast-01.azurewebsites.net/api/cancel-participation?code=A_pQkS9M22eHhdEzHAMDWrwMC5HN7vzWqbSbsbtsf9RRAzFuKdmAVA%3D%3D';
 
 export default function EventDetail() {
   const router = useRouter();
@@ -32,18 +32,18 @@ export default function EventDetail() {
 
   // 参加キャンセル処理
   const handleCancelParticipation = async () => {
-    console.log("送信内容", { event_id: Number(event_id), id });
     const eventIdNum = Number(event_id);
-    console.log("送信するevent_id型:", typeof eventIdNum, eventIdNum); // ここで型を確認
-    if (!id || !event_id) {
+    const trimmedId = id ? id.trim() : "";
+    console.log("送信内容", { event_id: eventIdNum, id: trimmedId });
+    if (!trimmedId || !eventIdNum) {
       alert("ユーザーIDまたはイベントIDがありません");
       return;
     }
     try {
-      const res = await fetch('https://0x0-participation-d7fqb7h3dpcqcxek.japaneast-01.azurewebsites.net/api/cancel-participation?code=A_pQkS9M22eHhdEzHAMDWrwMC5HN7vzWqbSbsbtsf9RRAzFuKdmAVA%3D%3D', {
+      const res = await fetch(API_URL_CANCEL_PARTICIPATION, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ event_id: eventIdNum, id })
+        body: JSON.stringify({ event_id: eventIdNum, id: trimmedId })
       });
       if (res.ok) {
         alert("参加をキャンセルしました");

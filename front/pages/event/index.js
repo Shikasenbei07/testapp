@@ -2,9 +2,10 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { getValidId } from "../../utils/getValidId";
 
-const API_URL_SEARCH_EVENTS = process.env.NEXT_PUBLIC_API_URL_SEARCH_EVENTS;
-const API_URL_GET_FAVORITES = process.env.NEXT_PUBLIC_API_URL_GET_FAVORITES;
-const API_URL_GET_CATEGORIES = process.env.NEXT_PUBLIC_API_URL_GET_CATEGORIES;
+const API_URL_SEARCH_EVENTS = 'https://0x0-showevent-hbbadxcxh9a4bzhu.japaneast-01.azurewebsites.net/api/showevent?code=KjUCLx4igb6FiJ3ZtQKowVUUk9MgUtPSuBhPrMam2RwxAzFuTt1T_w%3D%3D';
+const API_URL_GET_FAVORITES = 'https://0x0-showevent-hbbadxcxh9a4bzhu.japaneast-01.azurewebsites.net/api/get_favorites?code=dLqmUGxwi-4r_HhRTrgWmJtCtoqNdiWjaEOtjoqbEs09AzFukhBQqg%3D%3D';
+const API_URL_GET_CATEGORIES = 'https://0x0-showevent-hbbadxcxh9a4bzhu.japaneast-01.azurewebsites.net/api/categories?code=qPu7q4iQBMrEMTPaYXSYNOrzTnAm5yplhzIJ9JfIq-vWAzFukZ5pSA%3D%3D';
+const API_URL_ADD_FAVORITE = 'https://0x0-showevent-hbbadxcxh9a4bzhu.japaneast-01.azurewebsites.net/api/favorites?code=zsOO_WgPGY9dtEN_tkki1bHWPy8XYJQoQPo2G7ONmvsoAzFusJrTJg%3D%3D';
 
 export default function EventsPage() {
   const [favorites, setFavorites] = useState([]);
@@ -31,22 +32,26 @@ export default function EventsPage() {
     setId(validId);
   }, [router]);
 
-  // idがセットされてからのみAPIリクエスト
+  // お気に入り情報を取得
   useEffect(() => {
     if (!id) return;
-
-    fetch(API_URL_GET_FAVORITES,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id }),
-      }
-    )
+    fetch(API_URL_GET_FAVORITES, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    })
       .then(res => res.json())
       .then(data => {
         setFavorites(Array.isArray(data) ? data : []);
       })
-      .catch(() => setFavorites([]));
+      .catch(() => {
+        setFavorites([]);
+      });
+  }, [id]);
+
+  // イベント情報など他のデータ取得
+  useEffect(() => {
+    if (!id) return;
 
     fetch(API_URL_SEARCH_EVENTS)
       .then((res) => res.json())
@@ -75,32 +80,41 @@ export default function EventsPage() {
         setError("カテゴリー取得エラー: " + err.message);
       });
 
-    // 参加済みイベント一覧取得
     fetch(`https://0x0-showevent-hbbadxcxh9a4bzhu.japaneast-01.azurewebsites.net/api/check_history?code=0iAKT3swTE1gEjS8rDRJWN44V-z9YG24hfRxGkLC0LmRAzFudLVqtg%3D%3D&id=${id}`)
       .then(res => res.json())
       .then(data => {
-        // dataは参加済みevent_idの配列を想定
         setParticipatedEvents(Array.isArray(data) ? data : []);
       })
       .catch(() => setParticipatedEvents([]));
-  }, [id]); // ← ここを修正: idがセットされたときのみ実行
+  }, [id]);
 
-  // すべてのイベントに対して参加済みかチェック
-  useEffect(() => {
-    if (!id || events.length === 0) return;
-
-    // 参加済みイベント一覧取得（全イベント分をまとめて取得するAPIがない場合は、個別に判定する必要があります）
-    Promise.all(
-      events.map(event =>
-        fetch(`https://0x0-showevent-hbbadxcxh9a4bzhu.japaneast-01.azurewebsites.net/api/check_history?code=0iAKT3swTE1gEjS8rDRJWN44V-z9YG24hfRxGkLC0LmRAzFudLVqtg%3D%3D&event_id=${event.event_id}&id=${id}`)
+  // お気に入り登録処理（★ボタンを光らせる前のシンプルなバージョン）
+  const toggleFavorite = async (eventId) => {
+    if (!id) return;
+    try {
+      const url = API_URL_ADD_FAVORITE;
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ event_id: eventId, id })
+      });
+      if (res.ok) {
+        alert("お気に入り登録しました");
+        // お気に入りリストを再取得
+        fetch(API_URL_GET_FAVORITES, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id })
+        })
           .then(res => res.json())
-          .then(data => (data.is_participated ? event.event_id : null))
-          .catch(() => null)
-      )
-    ).then(results => {
-      setParticipatedEvents(results.filter(eid => eid !== null));
-    });
-  }, [id, events]);
+          .then(data => setFavorites(Array.isArray(data) ? data : []));
+      } else {
+        alert("登録失敗");
+      }
+    } catch (e) {
+      alert("登録失敗");
+    }
+  };
 
   const filteredKeys = ["event_title", "event_datetime", "deadline", "location"];
 
@@ -225,7 +239,6 @@ export default function EventsPage() {
                     ))}
                     <td>{`${event.current_participants ?? 0}/${event.max_participants ?? 0}`}</td>
                     <td style={{ textAlign: 'center' }}>
-                      {/* 参加済みパラメータを付与して詳細画面へ遷移 */}
                       <button
                         onClick={() =>
                           window.location.href =
@@ -240,11 +253,10 @@ export default function EventsPage() {
                         onClick={() => toggleFavorite(event.event_id)}
                         title="お気に入り登録"
                         style={{
-                          backgroundColor: favorites.includes(event.event_id) ? 'yellow' : '',
                           border: 'none',
                           fontSize: '1.5rem',
                           cursor: 'pointer',
-                          padding: '4px 10px',
+                          padding: '4px 10px'
                         }}
                       >
                         ★
