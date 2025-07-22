@@ -1,5 +1,9 @@
 import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
+import { getValidId } from "../utils/getValidId";
+
+//const API_URL_UPDATE_EVENT = process.env.NEXT_PUBLIC_API_URL_UPDATE_EVENT;
+const API_URL_UPDATE_EVENT = "https://0x0-eventmanagement.azurewebsites.net/api/events/{event_id}?code=ZEASSILUWn2Bqdy0Bcr247CzoohN4-lLHRz7q8hNx7KNAzFulTYxsQ%3D%3D";
 
 export default function EventEditConfirm() {
     const router = useRouter();
@@ -46,10 +50,11 @@ export default function EventEditConfirm() {
     const handleConfirm = async () => {
         setLoading(true);
         setError("");
-        const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:7071";
-        const isLocal = API_BASE_URL.includes("localhost") || API_BASE_URL.includes("127.0.0.1");
-        const API_EVENTS_PATH = isLocal ? "/api/events" : "/events";
+        // APIのURLは環境変数で直接指定（event_idはクエリパラメータで付与）
+        const url = API_URL_UPDATE_EVENT.replace("{event_id}", formValues.event_id);
         const formData = new FormData();
+        console.log("event_id:", formValues.event_id);
+        console.log("url:", url);
         formData.append("title", formValues.title);
         formData.append("date", formValues.date);
         formData.append("location", formValues.location);
@@ -59,8 +64,9 @@ export default function EventEditConfirm() {
         formData.append("deadline", formValues.deadline);
         formData.append("max_participants", formValues.max_participants);
         (formValues.keywords || []).forEach(k => formData.append("keywords", k));
+        formData.append("creator", getValidId && getValidId()); // 追加
         try {
-            const res = await fetch(`${API_BASE_URL}${API_EVENTS_PATH}/${formValues.event_id}`, {
+            const res = await fetch(url, {
                 method: "PUT",
                 body: formData
             });
