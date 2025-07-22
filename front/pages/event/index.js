@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { getValidId } from "../../utils/getValidId";
+import QandA from "../../components/QandA";
 
 const API_URL_SEARCH_EVENTS = process.env.NEXT_PUBLIC_API_URL_SEARCH_EVENTS;
 const API_URL_GET_FAVORITES = process.env.NEXT_PUBLIC_API_URL_GET_FAVORITES;
@@ -354,6 +355,7 @@ export default function EventsPage() {
               </div>
             ))}
         </div>
+        <QandA characterImg="/images/character.png" />
       </div>
     </div>
   );

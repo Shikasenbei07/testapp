@@ -267,76 +267,219 @@ export default function EventCreate() {
     }
   };
 
-  // EventFormへのprops渡し部分
+  // カード型レイアウトで EventForm を表示
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        background: "linear-gradient(120deg, #e0e7ef 0%, #c7d2fe 60%, #a5b4fc 100%)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        fontFamily: "'Montserrat', 'Noto Sans JP', 'Helvetica Neue', Arial, 'メイリオ', sans-serif"
-      }}
-    >
-      <div
-        style={{
-          background: "#fff",
-          borderRadius: 20,
-          boxShadow: "0 8px 32px 0 #b4b4d880, 0 2px 8px #c7d2fe80",
-          padding: "2.5em 2em",
-          minWidth: "340px",
-          maxWidth: "600px",
-          width: "100%",
-        }}
-      >
-        <div
-          style={{
-            color: "#5a5af0",
-            fontWeight: 900,
-            fontSize: "2em", // ここを大きく
-            letterSpacing: "0.08em",
-            textAlign: "center",
-            fontFamily: "'Bebas Neue', 'Montserrat', 'Noto Sans JP', 'Helvetica Neue', Arial, 'メイリオ', sans-serif",
-            marginBottom: "0.7em",
-            textShadow: "0 2px 8px #b4b4d830"
-          }}
-        >
-          イベント作成
-        </div>
-        <h1
-          style={{
-            color: "#5a5af0",
-            fontWeight: 900,
-            fontSize: "2.1em",
-            letterSpacing: "0.12em",
-            marginBottom: "1.5rem",
-            textShadow: "0 4px 16px #b4b4d850, 0 1px 0 #fff",
-            textAlign: "center",
-            fontFamily: "'Bebas Neue', 'Montserrat', 'Noto Sans JP', 'Helvetica Neue', Arial, 'メイリオ', sans-serif",
-            textTransform: "uppercase"
-          }}
-        >
-          {isEdit ? "イベント編集" : ""}
-        </h1>
-        <EventForm
-          form={form}
-          errors={errors}
-          preview={preview}
-          eventData={eventData}
-          categoryOptions={categoryOptions}
-          keywordOptions={keywordOptions}
-          isEdit={isEdit}
-          onChange={handleChange}
-          onSubmit={handleSubmit}
-          onDraft={handleDraft}
-          onDelete={isEdit ? handleDelete : undefined}
-          isFormComplete={isFormComplete}
-          submitLabel={isEdit ? "更新" : "作成"}
-          draftLabel={"下書き保存"}
-          deleteLabel={"イベント取り消し"}
-          deadlineType="datetime-local"
-        />
+    <div style={{
+      background: "#f5f5f5",
+      minHeight: "100vh",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: "2rem"
+    }}>
+      <div style={{
+        background: "#fff",
+        borderRadius: "16px",
+        boxShadow: "0 4px 24px #7f5af040",
+        padding: "2.5em 2em",
+        minWidth: "340px",
+        maxWidth: "540px",
+        width: "100%"
+      }}>
+        <form onSubmit={handleSubmit}>
+          <div style={{ marginBottom: "1.2em" }}>
+            <label style={{ fontWeight: "bold", color: "#7f5af0" }}>1. タイトル</label>
+            <input
+              name="title"
+              value={form.title}
+              onChange={handleChange}
+              style={{ width: "100%", padding: "0.7em", borderRadius: "6px", border: "1px solid #ccc", marginTop: "0.5em" }}
+              placeholder="イベント名"
+            />
+            {errors.title && <div style={{ color: "#f43f5e" }}>{errors.title}</div>}
+          </div>
+          <div style={{ marginBottom: "1.2em" }}>
+            <label style={{ fontWeight: "bold", color: "#7f5af0" }}>2. 日付</label>
+            <input
+              type="datetime-local"
+              name="date"
+              value={form.date}
+              onChange={handleChange}
+              style={{ width: "100%", padding: "0.7em", borderRadius: "6px", border: "1px solid #ccc", marginTop: "0.5em" }}
+            />
+            {errors.date && <div style={{ color: "#f43f5e" }}>{errors.date}</div>}
+          </div>
+          <div style={{ marginBottom: "1.2em" }}>
+            <label style={{ fontWeight: "bold", color: "#7f5af0" }}>3. 場所</label>
+            <input
+              name="location"
+              value={form.location}
+              onChange={handleChange}
+              style={{ width: "100%", padding: "0.7em", borderRadius: "6px", border: "1px solid #ccc", marginTop: "0.5em" }}
+              placeholder="開催場所"
+            />
+            {errors.location && <div style={{ color: "#f43f5e" }}>{errors.location}</div>}
+          </div>
+          <div style={{ marginBottom: "1.2em" }}>
+            <label style={{ fontWeight: "bold", color: "#7f5af0" }}>4. カテゴリー</label>
+            <select
+              name="category"
+              value={form.category}
+              onChange={handleChange}
+              style={{ width: "100%", padding: "0.7em", borderRadius: "6px", border: "1px solid #ccc", marginTop: "0.5em" }}
+            >
+              <option value="">選択してください</option>
+              {categoryOptions.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+            {errors.category && <div style={{ color: "#f43f5e" }}>{errors.category}</div>}
+          </div>
+          <div style={{ marginBottom: "1.2em" }}>
+            <label style={{ fontWeight: "bold", color: "#7f5af0" }}>5. キーワード</label>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5em", marginTop: "0.5em" }}>
+              {keywordOptions.map(opt => (
+                <label key={opt.value} style={{ fontWeight: "normal" }}>
+                  <input
+                    type="checkbox"
+                    name="keywords"
+                    value={opt.value}
+                    checked={form.keywords.includes(opt.value)}
+                    onChange={handleChange}
+                  /> {opt.label}
+                </label>
+              ))}
+            </div>
+            {errors.keywords && <div style={{ color: "#f43f5e" }}>{errors.keywords}</div>}
+          </div>
+          <div style={{ marginBottom: "1.2em" }}>
+            <label style={{ fontWeight: "bold", color: "#7f5af0" }}>6. サマリー</label>
+            <textarea
+              name="summary"
+              value={form.summary}
+              onChange={handleChange}
+              style={{
+                width: "100%",
+                padding: "0.7em",
+                borderRadius: "6px",
+                border: "1px solid #ccc",
+                marginTop: "0.5em",
+                resize: "none" // ← 追加：サイズ変更不可
+              }}
+              placeholder="イベント概要"
+              rows={2}
+            />
+            {errors.summary && <div style={{ color: "#f43f5e" }}>{errors.summary}</div>}
+          </div>
+          <div style={{ marginBottom: "1.2em" }}>
+            <label style={{ fontWeight: "bold", color: "#7f5af0" }}>7. 詳細</label>
+            <textarea
+              name="detail"
+              value={form.detail}
+              onChange={handleChange}
+              style={{
+                width: "100%",
+                padding: "0.7em",
+                borderRadius: "6px",
+                border: "1px solid #ccc",
+                marginTop: "0.5em",
+                resize: "none" // ← 追加：サイズ変更不可
+              }}
+              placeholder="イベント詳細"
+              rows={3}
+            />
+            {errors.detail && <div style={{ color: "#f43f5e" }}>{errors.detail}</div>}
+          </div>
+          <div style={{ marginBottom: "1.2em" }}>
+            <label style={{ fontWeight: "bold", color: "#7f5af0" }}>8. 申込締切</label>
+            <input
+              type="datetime-local"
+              name="deadline"
+              value={form.deadline}
+              onChange={handleChange}
+              style={{ width: "100%", padding: "0.7em", borderRadius: "6px", border: "1px solid #ccc", marginTop: "0.5em" }}
+            />
+            {errors.deadline && <div style={{ color: "#f43f5e" }}>{errors.deadline}</div>}
+          </div>
+          <div style={{ marginBottom: "1.2em" }}>
+            <label style={{ fontWeight: "bold", color: "#7f5af0" }}>9. 定員</label>
+            <input
+              name="max_participants"
+              value={form.max_participants}
+              onChange={handleChange}
+              style={{ width: "100%", padding: "0.7em", borderRadius: "6px", border: "1px solid #ccc", marginTop: "0.5em" }}
+              placeholder="定員（数字）"
+            />
+            {errors.max_participants && <div style={{ color: "#f43f5e" }}>{errors.max_participants}</div>}
+          </div>
+          <div style={{ marginBottom: "1.2em" }}>
+            <label style={{ fontWeight: "bold", color: "#7f5af0" }}>10. イメージ画像</label>
+            <input
+              type="file"
+              name="image"
+              accept="image/*"
+              onChange={handleChange}
+              style={{ marginTop: "0.5em" }}
+            />
+            {preview && (
+              <div style={{ marginTop: "0.5em" }}>
+                <img src={preview} alt="プレビュー" style={{ maxWidth: "100%", borderRadius: "8px" }} />
+              </div>
+            )}
+            {errors.image && <div style={{ color: "#f43f5e" }}>{errors.image}</div>}
+          </div>
+          <div style={{ display: "flex", gap: "1em", marginTop: "2em" }}>
+            <button
+              type="submit"
+              style={{
+                background: "#7f5af0",
+                color: "#fff",
+                border: "none",
+                borderRadius: "6px",
+                padding: "0.8em 1.5em",
+                fontWeight: "bold",
+                fontSize: "1.1em",
+                cursor: "pointer"
+              }}
+            >
+              {isEdit ? "更新" : "作成"}
+            </button>
+            <button
+              type="button"
+              onClick={handleDraft}
+              style={{
+                background: "#eee",
+                color: "#333",
+                border: "none",
+                borderRadius: "6px",
+                padding: "0.8em 1.5em",
+                fontWeight: "bold",
+                fontSize: "1.1em",
+                cursor: "pointer"
+              }}
+            >
+              下書き保存
+            </button>
+            {isEdit && (
+              <button
+                type="button"
+                onClick={handleDelete}
+                style={{
+                  background: "#f43f5e",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "6px",
+                  padding: "0.8em 1.5em",
+                  fontWeight: "bold",
+                  fontSize: "1.1em",
+                  cursor: "pointer"
+                }}
+              >
+                イベント取り消し
+              </button>
+            )}
+          </div>
+        </form>
       </div>
     </div>
   );
