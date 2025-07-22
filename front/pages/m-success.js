@@ -4,7 +4,7 @@ export default function MessageSuccess() {
   const router = useRouter();
 
   const handleBack = () => {
-    router.push("/event-detail");
+    router.push("/inquiry");
   };
 
   return (

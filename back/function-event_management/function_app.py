@@ -7,6 +7,8 @@ from requests_toolbelt.multipart import decoder
 import uuid
 from datetime import datetime
 
+from utils import get_db_connection, error_response, success_response
+
 app = func.FunctionApp(http_auth_level=func.AuthLevel.FUNCTION)
 
 CONNECTION_STRING = os.environ.get("CONNECTION_STRING_PRODUCT") if os.environ.get("IS_MAIN_PRODUCT") == "true" else os.environ.get("CONNECTION_STRING_TEST")
@@ -295,14 +297,20 @@ def get_event_detail(req: func.HttpRequest) -> func.HttpResponse:
         with get_db_connection() as conn:
             cursor = conn.cursor()
             cursor.execute(
-                "SELECT event_id, event_title, event_category, event_datetime, deadline, location, max_participants, current_participants, creator, description, content, image, is_draft FROM EVENTS WHERE event_id=?",
+                '''
+                SELECT event_id, event_title, event_category, event_datetime, deadline, location, max_participants, current_participants, creator, CONCAT(u.l_name, u.f_name) AS creator_name, u.handle_name,description, content, image, is_draft
+                FROM EVENTS e
+                LEFT JOIN users u
+                ON e.creator = u.id
+                WHERE event_id=?
+                ''',
                 (event_id,)
             )
             row = cursor.fetchone()
             if row:
-                keys = ["event_id", "event_title", "event_category", "event_datetime", "deadline", "location", "max_participants", "current_participants", "creator", "description", "content", "image", "is_draft"]
+                keys = ["event_id", "event_title", "event_category", "event_datetime", "deadline", "location", "max_participants", "current_participants", "creator_id", "creator_name", "handle_name", "description", "content", "image", "is_draft"]
                 event = dict(zip(keys, row))
-                return func.HttpResponse(json.dumps(event, default=str), status_code=200, mimetype="application/json")
+                return success_response(event)
             else:
                 return error_response("イベントが見つかりません", 404)
     except Exception as e:
