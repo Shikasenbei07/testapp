@@ -308,8 +308,12 @@ def get_event_detail(req: func.HttpRequest) -> func.HttpResponse:
             )
             row = cursor.fetchone()
             if row:
-                keys = ["event_id", "event_title", "event_category", "event_datetime", "deadline", "location", "max_participants", "current_participants", "creator_id", "creator_name", "handle_name", "description", "content", "image", "is_draft"]
+                keys = ["event_id", "event_title", "event_category", "event_datetime", "deadline", "location", "max_participants", "current_participants", "creator", "creator_name", "handle_name", "description", "content", "image", "is_draft"]
                 event = dict(zip(keys, row))
+                # datetime型を文字列に変換
+                for k in ["event_datetime", "deadline"]:
+                    if isinstance(event[k], (datetime.datetime, datetime.date)):
+                        event[k] = event[k].isoformat()
                 return success_response(event)
             else:
                 return error_response("イベントが見つかりません", 404)

@@ -72,7 +72,7 @@ export default function InquiryPage() {
   };
 
   const handleBack = () => {
-    router.push("/detail");
+    router.push("/detail/" + eventId);
   };
 
   if (loading) {
