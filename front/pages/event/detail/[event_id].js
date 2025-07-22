@@ -1,13 +1,21 @@
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
+import { getValidId } from '../../../utils/getValidId';
 
 const API_URL_GET_EVENT_DETAIL = process.env.NEXT_PUBLIC_API_URL_GET_EVENT_DETAIL;
+const API_URL_CANCEL_PARTICIPATION = process.env.NEXT_PUBLIC_API_URL_CANCEL_PARTICIPATION;
 
 export default function EventDetail() {
   const router = useRouter();
   const { event_id, participated } = router.query;
   const [event, setEvent] = useState(null);
   const [error, setError] = useState(null);
+  const [id, setId] = useState(null);
+
+  // idをuseEffectで取得
+  useEffect(() => {
+    setId(getValidId());
+  }, []);
 
   useEffect(() => {
     if (!event_id) return;
@@ -21,6 +29,33 @@ export default function EventDetail() {
     return <div style={{ color: "red" }}>{error}</div>;
   if (!event)
     return <div>読み込み中...</div>;
+
+  // 参加キャンセル処理
+  const handleCancelParticipation = async () => {
+    console.log("送信内容", { event_id: Number(event_id), id });
+    const eventIdNum = Number(event_id);
+    console.log("送信するevent_id型:", typeof eventIdNum, eventIdNum); // ここで型を確認
+    if (!id || !event_id) {
+      alert("ユーザーIDまたはイベントIDがありません");
+      return;
+    }
+    try {
+      const res = await fetch('https://0x0-participation-d7fqb7h3dpcqcxek.japaneast-01.azurewebsites.net/api/cancel-participation?code=A_pQkS9M22eHhdEzHAMDWrwMC5HN7vzWqbSbsbtsf9RRAzFuKdmAVA%3D%3D', {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ event_id: eventIdNum, id })
+      });
+      if (res.ok) {
+        alert("参加をキャンセルしました");
+        router.push(`/event/detail/${event_id}?participated=0&user_id=${id}`);
+      } else {
+        const msg = await res.text();
+        alert("キャンセル失敗: " + msg);
+      }
+    } catch (e) {
+      alert("通信エラー: " + e.message);
+    }
+  };
 
   let participatedContent;
   if (participated === "0") {
@@ -52,7 +87,11 @@ export default function EventDetail() {
           borderRadius: '4px',
           cursor: 'pointer'
         }}
-        onClick={() => router.push(`/event/cancel?event_id=${event_id}`)}
+        onClick={async () => {
+          if (window.confirm("本当に参加を取り消しますか？")) {
+            await handleCancelParticipation();
+          }
+        }}
       >
         参加キャンセル
       </button>
@@ -107,7 +146,7 @@ export default function EventDetail() {
           />
         </div>
       )}
-      <button onClick={() => router.back()}>戻る</button>
+      <button onClick={() => router.push('/event')}>戻る</button>
       {participatedContent}
     </div>
   );

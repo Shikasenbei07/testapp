@@ -214,7 +214,7 @@ def reservation_history(req: func.HttpRequest) -> func.HttpResponse:
     )
 
 
-@app.route(route="cancel-participation")
+@app.route(route="cancel-participation", methods=["POST"])
 def cancel_participation(req: func.HttpRequest) -> func.HttpResponse:
     try:
         data = req.get_json()
@@ -234,6 +234,13 @@ def cancel_participation(req: func.HttpRequest) -> func.HttpResponse:
             conn.commit()
             if cursor.rowcount == 0:
                 return func.HttpResponse("キャンセル対象がありません", status_code=400)
+            # current_participantsをデクリメント
+            cursor.execute("""
+                UPDATE EVENTS
+                SET current_participants = CASE WHEN current_participants > 0 THEN current_participants - 1 ELSE 0 END
+                WHERE event_id = ?
+            """, (event_id,))
+            conn.commit()
         return func.HttpResponse("OK", status_code=200)
     except Exception as e:
         logging.error(f"Cancel participation error: {e}")
