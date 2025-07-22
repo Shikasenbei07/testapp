@@ -52,9 +52,6 @@ export default function MyIcon({ size = 40 }) {
       alt="プロフィール画像"
       onClick={handleClick}
       style={{
-        position: "fixed",
-        top: 20,
-        right: 20,
         width: size,
         height: size,
         borderRadius: "50%",
@@ -62,6 +59,8 @@ export default function MyIcon({ size = 40 }) {
         cursor: "pointer",
         boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
         zIndex: 1100,
+        position: "static", // ヘッダー用にpositionをstaticへ
+        marginLeft: "0.5rem"
       }}
     />
   );

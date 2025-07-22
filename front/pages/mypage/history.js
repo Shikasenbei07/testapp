@@ -222,9 +222,9 @@ export default function ReservationHistory() {
                         cursor: "pointer",
                         fontSize: "0.97rem",
                         transition: "background 0.2s",
+                        marginRight: "0.5rem"
                       }}
                       onClick={() => {
-                        // event_idをクエリに必ず含める
                         router.push({
                           pathname: "/reservation-detail",
                           query: {
@@ -239,6 +239,35 @@ export default function ReservationHistory() {
                       }}
                     >
                       予約詳細
+                    </button>
+                    <button
+                      style={{
+                        background: "#ff6666",
+                        color: "#fff",
+                        border: "none",
+                        borderRadius: 6,
+                        padding: "6px 16px",
+                        fontWeight: 600,
+                        cursor: "pointer",
+                        fontSize: "0.97rem",
+                        transition: "background 0.2s"
+                      }}
+                      onClick={async () => {
+                        const res = await fetch("/api/cancel-reservation", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ event_id: item.event_id })
+                        });
+                        if (res.ok) {
+                          alert("予約をキャンセルしました。");
+                          setHistory(history.filter(h => h.event_id !== item.event_id));
+                        } else {
+                          const errorData = await res.json();
+                          alert(`キャンセルに失敗しました: ${errorData.message}`);
+                        }
+                      }}
+                    >
+                      キャンセル
                     </button>
                   </td>
                 </tr>

@@ -25,11 +25,13 @@ def get_inquiries(req: func.HttpRequest) -> func.HttpResponse:
         with conn.cursor() as cursor:
             cursor.execute(
                 '''
-                SELECT i.event_id, e.event_title, COUNT(*) as count
+                SELECT i.event_id, e.event_title, i.title, COUNT(*) as count
                 FROM INQUIRIES i
-                LEFT JOIN EVENTS e ON i.event_id = e.event_id
-                WHERE i.sender_id = ? AND i.reply_to_inquiry_id IS NULL
-                GROUP BY i.event_id, e.event_title
+                LEFT JOIN EVENTS e
+                    ON i.event_id = e.event_id
+                WHERE i.sender = ?
+                    AND i.inquiry_no = 1
+                GROUP BY i.event_id, e.event_title, i.title
                 ''',
                 (sender_id,)
             )
@@ -58,29 +60,36 @@ def get_inquiry_details(req: func.HttpRequest) -> func.HttpResponse:
     except Exception:
         return error_response("リクエストボディが不正です。", status=400)
 
-    inquiry_id = body.get('inquiry_id')
+    inquiry_id = str(body.get('inquiry_id'))
     if not inquiry_id:
-        return error_response("inquiry_idは必須です。", status=400)
+        return error_response("idは必須です。", status=400)
 
     try:
         conn = get_db_connection()
         with conn.cursor() as cursor:
             cursor.execute(
                 '''
-                SELECT i.inquiry_id, i.event_id, e.event_title, i.subject, i.message, i.created_at, i.sender_id, i.recipient_id, i.reply_to_inquiry_id
+                SELECT i.event_id, e.event_title, i.title, i.content, i.created_date
                 FROM INQUIRIES i
-                LEFT JOIN EVENTS e ON i.event_id = e.event_id
-                WHERE i.inquiry_id = ?
+                LEFT JOIN EVENTS e
+                    ON i.event_id = e.event_id
+                WHERE i.inquiry_id=?
                 ''',
                 (inquiry_id,)
             )
-            row = cursor.fetchone()
-            if not row:
-                return error_response({"error": "指定された問い合わせは存在しません。"}, status=404)
-            columns = [column[0] for column in cursor.description]
-            result = dict(zip(columns, row))
+            rows = cursor.fetchall()
+            result = [
+                {
+                    "event_id": row[0],
+                    "event_title": row[1],
+                    "inquiry_title": row[2],
+                    "content": row[3],
+                    "datetime": row[4].isoformat() if row[4] else None
+                }
+                for row in rows
+            ]
     except Exception as e:
-        return error_response({"error": f"取得エラー: {str(e)}"}, status=500)
+        return error_response(f"取得エラー: {str(e)}", status=500)
     finally:
         if 'conn' in locals():
             conn.close()

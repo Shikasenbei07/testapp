@@ -4,19 +4,26 @@ import { useState } from "react";
 const API_URL_CREATE_INQUIRY = process.env.NEXT_PUBLIC_API_URL_CREATE_INQUIRY;
 
 export default function InquiryForm({ eventId }) {
-  if (!eventId) {
-    return (
-      <div>
-        イベントIDが指定されていません。
-      </div>
-    );
-  }
-
-  const { event, loading, error } = useEvents(eventId);
-
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [submitting, setSubmitting] = useState(false);
+
+  const { event, loading, error } = useEvents(eventId);
+  const id = typeof window !== "undefined" ? localStorage.getItem("id") : null;
+  const creatorId = event?.creator_id;
+
+  if (!eventId) {
+    return <div>イベントIDが指定されていません。</div>;
+  }
+  if (loading) {
+    return <div>イベント情報取得中...</div>;
+  }
+  if (!event) {
+    return <div>イベント情報が取得できませんでした。</div>;
+  }
+  if (creatorId === id) {
+    return <div>自分が主催者のイベントにはお問い合わせできません。</div>;
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -33,8 +40,8 @@ export default function InquiryForm({ eventId }) {
           event_id: eventId,
           title: title,
           content: content,
-          destination: event.creator_id,
-          sender: localStorage.getItem("id")
+          destination: creatorId,
+          sender: id
         }),
       });
       const data = await result.json();
@@ -54,7 +61,7 @@ export default function InquiryForm({ eventId }) {
   };
 
   const handleBack = () => {
-    // 戻る処理
+    window.location.href = `/event/detail/${eventId}`;
   };
 
   return (
@@ -62,10 +69,10 @@ export default function InquiryForm({ eventId }) {
       <h1>お問い合わせページ</h1>
       <div style={{ marginBottom: 16 }}>
         <div>
-          イベント名: <b>{event ? event.event_title : (loading ? "取得中..." : "未取得")}</b>
+          イベント名: <b>{event.event_title}</b>
         </div>
         <div>
-          主催者: <b>{event ? event.creator_name : (loading ? "取得中..." : "未取得")}</b>
+          主催者: <b>{event.creator_name}</b>
         </div>
       </div>
       <form onSubmit={handleSubmit}>

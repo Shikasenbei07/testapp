@@ -59,7 +59,7 @@ export default function MyPage() {
   if (error) return <div style={{color:"red"}}>{error}</div>;
 
   return (
-    <div>
+    <div style={{ maxWidth: 400, margin: "40px auto", padding: "2rem", background: "#f7faff", borderRadius: "16px", boxShadow: "0 2px 12px #1976d230", textAlign: "center" }}>
       {profileImg && (
         <div style={{ marginBottom: 16 }}>
           <img
@@ -69,11 +69,34 @@ export default function MyPage() {
           />
         </div>
       )}
-      {lName}さんのページ
-      <br />
-      <button onClick={handleLogout}>ログアウト</button>
+      <div style={{ fontWeight: "bold", fontSize: "1.2rem", marginBottom: "1.2rem" }}>
+        {lName}さんのページ
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: "1rem", marginBottom: "2rem" }}>
+        <button
+          style={{ padding: "10px 0", background: "#1976d2", color: "#fff", border: "none", borderRadius: 6, fontWeight: 700, fontSize: "1rem", cursor: "pointer" }}
+          onClick={() => router.push("/mypage/favorites")}
+        >
+          お気に入りイベント一覧
+        </button>
+        <button
+          style={{ padding: "10px 0", background: "#00c2a0", color: "#fff", border: "none", borderRadius: 6, fontWeight: 700, fontSize: "1rem", cursor: "pointer" }}
+          onClick={() => router.push("/mypage/history")}
+        >
+          予約履歴
+        </button>
+        <button
+          style={{ padding: "10px 0", background: "#7f5af0", color: "#fff", border: "none", borderRadius: 6, fontWeight: 700, fontSize: "1rem", cursor: "pointer" }}
+          onClick={() => router.push("/mypage/reservation")}
+        >
+          参加予約一覧
+        </button>
+      </div>
+      <button onClick={handleLogout} style={{ marginRight: 12, padding: "8px 16px", background: "#ff6666", color: "#fff", border: "none", borderRadius: 6, fontWeight: 700 }}>
+        ログアウト
+      </button>
       <button
-        style={{ marginLeft: 12, padding: "8px 16px", background: "#00c2a0", color: "#fff", border: "none", borderRadius: 6, fontWeight: 700 }}
+        style={{ padding: "8px 16px", background: "#e0e0e0", color: "#333", border: "none", borderRadius: 6, fontWeight: 700 }}
         onClick={() => router.push("/mypage/setting")}
       >
         設定へ

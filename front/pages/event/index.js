@@ -20,6 +20,7 @@ export default function EventsPage() {
   const [selectedDate, setSelectedDate] = useState("");
   const [keyword, setKeyword] = useState("");
   const [hideExpired, setHideExpired] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
@@ -87,37 +88,73 @@ export default function EventsPage() {
 
   return (
     <div>
-      <div style={{ padding: "2rem" }}>
-        <h1>イベント一覧</h1>
-        <EventSearchForm
-          sortKey={sortKey}
-          setSortKey={setSortKey}
-          sortOrder={sortOrder}
-          setSortOrder={setSortOrder}
-          categories={categories}
-          selectedCategory={selectedCategory}
-          setSelectedCategory={setSelectedCategory}
-          selectedDate={selectedDate}
-          setSelectedDate={setSelectedDate}
-          keyword={keyword}
-          setKeyword={setKeyword}
-          hideExpired={hideExpired}
-          setHideExpired={setHideExpired}
-          error={error}
-        />
-        <EventResultTable
-          events={events}
-          favorites={favorites}
-          filteredKeys={filteredKeys}
-          sortKey={sortKey}
-          sortOrder={sortOrder}
-          selectedCategory={selectedCategory}
-          selectedDate={selectedDate}
-          keyword={keyword}
-          hideExpired={hideExpired}
-          toggleFavorite={toggleFavorite}
-        />
+      <div style={stickyHeaderStyle}>
+        <h1 style={eventTitleStyle}>イベント一覧</h1>
+        <button
+          style={searchToggleButtonStyle}
+          onClick={() => setSearchOpen(o => !o)}
+        >
+          {searchOpen ? "▲ 検索フォームを折りたたむ" : "▼ 検索フォームを開く"}
+        </button>
+        {searchOpen && (
+          <EventSearchForm
+            sortKey={sortKey}
+            setSortKey={setSortKey}
+            sortOrder={sortOrder}
+            setSortOrder={setSortOrder}
+            categories={categories}
+            selectedCategory={selectedCategory}
+            setSelectedCategory={setSelectedCategory}
+            selectedDate={selectedDate}
+            setSelectedDate={setSelectedDate}
+            keyword={keyword}
+            setKeyword={setKeyword}
+            hideExpired={hideExpired}
+            setHideExpired={setHideExpired}
+            error={error}
+          />
+        )}
       </div>
+      <EventResultTable
+        events={events}
+        favorites={favorites}
+        filteredKeys={filteredKeys}
+        sortKey={sortKey}
+        sortOrder={sortOrder}
+        selectedCategory={selectedCategory}
+        selectedDate={selectedDate}
+        keyword={keyword}
+        hideExpired={hideExpired}
+        toggleFavorite={toggleFavorite}
+      />
     </div>
   );
 }
+
+// スタイル分離
+const stickyHeaderStyle = {
+  position: "sticky",
+  top: 0,
+  zIndex: 100,
+  background: "#fff",
+  padding: "2rem",
+  boxShadow: "0 2px 8px rgba(0,0,0,0.07)", // ヘッダーを強調
+};
+
+const eventTitleStyle = {
+  margin: 0,
+  fontSize: "1.5rem",
+  fontWeight: "bold",
+  color: "#1976d2"
+};
+
+const searchToggleButtonStyle = {
+  marginBottom: "1rem",
+  background: "#1976d2",
+  color: "#fff",
+  border: "none",
+  borderRadius: "6px",
+  padding: "0.5rem 1.2rem",
+  fontWeight: "bold",
+  cursor: "pointer"
+};
