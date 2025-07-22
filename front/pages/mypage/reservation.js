@@ -93,75 +93,95 @@ export default function ReservationHistory() {
         className="card"
         style={{
           position: "relative",
-          maxWidth: 1000, // 横幅を少し狭く調整
-          margin: "40px auto",
+          maxWidth: 1000, // すこしだけ狭く
+          width: "92vw",
+          margin: "48px auto",
           background: "#fff",
-          borderRadius: 18,
+          borderRadius: 22,
           boxShadow: "0 8px 32px #b4b4d880, 0 2px 8px #c7d2fe80",
-          padding: 44,
+          padding: "56px 40px 48px 40px",
           color: "#23263a",
           fontFamily: "'Montserrat', 'Noto Sans JP', 'Helvetica Neue', Arial, 'メイリオ', sans-serif",
-          border: "2px solid #e0e7ef",
-          overflow: "auto"
+          border: "2.5px solid #e0e7ef",
+          overflow: "auto",
+          textAlign: "center"
         }}
       >
         <h2
           style={{
             color: "#5a5af0",
-            marginBottom: "2em",
+            marginBottom: "2.5em",
             fontWeight: 900,
-            fontSize: "2.1em",
+            fontSize: "2.3em",
             textAlign: "center",
-            letterSpacing: "0.08em",
+            letterSpacing: "0.10em",
             fontFamily: "'Bebas Neue', 'Montserrat', 'Noto Sans JP', 'Helvetica Neue', Arial, 'メイリオ', sans-serif",
             textShadow: "0 4px 16px #b4b4d850, 0 1px 0 #fff",
-            borderBottom: "2px solid #5a5af0",
-            paddingBottom: 10,
+            borderBottom: "3px solid #5a5af0",
+            paddingBottom: 14,
             textTransform: "uppercase"
           }}
         >
           予約一覧
         </h2>
-        <ul style={{ listStyle: "none", padding: 0 }}>
+        <ul
+          style={{
+            listStyle: "none",
+            padding: 0,
+            margin: 0,
+            display: "flex",
+            flexWrap: "wrap",
+            justifyContent: "center",
+            gap: "2em"
+          }}
+        >
           {history
             .filter(item => !item.cancelled_at)
             .map(item => (
               <li
                 key={item.event_id}
                 style={{
-                  marginBottom: "2em",
+                  flex: "0 1 calc(50% - 2em)", // 2列
+                  margin: "0 0 2.5em 0",
                   borderBottom: "1.5px solid #e0e7ef",
-                  paddingBottom: "1.5em",
-                  borderRadius: "12px",
-                  boxShadow: "0 2px 12px #b4b4d820",
+                  padding: "2.2em 1.5em 2em 1.5em",
+                  borderRadius: "16px",
+                  boxShadow: "0 2px 16px #b4b4d820",
                   background: "#f8faff",
-                  transition: "box-shadow 0.2s",
-                  position: "relative"
+                  transition: "box-shadow 0.2s, transform 0.2s",
+                  position: "relative",
+                  maxWidth: 480,
+                  minWidth: 320,
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: "0.7em"
                 }}
               >
                 <div
                   style={{
-                    fontWeight: 800,
-                    fontSize: "1.18em",
+                    fontWeight: 900,
+                    fontSize: "1.25em",
                     color: "#5a5af0",
                     background: "#fff",
-                    padding: "0.4em 1em",
-                    borderRadius: "8px",
+                    padding: "0.5em 1.4em",
+                    borderRadius: "10px",
                     display: "inline-block",
-                    letterSpacing: "0.04em",
-                    marginBottom: "0.3em",
-                    boxShadow: "0 2px 8px #b4b4d820"
+                    letterSpacing: "0.06em",
+                    marginBottom: "0.4em",
+                    boxShadow: "0 2px 8px #b4b4d820",
+                    textAlign: "center"
                   }}
                 >
                   イベント名: {item.event_title}
                 </div>
-                <div style={{ color: "#5a5af0", fontWeight: 600, margin: "0.2em 0" }}>
+                <div style={{ color: "#5a5af0", fontWeight: 700, margin: "0.2em 0", textAlign: "center", fontSize: "1.08em" }}>
                   日時: {formatDate(item.event_datetime)}
                 </div>
-                <div style={{ color: "#2cb67d", fontWeight: 600, margin: "0.2em 0" }}>
+                <div style={{ color: "#2cb67d", fontWeight: 700, margin: "0.2em 0", textAlign: "center", fontSize: "1.08em" }}>
                   場所: {item.location}
                 </div>
-                <div style={{ color: "#7f5af0", margin: "0.2em 0" }}>
+                <div style={{ color: "#7f5af0", margin: "0.2em 0", textAlign: "center", fontWeight: 600 }}>
                   作成者: {item.creator}
                 </div>
                 {item.image && (
@@ -170,55 +190,57 @@ export default function ReservationHistory() {
                     alt="イベント画像"
                     style={{
                       margin: "1em 0",
-                      maxWidth: "320px",
-                      borderRadius: "10px",
-                      boxShadow: "0 2px 12px #b4b4d820"
+                      maxWidth: "340px",
+                      borderRadius: "12px",
+                      boxShadow: "0 2px 16px #b4b4d820"
                     }}
                   />
                 )}
-                {confirmId === item.event_id ? (
-                  <button
-                    style={{
-                      marginTop: "0.8em",
-                      background: "#f43f5e",
-                      color: "#fff",
-                      border: "none",
-                      borderRadius: "8px",
-                      padding: "0.7em 2em",
-                      fontWeight: "bold",
-                      fontSize: "1.05em",
-                      cursor: "pointer",
-                      boxShadow: "0 2px 8px #f43f5e40",
-                      letterSpacing: "0.05em"
-                    }}
-                    onClick={() => handleCancel(item.event_id)}
-                    disabled={canceling}
-                  >
-                    {canceling ? "キャンセル中..." : "本当にキャンセルする"}
-                  </button>
-                ) : (
-                  <button
-                    style={{
-                      marginTop: "0.8em",
-                      background: "linear-gradient(90deg, #5a5af0 0%, #b4b4d8 100%)",
-                      color: "#fff",
-                      border: "none",
-                      borderRadius: "8px",
-                      padding: "0.7em 2em",
-                      fontWeight: "bold",
-                      fontSize: "1.05em",
-                      cursor: "pointer",
-                      boxShadow: "0 2px 8px #b4b4d820",
-                      letterSpacing: "0.05em"
-                    }}
-                    onClick={() => setConfirmId(item.event_id)}
-                    disabled={canceling}
-                  >
-                    参加キャンセル
-                  </button>
-                )}
+                <div style={{ display: "flex", gap: "1.2em", justifyContent: "center", marginTop: "1em" }}>
+                  {confirmId === item.event_id ? (
+                    <button
+                      style={{
+                        background: "#f43f5e",
+                        color: "#fff",
+                        border: "none",
+                        borderRadius: "8px",
+                        padding: "0.7em 2em",
+                        fontWeight: "bold",
+                        fontSize: "1.08em",
+                        cursor: "pointer",
+                        boxShadow: "0 2px 8px #f43f5e40",
+                        letterSpacing: "0.05em",
+                        transition: "background 0.2s"
+                      }}
+                      onClick={() => handleCancel(item.event_id)}
+                      disabled={canceling}
+                    >
+                      {canceling ? "キャンセル中..." : "本当にキャンセルする"}
+                    </button>
+                  ) : (
+                    <button
+                      style={{
+                        background: "linear-gradient(90deg, #5a5af0 0%, #b4b4d8 100%)",
+                        color: "#fff",
+                        border: "none",
+                        borderRadius: "8px",
+                        padding: "0.7em 2em",
+                        fontWeight: "bold",
+                        fontSize: "1.08em",
+                        cursor: "pointer",
+                        boxShadow: "0 2px 8px #b4b4d820",
+                        letterSpacing: "0.05em",
+                        transition: "background 0.2s"
+                      }}
+                      onClick={() => setConfirmId(item.event_id)}
+                      disabled={canceling}
+                    >
+                      参加キャンセル
+                    </button>
+                  )}
+                </div>
                 {confirmId === item.event_id && (
-                  <div style={{ color: "#f43f5e", marginTop: "0.5em", fontWeight: "bold" }}>
+                  <div style={{ color: "#f43f5e", marginTop: "0.7em", fontWeight: "bold", fontSize: "1.05em" }}>
                     キャンセルしてもよろしいですか？
                   </div>
                 )}
