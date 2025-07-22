@@ -94,7 +94,7 @@ def create_inquiry(req: func.HttpRequest) -> func.HttpResponse:
     try:
         body = req.get_json()
     except Exception:
-        body = {}
+        return error_response("リクエストボディが不正です。", status=400)
     inquiry_id = body.get('inquiry_id') if body.get('inquiry_id') is not None else None
     event_id = body.get('event_id')
     title = body.get('title')
@@ -136,7 +136,10 @@ def create_inquiry(req: func.HttpRequest) -> func.HttpResponse:
     finally:
         if 'conn' in locals():
             conn.close()
-    return success_response({"message": "問い合わせが正常に作成されました。"}, status=201)
+    if cursor.rowcount > 0:
+        return success_response({"message": "問い合わせが正常に作成されました。"}, status=201)
+    else:
+        return error_response("問い合わせの作成に失敗しました。", status=500)
 
 
 @app.route(route="receive_inquiries", methods=["POST"])

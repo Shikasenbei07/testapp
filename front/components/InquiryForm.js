@@ -25,7 +25,7 @@ export default function InquiryForm({  }) {
     setSubmitting(true);
 
     try {
-      const result = await fetch(API_URL_CREATE_INQUIRY, {
+      const result = await fetch("http://localhost:7071/api/create_inquiry", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -39,12 +39,13 @@ export default function InquiryForm({  }) {
           sender: localStorage.getItem("id")
         }),
       });
+      const data = await result.json();
 
       if (!result.ok) {
-        throw new Error("送信に失敗しました。" + await result.text());
+        throw new Error("送信に失敗しました。" + data.error);
       }
 
-      alert("お問い合わせを送信しました。");
+      alert(data.message);
       setTitle("");
       setContent("");
     } catch (err) {
