@@ -5,18 +5,13 @@ import logging
 import azure.functions as func
 from requests_toolbelt.multipart import decoder
 import uuid
-from datetime import datetime
+from datetime import datetime, date
 
 from utils import get_db_connection, error_response, success_response
 
 app = func.FunctionApp(http_auth_level=func.AuthLevel.FUNCTION)
 
 CONNECTION_STRING = os.environ.get("CONNECTION_STRING_PRODUCT") if os.environ.get("IS_MAIN_PRODUCT") == "true" else os.environ.get("CONNECTION_STRING_TEST")
-
-def get_db_connection():
-    if not CONNECTION_STRING:
-        raise Exception("DB接続情報(CONNECTION_STRING)が設定されていません")
-    return pyodbc.connect(CONNECTION_STRING)
 
 def error_response(msg, status=400, trace=None):
     body = {"error": msg}
@@ -312,7 +307,7 @@ def get_event_detail(req: func.HttpRequest) -> func.HttpResponse:
                 event = dict(zip(keys, row))
                 # datetime型を文字列に変換
                 for k in ["event_datetime", "deadline"]:
-                    if isinstance(event[k], (datetime.datetime, datetime.date)):
+                    if isinstance(event[k], (datetime, date)):
                         event[k] = event[k].isoformat()
                 return success_response(event)
             else:

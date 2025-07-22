@@ -4,7 +4,7 @@ import json
 import pyodbc
 
 def get_connection_string():
-    if os.environ.get("IS_MAIN_PRODUCT") == "true":
+    if os.environ.get("IS_MAIN_PRODUCT") and os.environ.get("IS_MAIN_PRODUCT") == "true":
         return os.environ.get("CONNECTION_STRING_PRODUCT")
     else:
         return os.environ.get("CONNECTION_STRING_TEST")
