@@ -2,6 +2,10 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { getValidId } from "../../utils/getValidId";
 
+const API_URL_SEARCH_EVENTS = process.env.NEXT_PUBLIC_API_URL_SEARCH_EVENTS;
+const API_URL_GET_FAVORITES = process.env.NEXT_PUBLIC_API_URL_GET_FAVORITES;
+const API_URL_GET_CATEGORIES = process.env.NEXT_PUBLIC_API_URL_GET_CATEGORIES;
+
 export default function EventsPage() {
   const [favorites, setFavorites] = useState([]);
   const [id, setId] = useState(null);
@@ -16,12 +20,15 @@ export default function EventsPage() {
   const [hideExpired, setHideExpired] = useState(false);
   const [participatedEvents, setParticipatedEvents] = useState([]);
   const router = useRouter();
+
+  // id取得とリダイレクト
   useEffect(() => {
-    if (getValidId()) {
-      router.push("/event");
+    const validId = getValidId();
+    if (!validId) {
+      router.push("/login");
       return;
     }
-    router.push("/login");
+    setId(validId);
   }, [router]);
 
   // idがセットされてからのみAPIリクエスト
