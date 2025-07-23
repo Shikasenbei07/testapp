@@ -16,11 +16,6 @@ app = func.FunctionApp(http_auth_level=func.AuthLevel.FUNCTION)
 
 CONTAINER_NAME = "profile-images"
 
-def error_response(msg, status=400, trace=None):
-    body = {"error": msg}
-    if trace:
-        body["trace"] = trace
-    return func.HttpResponse(json.dumps(body, ensure_ascii=False), status_code=status, mimetype="application/json")
 
 def to_db_date(val):
     if not val or (isinstance(val, str) and val.strip() == ""):
@@ -95,7 +90,9 @@ def fetch_events(user_id, is_draft):
         return events
 
 def get_blob_url(filename):
-    # ストレージの画像URLを生成
+    # すでにURLならそのまま返す
+    if filename and (filename.startswith("http://") or filename.startswith("https://")):
+        return filename
     connect_str = get_azure_storage_connection_string()
     blob_service_client = BlobServiceClient.from_connection_string(connect_str)
     blob_client = blob_service_client.get_blob_client(container=CONTAINER_NAME, blob=filename)
@@ -105,6 +102,7 @@ def get_blob_url(filename):
 def create_event(req: func.HttpRequest) -> func.HttpResponse:
     try:
         data, image_path, image_bytes, image_filename = parse_multipart(req)
+        logging.info(f"image_bytes: {type(image_bytes)}, image_filename: {image_filename}")
         # 画像があればAzureストレージにアップロード
         if image_bytes and image_filename:
             image_url = upload_image_to_azure(image_bytes, image_filename)

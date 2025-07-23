@@ -57,7 +57,7 @@ export function useEventForm(eventId) {
             summary: data.summary || "",
             detail: data.detail || "",
             deadline: data.deadline || "",
-            image: null,
+            image: data.image || null,
             max_participants: data.max_participants || ""
           });
         });

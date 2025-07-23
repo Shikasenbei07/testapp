@@ -48,6 +48,21 @@ export function useEventCreateConfirm(router) {
     setKeywordNames(queryKeywordNames ? (Array.isArray(queryKeywordNames) ? queryKeywordNames : [queryKeywordNames]) : []);
     // imageは親コンポーネントからsetImageで渡す想定
 
+    // 画像の復元
+    const imageDataUrl = localStorage.getItem("eventCreateImage");
+    const imageName = localStorage.getItem("eventCreateImageName");
+    if (imageDataUrl && imageName) {
+      // DataURL→Blob→File
+      fetch(imageDataUrl)
+        .then(res => res.blob())
+        .then(blob => {
+          setImage(new File([blob], imageName, { type: blob.type }));
+        });
+      setImageName(imageName);
+    } else {
+      setImage(null);
+      setImageName(null);
+    }
   }, [router.isReady, router.query]);
 
   const handleConfirm = useCallback(async () => {
