@@ -18,19 +18,19 @@ export default function Header() {
     <>
       <header style={headerStyle}>
         <div style={leftAreaStyle}>
+          {/* メニューはログイン画面以外で表示 */}
           {router.pathname !== "/login" && (
-            <>
-              <button style={menuButtonStyle} onClick={() => setMenuOpen(true)}>
-                メニュー
-              </button>
-              <span
-                style={{ marginLeft: "1rem", fontWeight: "bold", fontSize: "1.2rem", cursor: "pointer" }}
-                onClick={() => router.push("/")}
-              >
-                MyWebsite
-              </span>
-            </>
+            <button style={menuButtonStyle} onClick={() => setMenuOpen(true)}>
+              メニュー
+            </button>
           )}
+          {/* タイトル画像は常に表示 */}
+          <span
+            style={{ marginLeft: "1rem", fontWeight: "bold", fontSize: "1.2rem", cursor: "pointer" }}
+            onClick={() => router.push("/")}
+          >
+            <img src="/img/title.png" alt="タイトル" style={{ height: "32px", verticalAlign: "middle" }} />
+          </span>
         </div>
         <div style={rightAreaStyle}>
           {router.pathname !== "/login" && (
@@ -80,8 +80,8 @@ export default function Header() {
 // スタイル分離
 const headerStyle = {
   width: "100%",
-  background: "#1976d2",
-  color: "#fff",
+  background: "#d1c4e9", // 少し濃い紫系に変更
+  color: "#4a148c",
   padding: "0.7rem 2rem",
   display: "flex",
   alignItems: "center",
@@ -117,7 +117,7 @@ const iconStyle = {
 
 const menuButtonStyle = {
   background: "#fff",
-  color: "#1976d2",
+  color: "#4a148c",
   border: "none",
   padding: "0.5rem 1rem",
   borderRadius: "4px",
@@ -144,7 +144,7 @@ const closeButtonStyle = {
   background: "none",
   border: "none",
   fontSize: "2rem",
-  color: "#1976d2",
+  color: "#4a148c",
   cursor: "pointer",
   alignSelf: "flex-end",
   marginBottom: "2rem"
@@ -160,7 +160,7 @@ const sideMenuListStyle = {
 };
 
 const sideMenuItemStyle = {
-  color: "#1976d2",
+  color: "#4a148c",
   fontWeight: "bold",
   cursor: "pointer",
   fontSize: "1.1rem"

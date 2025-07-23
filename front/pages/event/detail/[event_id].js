@@ -19,7 +19,7 @@ export default function EventDetail() {
       <h1>イベント詳細</h1>
       <EventDetailTable event={event} />
       <EventDetailImage src={event.image} alt="イベント画像" />
-      <EventDetailActions event_id={event_id} router={router} />
+      <EventDetailActions event_id={event_id} event={event} router={router} />
     </div>
   );
 }

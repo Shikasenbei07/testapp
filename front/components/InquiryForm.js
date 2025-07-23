@@ -21,9 +21,6 @@ export default function InquiryForm({ eventId }) {
   if (!event) {
     return <div>イベント情報が取得できませんでした。</div>;
   }
-  if (creatorId === id) {
-    return <div>自分が主催者のイベントにはお問い合わせできません。</div>;
-  }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -63,6 +60,19 @@ export default function InquiryForm({ eventId }) {
   const handleBack = () => {
     window.location.href = `/event/detail/${eventId}`;
   };
+
+  if (creatorId === id) {
+    return (
+      <div>
+        自分が主催者のイベントにはお問い合わせできません。
+        <div style={{ marginTop: 16 }}>
+          <button type="button" onClick={handleBack}>
+            戻る
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ maxWidth: 500, margin: "0 auto", padding: 20 }}>
