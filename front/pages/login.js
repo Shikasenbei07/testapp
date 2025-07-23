@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
+import QandA from "../components/QandA"; // パスはプロジェクト構成に合わせて調整
 
 const API_URL_LOGIN = "https://0x0-login.azurewebsites.net/api/login?code=9L4lUJuBIQvolKJrqK4EUFKUpvZFevZKRN8DLkhkr-5qAzFucYp7_Q%3D%3D";
+const validity_time = 60 * 60 * 1000; // ログインの有効時間（ミリ秒）
 
 export default function Login() {
   const [id, setId] = useState("");
@@ -9,19 +11,17 @@ export default function Login() {
   const [error, setError] = useState("");
   const router = useRouter();
 
-  const validity_time = 60 * 60 * 1000; // ログインの有効時間（ミリ秒） 
-
   async function handleSubmit(e) {
     e.preventDefault();
     setPassword("");
     setError("");
     try {
       const res = await fetch(
-        "https://0x0-login-test.azurewebsites.net/api/login?code=XPLwjpTWEWYvk2UTopDvY2R9cdFjgXX28vjqZfvIkw3FAzFuxyVGQg%3D%3D",
+        API_URL_LOGIN,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id, password }),
+          body: JSON.stringify({ "id": id, "password": password }),
         }
       );
       if (res.ok) {
@@ -31,136 +31,88 @@ export default function Login() {
         localStorage.setItem("id_expire", expire);
         router.push("/event");
       } else {
-        setError("ログイン失敗");
+        setError("ユーザー名またはパスワードが正しくありません");
       }
     } catch (err) {
-      setError("通信エラー");
+      setError("通信エラーが発生しました");
     }
   }
 
   return (
     <div style={{
       minHeight: "100vh",
-      background: "linear-gradient(135deg, #e0e7ef 0%, #c7d2fe 100%)",
+      background: "linear-gradient(90deg, #e0e7ff 0%, #fff 100%)",
       display: "flex",
       alignItems: "center",
-      justifyContent: "center",
-      fontFamily: "'Share Tech Mono', 'Fira Mono', 'Consolas', monospace"
+      justifyContent: "center"
     }}>
       <form
         onSubmit={handleSubmit}
         style={{
-          background: "#f8fafc",
-          border: "2px solid #b4b4d8",
+          background: "#fff",
           borderRadius: "16px",
-          boxShadow: "0 0 18px #b4b4d830, 0 0 6px #c7d2fe30",
+          boxShadow: "0 4px 24px #7f5af040",
           padding: "2.5em 2em",
-          minWidth: "340px",
+          minWidth: "320px",
+          width: "100%",
+          maxWidth: "400px",
           display: "flex",
           flexDirection: "column",
-          gap: "1.2em",
-          position: "relative"
+          gap: "1.5em"
         }}
       >
-        <div style={{
-          textAlign: "center",
-          color: "#23263a",
-          fontWeight: "bold",
-          fontSize: "1.2em",
-          letterSpacing: "0.08em",
-          marginBottom: "1em"
-        }}>
-          社内イベント管理システム
-        </div>
+        <h2 style={{ textAlign: "center", color: "#7f5af0", marginBottom: "1em" }}>ログイン</h2>
         <div>
-          <label style={{
-            color: "#5a5af0",
-            fontWeight: "bold",
-            marginBottom: "0.3em",
-            display: "block",
-            letterSpacing: "0.05em"
-          }}>USER ID</label>
+          <label style={{ fontWeight: "bold", color: "#333", marginBottom: "0.5em", display: "block" }}>ユーザー名</label>
           <input
             value={id}
             onChange={e => setId(e.target.value)}
             style={{
               width: "100%",
-              minWidth: "320px",
-              maxWidth: "480px",
-              padding: "0.8em",
-              borderRadius: "8px",
-              border: "1.5px solid #b4b4d8",
-              background: "#f1f5fa",
-              color: "#23263a",
-              fontSize: "1.1em",
-              outline: "none",
-              boxShadow: "0 0 8px #b4b4d820 inset"
+              padding: "0.7em",
+              borderRadius: "6px",
+              border: "1px solid #ccc",
+              fontSize: "1em"
             }}
+            placeholder="ユーザー名を入力"
             autoFocus
-            autoComplete="username"
           />
         </div>
         <div>
-          <label style={{
-            color: "#5a5af0",
-            fontWeight: "bold",
-            marginBottom: "0.3em",
-            display: "block",
-            letterSpacing: "0.05em"
-          }}>PASSWORD</label>
+          <label style={{ fontWeight: "bold", color: "#333", marginBottom: "0.5em", display: "block" }}>パスワード</label>
           <input
             type="password"
             value={password}
             onChange={e => setPassword(e.target.value)}
             style={{
               width: "100%",
-              minWidth: "320px",
-              maxWidth: "480px",
-              padding: "0.8em",
-              borderRadius: "8px",
-              border: "1.5px solid #b4b4d8",
-              background: "#f1f5fa",
-              color: "#23263a",
-              fontSize: "1.1em",
-              outline: "none",
-              boxShadow: "0 0 8px #b4b4d820 inset"
+              padding: "0.7em",
+              borderRadius: "6px",
+              border: "1px solid #ccc",
+              fontSize: "1em"
             }}
-            autoComplete="current-password"
+            placeholder="パスワードを入力"
           />
         </div>
         <button
           type="submit"
           style={{
-            background: "linear-gradient(90deg, #5a5af0 0%, #b4b4d8 100%)",
+            background: "#7f5af0",
             color: "#fff",
             border: "none",
-            borderRadius: "8px",
-            padding: "0.9em 0",
+            borderRadius: "6px",
+            padding: "0.8em",
             fontWeight: "bold",
             fontSize: "1.1em",
             cursor: "pointer",
-            letterSpacing: "0.1em",
-            boxShadow: "0 2px 12px #b4b4d820"
+            marginTop: "0.5em"
           }}
         >
-          LOGIN
+          ログイン
         </button>
-        {error && (
-          <div style={{
-            color: "#f43f5e",
-            background: "#fff",
-            border: "1px solid #f43f5e",
-            borderRadius: "6px",
-            padding: "0.7em",
-            textAlign: "center",
-            fontWeight: "bold",
-            marginTop: "0.5em",
-            letterSpacing: "0.05em"
-          }}>
-            {error}
-          </div>
-        )}
+        {error && <div style={{ color: "#f43f5e", textAlign: "center", marginTop: "0.5em" }}>{error}</div>}
       </form>
+      <QandA characterImg="/images/character.png" />
     </div>
   );
 }

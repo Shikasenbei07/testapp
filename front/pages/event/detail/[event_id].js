@@ -59,22 +59,34 @@ export default function EventDetail() {
 
   let participatedContent;
   if (participated === "0") {
-    participatedContent = (
-      <button
-        style={{
-          marginLeft: '1rem',
-          background: '#1976d2',
-          color: 'white',
-          padding: '0.5rem 1.5rem',
-          border: 'none',
-          borderRadius: '4px',
-          cursor: 'pointer'
-        }}
-        onClick={() => router.push(`/event/confirm?event_id=${event_id}`)}
-      >
-        参加
-      </button>
-    );
+    // current_participantsとmax_participantsを数値で比較
+    const current = Number(event.current_participants);
+    const max = Number(event.max_participants);
+
+    if (!isNaN(current) && !isNaN(max) && max > 0 && current >= max) {
+      participatedContent = (
+        <div style={{ color: "#a10000", marginLeft: '1rem', alignSelf: "center" }}>
+          参加予定人数に達しました
+        </div>
+      );
+    } else {
+      participatedContent = (
+        <button
+          style={{
+            marginLeft: '1rem',
+            background: '#1976d2',
+            color: 'white',
+            padding: '0.5rem 1.5rem',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer'
+          }}
+          onClick={() => router.push(`/event/confirm?event_id=${event_id}`)}
+        >
+          参加
+        </button>
+      );
+    }
   } else if (participated === "1") {
     participatedContent = (
       <button
