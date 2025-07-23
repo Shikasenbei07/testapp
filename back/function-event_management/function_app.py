@@ -14,7 +14,7 @@ from azure.storage.blob import BlobServiceClient
 
 app = func.FunctionApp(http_auth_level=func.AuthLevel.FUNCTION)
 
-CONTAINER_NAME = "profile-images"
+CONTAINER_NAME = "event-images"
 
 
 def to_db_date(val):
