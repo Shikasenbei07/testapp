@@ -1,11 +1,7 @@
 // 表示コンポーネント
 import { useRouter } from "next/router";
 
-export default function EventList({ events, onEdit, title }) {
-    const router = useRouter();
-    const handleCancel = (eventId) => {
-        router.push(`/event/delete/confirm?event_id=${eventId}`);
-    };
+export default function EventList({ events, onEdit, onDelete, title }) {
     return (
         <div>
             <h2>{title}</h2>
@@ -29,7 +25,7 @@ export default function EventList({ events, onEdit, title }) {
                         </button>
                         <button
                             className="event-list-cancel-btn"
-                            onClick={() => handleCancel(event.event_id)}
+                            onClick={() => onDelete(event.event_id)}
                         >
                             取り消し
                         </button>

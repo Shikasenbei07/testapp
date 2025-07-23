@@ -73,7 +73,7 @@ def fetch_events(user_id, is_draft):
         query = '''
             SELECT event_id, event_title, event_category, event_datetime, deadline, location, max_participants, current_participants, description, content, image
             FROM EVENTS
-            WHERE creator = ? AND is_draft = ? AND event_datetime > GETDATE()
+            WHERE creator = '0738' AND is_draft = 1 AND (event_datetime > GETDATE() OR event_datetime IS NULL)
             ORDER BY event_datetime DESC
         '''
         cursor.execute(query, (user_id, is_draft))
@@ -119,7 +119,7 @@ def create_event(req: func.HttpRequest) -> func.HttpResponse:
                 to_db_date(data.get("deadline")),
                 data.get("location"),
                 int(data.get("max_participants")) if data.get("max_participants") else None,
-                str(data.get("creator", "0738")),
+                str(data.get("creator")),
                 data.get("summary"),
                 data.get("detail"),
                 data.get("image"),

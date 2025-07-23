@@ -1,15 +1,11 @@
 import { useState, useEffect } from "react";
-import EventForm from "../../components/EventForm";
 import { useRouter } from "next/router";
 
 const API_URL_GET_CATEGORIES = process.env.NEXT_PUBLIC_API_URL_GET_CATEGORIES;
 const API_URL_GET_KEYWORDS = process.env.NEXT_PUBLIC_API_URL_GET_KEYWORDS;
-const API_URL_UPDATE_EVENT = process.env.NEXT_PUBLIC_API_URL_UPDATE_EVENT;
 const API_URL_GET_EVENT_DETAIL = process.env.NEXT_PUBLIC_API_URL_GET_EVENT_DETAIL;
 
-
-// イベント編集ページ
-export default function EventEdit() {
+export function useEventEditForm() {
     const router = useRouter();
     const [form, setForm] = useState({
         event_id: "",
@@ -27,10 +23,9 @@ export default function EventEdit() {
     const [errors, setErrors] = useState({});
     const [preview, setPreview] = useState(null);
     const [loading, setLoading] = useState(false);
-
-    // カテゴリ・キーワード取得
     const [categoryOptions, setCategoryOptions] = useState([]);
     const [keywordOptions, setKeywordOptions] = useState([]);
+
     useEffect(() => {
         fetch(API_URL_GET_CATEGORIES)
             .then(res => res.json())
@@ -40,7 +35,6 @@ export default function EventEdit() {
             .then(json => setKeywordOptions(json.map(k => ({ value: String(k.keyword_id), label: k.keyword_name }))));
     }, []);
 
-    // イベント詳細取得（event_idはクエリやpropsで渡す想定）
     useEffect(() => {
         const eventId = router.query.event_id || (typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("event_id") : "");
         if (!eventId) return;
@@ -48,7 +42,6 @@ export default function EventEdit() {
         fetch(API_URL_GET_EVENT_DETAIL + `&event_id=${eventId}`)
             .then(async res => {
                 if (!res.ok) {
-                    // 404や500の場合
                     const contentType = res.headers.get("content-type");
                     let err;
                     if (contentType && contentType.includes("application/json")) {
@@ -86,7 +79,7 @@ export default function EventEdit() {
                     date: data.event_datetime,
                     location: data.location,
                     category: String(data.event_category),
-                    keywords: data.keywords ? data.keywords.map(String) : [],
+                    keywords: data.keywords ? data.keywords.map(k => String(k)) : [], // ←ここを必ず文字列配列に
                     summary: data.description,
                     detail: data.content,
                     deadline: data.deadline,
@@ -98,7 +91,6 @@ export default function EventEdit() {
             .finally(() => setLoading(false));
     }, [router.query.event_id]);
 
-    // 入力変更
     const handleChange = (e) => {
         const { name, value, type, checked, files } = e.target;
         if (name === "keywords") {
@@ -121,7 +113,6 @@ export default function EventEdit() {
         }
     };
 
-    // バリデーション（省略可）
     const validate = (data) => {
         const newErrors = {};
         if (!data.title || data.title.length > 255) newErrors.title = "255文字以内で入力してください";
@@ -133,13 +124,11 @@ export default function EventEdit() {
         return newErrors;
     };
 
-    // 編集内容確認ページへ遷移
     const handleConfirmPage = (e) => {
         e.preventDefault();
         const v = validate(form);
         setErrors(v);
         if (Object.keys(v).length > 0) return;
-        // クエリパラメータで編集内容を渡して遷移
         const params = new URLSearchParams({
             event_id: form.event_id,
             title: form.title,
@@ -152,10 +141,9 @@ export default function EventEdit() {
             deadline: form.deadline,
             max_participants: form.max_participants
         }).toString();
-        router.push(`/event-edit-confirm?${params}`);
+        router.push(`/event/edit/confirm?${params}`);
     };
 
-    // isFormComplete判定
     const isFormComplete = () => {
         return (
             form.title &&
@@ -169,31 +157,25 @@ export default function EventEdit() {
         );
     };
 
-    // 削除確認ページへ遷移
     const handleDeleteConfirmPage = () => {
-        router.push(`/event-delete-confirm?id=${form.event_id}`);
+        router.push(`/event/delete/confirm?id=${form.event_id}`);
     };
 
-    // 下書き保存（編集画面では非表示）
     const handleDraft = () => { };
 
-    return (
-        <EventForm
-            form={form}
-            errors={errors}
-            preview={preview}
-            eventData={form}
-            categoryOptions={categoryOptions}
-            keywordOptions={keywordOptions}
-            isEdit={true}
-            onChange={handleChange}
-            onSubmit={handleConfirmPage}
-            onDraft={handleDraft}
-            onDelete={handleDeleteConfirmPage}
-            isFormComplete={isFormComplete}
-            submitLabel={"確認"}
-            draftLabel={"下書き保存"}
-            deleteLabel={"イベント取り消し"}
-        />
-    );
+    return {
+        form,
+        setForm,
+        errors,
+        setErrors,
+        preview,
+        loading,
+        categoryOptions,
+        keywordOptions,
+        handleChange,
+        handleConfirmPage,
+        handleDraft,
+        handleDeleteConfirmPage,
+        isFormComplete
+    };
 }
