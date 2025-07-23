@@ -8,7 +8,7 @@ export default function EventConfirmed() {
   if (status === "success") {
     message = "参加申し込み確定しました"
   } else if (status === "fail") {
-    message = "参加申し込み失敗しました"
+    message = "予定人数に達しました。\nまたの参加をお待ちしております。"
   }
 
   const handleBackToDetail = () => {
@@ -47,7 +47,8 @@ export default function EventConfirmed() {
             marginBottom: "2em",
             textShadow: "0 4px 16px #b4b4d850, 0 1px 0 #fff",
             fontFamily: "'Bebas Neue', 'Montserrat', 'Share Tech Mono', 'Fira Mono', 'Consolas', monospace",
-            textTransform: "uppercase"
+            textTransform: "uppercase",
+            whiteSpace: "pre-line" // ← 追加
           }}
         >
           {message}

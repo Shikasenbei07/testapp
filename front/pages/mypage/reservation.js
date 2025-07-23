@@ -15,7 +15,6 @@ function formatDate(dateStr) {
 
 export default function ReservationHistory() {
   const router = useRouter();
-  const queryId = router.query.id;
   const id = getValidId();
 
   const [history, setHistory] = useState([]);
@@ -25,13 +24,11 @@ export default function ReservationHistory() {
   const [alertMsg, setAlertMsg] = useState("");
   const [showAlert, setShowAlert] = useState(false);
 
-  const userId = getValidId();
-
   // 履歴取得
   const fetchHistory = () => {
     setLoading(true);
     fetch(
-      `https://0x0-participation-d7fqb7h3dpcqcxek.japaneast-01.azurewebsites.net/api/reservation-history?code=62ynEBx_jbHKALdJRcPtSf-Hral22ROdaZFZeR6DVf0bAzFuZZI-Rw%3D%3D&id=${userId}`
+      `https://0x0-participation-d7fqb7h3dpcqcxek.japaneast-01.azurewebsites.net/api/reservation-history?code=62ynEBx_jbHKALdJRcPtSf-Hral22ROdaZFZeR6DVf0bAzFuZZI-Rw%3D%3D&id=${id}`
     )
       .then(res => {
         if (!res.ok) throw new Error("履歴取得失敗");
@@ -59,10 +56,10 @@ export default function ReservationHistory() {
   async function handleCancel(event_id) {
     setCanceling(true);
     try {
-      const res = await fetch(`https://0x0-participation-test.azurewebsites.net/api/cancel_participation?code=lg6z2CItkdkWJ01FZGSTMb0W0e7HfGW9hHGRwMsq_bpFAzFuADr_nQ%3D%3D&id=${id}`, {
+      const res = await fetch(`https://0x0-participation-d7fqb7h3dpcqcxek.japaneast-01.azurewebsites.net/api/cancel-participation?code=A_pQkS9M22eHhdEzHAMDWrwMC5HN7vzWqbSbsbtsf9RRAzFuKdmAVA%3D%3D&id=${id}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ event_id, user_id: userId })
+        body: JSON.stringify({ event_id, id })
       });
       if (res.ok) {
         fetchHistory();

@@ -1,33 +1,25 @@
 import { useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, useParams } from "next/navigation";
 import { getValidId } from "../../../utils/getValidId";
 
 export default function EventDetailPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { event_id, id: queryId } = router.query;
+  const params = useParams();
+  const event_id = params?.event_id;
   const participated = searchParams.get('participated');
   const [id, setId] = useState("");
 
   useEffect(() => {
-    // participatedの値をコンソールに表示
-    console.log("participated:", participated);
-  }, [participated]);
-
-  useEffect(() => {
-    if (!router.isReady) return;
-    let validId = queryId;
-    if (!validId) {
-      validId = getValidId();
-    }
+    let validId = getValidId();
     setId(validId ?? "");
-  }, [queryId, router]);
+  }, []);
 
   const [event, setEvent] = useState(null);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (!router.isReady || !event_id) return;
+    if (!event_id) return;
     fetch(`https://0x0-showevent-hbbadxcxh9a4bzhu.japaneast-01.azurewebsites.net/api/showevent?code=KjUCLx4igb6FiJ3ZtQKowVUUk9MgUtPSuBhPrMam2RwxAzFuTt1T_w%3D%3D&event_id=${event_id}`)
       .then((res) => res.json())
       .then((data) => {
@@ -40,11 +32,18 @@ export default function EventDetailPage() {
       .catch((err) => {
         setError("データ取得エラー: " + err.message);
       });
-  }, [event_id, router.isReady]);
+  }, [event_id]);
 
   if (error) return <div style={{ color: "red" }}>{error}</div>;
   if (!event) return <div>読み込み中...</div>;
 
+  // ここでeventの中身を確認
+  console.log(event);
+  console.log("event:", event);
+  console.log("current_participants:", event.current_participants);
+  console.log("max_participants:", event.max_participants);
+
+  // 以降、participatedContentの判定など...
   let participatedContent;
   if (participated === "1") {
     participatedContent = (
@@ -53,15 +52,32 @@ export default function EventDetailPage() {
       </div>
     );
   } else if (participated === "0") {
-    participatedContent = null;
-  } else if (participated === null || typeof participated === "undefined") {
+    // current_participantsとmax_participantsを数値で比較
+    const current = Number(event.current_participants);
+    const max = Number(event.max_participants);
+
+    if (
+      !isNaN(current) &&
+      !isNaN(max) &&
+      max > 0 &&
+      current >= max
+    ) {
+      participatedContent = (
+        <div style={{ color: "#a10000", margin: "1rem 0" }}>
+          参加予定人数に達しました
+        </div>
+      );
+    } else {
+      participatedContent = (
+        <button style={{ margin: "1rem 0" }}>参加</button>
+      );
+    }
+  } else {
     participatedContent = (
       <div style={{ color: "#a10000", margin: "1rem 0" }}>
         パラメータがありません
       </div>
     );
-  } else {
-    participatedContent = <div>参加状況確認中...</div>;
   }
 
   return (
@@ -100,8 +116,8 @@ export default function EventDetailPage() {
           <img src={event.image} alt="イベント画像" style={{ maxWidth: "100%" }} />
         </div>
       )}
+      {participatedContent}
       <button onClick={() => router.back()}>戻る</button>
-      
     </div>
   );
 }
