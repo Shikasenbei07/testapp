@@ -23,7 +23,10 @@ export default function Header() {
               <button style={menuButtonStyle} onClick={() => setMenuOpen(true)}>
                 メニュー
               </button>
-              <span style={{ marginLeft: "1rem", fontWeight: "bold", fontSize: "1.2rem" }}>
+              <span
+                style={{ marginLeft: "1rem", fontWeight: "bold", fontSize: "1.2rem", cursor: "pointer" }}
+                onClick={() => router.push("/")}
+              >
                 MyWebsite
               </span>
             </>

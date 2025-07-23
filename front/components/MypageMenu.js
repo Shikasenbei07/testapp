@@ -11,19 +11,25 @@ export default function MypageMenu({ onNavigate }) {
         style={{ padding: "10px 0", background: "#00c2a0", color: "#fff", border: "none", borderRadius: 6, fontWeight: 700, fontSize: "1rem", cursor: "pointer" }}
         onClick={() => onNavigate("/mypage/history")}
       >
-        予約履歴
+        参加履歴
       </button>
       <button
         style={{ padding: "10px 0", background: "#7f5af0", color: "#fff", border: "none", borderRadius: 6, fontWeight: 700, fontSize: "1rem", cursor: "pointer" }}
         onClick={() => onNavigate("/mypage/reservation")}
       >
-        参加予約一覧
+        予約一覧
       </button>
       <button
         style={{ padding: "10px 0", background: "#ffb700", color: "#fff", border: "none", borderRadius: 6, fontWeight: 700, fontSize: "1rem", cursor: "pointer" }}
         onClick={() => onNavigate("/event/created")}
       >
         作成済みイベント一覧
+      </button>
+      <button
+        style={{ padding: "10px 0", background: "#e4572e", color: "#fff", border: "none", borderRadius: 6, fontWeight: 700, fontSize: "1rem", cursor: "pointer" }}
+        onClick={() => onNavigate("/mypage/drafts")}
+      >
+        下書きイベント一覧
       </button>
     </div>
   );
