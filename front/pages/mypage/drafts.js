@@ -1,31 +1,17 @@
-import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import { getValidId } from "../../utils/getValidId";
+import { useDraftEvents } from "../../hooks/useDraftEvents";
 import EventList from "../../components/EventList";
 
-const API_URL_GET_DRAFT = process.env.NEXT_PUBLIC_API_URL_GET_DRAFT;
-
 export default function DraftEventsContainer() {
-    const [events, setEvents] = useState([]);
-    const router = useRouter();
-    const userId = getValidId();
+  const { events, loading, error } = useDraftEvents();
+  const router = useRouter();
 
-    useEffect(() => {
-        if (!userId) return; // バグ修正: userIdがnullの場合はfetchしない
-        fetch(API_URL_GET_DRAFT + `&user_id=${encodeURIComponent(userId)}`, {
-            method: "GET",
-        })
-            .then((res) => {
-                if (!res.ok) throw new Error("Failed to fetch drafts");
-                return res.json();
-            })
-            .then(setEvents)
-            .catch(() => setEvents([]));
-    }, [userId]);
+  const handleEdit = (eventId) => {
+    router.push(`/event/edit?event_id=${eventId}`);
+  };
 
-    const handleEdit = (eventId) => {
-        router.push(`/event/edit?event_id=${eventId}`); // バグ修正: 正しいパスに修正
-    };
+  if (loading) return <div style={{ textAlign: "center" }}>読み込み中...</div>;
+  if (error) return <div style={{ color: "red", textAlign: "center" }}>{error}</div>;
 
-    return <EventList events={events} onEdit={handleEdit} title="下書きイベント一覧" />;
+  return <EventList events={events} onEdit={handleEdit} title="下書きイベント一覧" />;
 }
