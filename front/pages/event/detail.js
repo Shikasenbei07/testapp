@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { getValidId } from "../../../utils/getValidId";
+import { getValidId } from "../../utils/getValidId";
 
 export default function EventDetailPage() {
   const router = useRouter();
