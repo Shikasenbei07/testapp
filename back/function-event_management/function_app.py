@@ -8,6 +8,7 @@ import uuid
 from datetime import datetime, date
 
 from utils import get_db_connection, get_azure_storage_connection_string, error_response, success_response
+from azure.storage.blob import generate_blob_sas, BlobSasPermissions
 
 # 追加: Azure Blob Storage用
 from azure.storage.blob import BlobServiceClient
@@ -90,13 +91,22 @@ def fetch_events(user_id, is_draft):
         return events
 
 def get_blob_url(filename):
-    # すでにURLならそのまま返す
     if filename and (filename.startswith("http://") or filename.startswith("https://")):
         return filename
     connect_str = get_azure_storage_connection_string()
     blob_service_client = BlobServiceClient.from_connection_string(connect_str)
     blob_client = blob_service_client.get_blob_client(container=CONTAINER_NAME, blob=filename)
-    return blob_client.url
+    # SASトークンを生成（例：10分間有効）
+    from datetime import datetime, timedelta
+    sas_token = generate_blob_sas(
+        account_name=blob_service_client.account_name,
+        container_name=CONTAINER_NAME,
+        blob_name=filename,
+        account_key=blob_service_client.credential.account_key,
+        permission=BlobSasPermissions(read=True),
+        expiry=datetime.utcnow() + timedelta(minutes=10)
+    )
+    return f"{blob_client.url}?{sas_token}"
 
 @app.route(route="create_event", methods=["POST"])
 def create_event(req: func.HttpRequest) -> func.HttpResponse:
