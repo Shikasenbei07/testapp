@@ -1,126 +1,140 @@
-import sys
-import os
 import pytest
-from unittest.mock import patch, MagicMock
-
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from unittest.mock import MagicMock, patch
 import function_app
+import os
 
-class DummyRequest:
-    def __init__(self, event_id=None):
-        self.route_params = {'event_id': event_id}
-        self.headers = {}
-        self.method = 'GET'
-        self._body = b''
-    def get_body(self):
-        return self._body
-    def get_json(self):
-        return {}
-
-# get_event テスト
 @pytest.fixture
-def mock_db_found(monkeypatch):
+def mock_db(monkeypatch):
     mock_cursor = MagicMock()
-    mock_cursor.fetchone.return_value = {
-        "event_id": 2,
-        "event_title": "全社懇親会",
-        "event_category": 5,
-        "event_datetime": "2025-05-23T18:00:00.0000000",
-        "deadline": "2025-04-30T17:00:00.0000000",
-        "location": "ホテル　ヒルトン",
-        "max_participants": 1000,
-        "current_participants": 2,
-        "creator": "0738",
-        "description": "上司の方にお酒を注ぐ会となります",
-        "content": "地獄のパーリナイトとなっていますので、くれぐれも注意してください。皆様のご参加お待ちしています。",
-        "is_draft": 0
-    }
-    mock_cursor.fetchall.return_value = [MagicMock(keyword_id=1), MagicMock(keyword_id=2)]
     mock_conn = MagicMock()
     mock_conn.cursor.return_value = mock_cursor
     monkeypatch.setattr(function_app, "get_db_connection", lambda: mock_conn)
-    return mock_conn
+    return mock_cursor
 
-def test_get_event_found(mock_db_found):
-    req = DummyRequest(event_id=2)
-    resp = function_app.get_event(req)
-    assert resp.status_code == 200 or resp.status_code is None
-    assert b"event_title" in resp.get_body()
+def test_create_event_success(monkeypatch):
+    mock_cursor = MagicMock()
+    mock_cursor.lastrowid = 123  # ← 追加
+    mock_conn = MagicMock()
+    mock_conn.cursor.return_value = mock_cursor
+    monkeypatch.setattr(function_app, "get_db_connection", lambda: mock_conn)
+    monkeypatch.setattr(function_app, "parse_multipart", lambda req: ({
+        "title": "テストイベント",
+        "date": "2025-01-01T10:00",
+        "location": "東京",
+        "category": "1",
+        "keywords": ["1", "2"],
+        "summary": "概要",
+        "detail": "詳細",
+        "deadline": "2024-12-31T23:59",
+        "creator": "0738",
+        "is_draft": 0,
+        "max_participants": "10",
+        "image": None
+    }, None))
+    req = MagicMock()
+    resp = function_app.create_event(req)
+    assert resp.status_code == 200
+    assert "イベント登録完了" in resp.get_body().decode("utf-8")
 
-def test_get_event_not_found(monkeypatch):
+def test_create_event_missing_required(monkeypatch):
+    monkeypatch.setattr(function_app, "parse_multipart", lambda req: ({
+        "title": "",
+        "date": "",
+        "location": "",
+        "category": "",
+        "keywords": [],
+        "summary": "",
+        "detail": "",
+        "deadline": "",
+        "creator": "",
+        "is_draft": 0
+    }, None))
+    req = MagicMock()
+    resp = function_app.create_event(req)
+    assert resp.status_code == 400
+
+def test_delete_event_not_found(monkeypatch):
     mock_cursor = MagicMock()
     mock_cursor.fetchone.return_value = None
     mock_conn = MagicMock()
     mock_conn.cursor.return_value = mock_cursor
     monkeypatch.setattr(function_app, "get_db_connection", lambda: mock_conn)
-    req = DummyRequest(event_id=999)
-    resp = function_app.get_event(req)
-    assert resp.status_code == 404
-
-# delete_event テスト
-def test_delete_event_not_found(monkeypatch):
-    class MockCursor(MagicMock):
-        def __enter__(self):
-            return self
-        def __exit__(self, exc_type, exc_val, exc_tb):
-            return None
-        def fetchone(self):
-            # イベントが存在しない場合
-            return None
-        def execute(self, *args, **kwargs):
-            return None
-
-    class MockConnection:
-        def cursor(self):
-            return MockCursor()
-        def commit(self):
-            pass
-        def close(self):
-            pass
-        def __enter__(self):
-            return self
-        def __exit__(self, exc_type, exc_val, exc_tb):
-            return None
-
-    def mock_get_db_connection():
-        return MockConnection()
-
-    monkeypatch.setattr(function_app, "get_db_connection", mock_get_db_connection)
-
-    req = DummyRequest(event_id=999)
+    req = MagicMock()
+    req.route_params = {"event_id": "999"}
+    req.get_json.return_value = {"creator": "0738"}
     resp = function_app.delete_event(req)
-
     assert resp.status_code == 404
-    import json
-    body = resp.get_body().decode("utf-8")
-    data = json.loads(body)
-    assert "イベントが存在しません" in data.get("error", "")
 
-# update_event テスト（最低限の呼び出し確認）
-def test_update_event(monkeypatch):
+def test_delete_event_forbidden(monkeypatch):
     mock_cursor = MagicMock()
+    mock_cursor.fetchone.return_value = MagicMock(creator="9999")
     mock_conn = MagicMock()
     mock_conn.cursor.return_value = mock_cursor
     monkeypatch.setattr(function_app, "get_db_connection", lambda: mock_conn)
-    req = DummyRequest(event_id=2)
-    req.headers = {"Content-Type": "application/json"}
-    req.get_json = lambda: {
-        "title": "全社懇親会",
-        "category": "5",
-        "date": "2025-05-23T18:00:00.0000000",
-        "deadline": "2025-04-30T17:00:00.0000000",
-        "location": "ホテル　ヒルトン",
-        "max_participants": "1000",
-        "current_participants": "2",
-        "creator": "0738",
-        "summary": "上司の方にお酒を注ぐ会となります",
-        "detail": "地獄のパーリナイトとなっていますので、くれぐれも注意してください。皆様のご参加お待ちしています。",
-        "is_draft": "0",
-        "keywords": ["1", "2"]
-    }
-    resp = function_app.update_event(req)
-    assert resp.status_code == 200 or resp.status_code is None
-    import json
+    req = MagicMock()
+    req.route_params = {"event_id": "1"}
+    req.get_json.return_value = {"creator": "0738"}
+    resp = function_app.delete_event(req)
+    assert resp.status_code == 403
+
+def test_get_participants_success(monkeypatch):
+    os.environ["CONNECTION_STRING"] = "dummy"
+    mock_cursor = MagicMock()
+    mock_cursor.description = [("id",), ("l_name",), ("f_name",), ("email",)]
+    mock_cursor.fetchall.return_value = [
+        (1, "山田", "太郎", "taro@example.com"),
+        (2, "佐藤", "花子", "hanako@example.com")
+    ]
+    mock_conn = MagicMock()
+    mock_conn.cursor.return_value = mock_cursor
+    monkeypatch.setattr(function_app, "pyodbc", MagicMock(connect=lambda *a, **kw: mock_conn))
+    req = MagicMock()
+    req.params = {"event_id": "1"}
+    resp = function_app.get_participants(req)
+    assert resp.status_code == 200
     body = resp.get_body().decode("utf-8")
-    data = json.loads(body)
-    assert "イベント更新完了" in data.get("message", "")
+    assert "山田" in body or "太郎" in body
+
+def test_get_participants_no_event_id():
+    req = MagicMock()
+    req.params = {}
+    resp = function_app.get_participants(req)
+    assert resp.status_code == 400
+
+def test_update_event_not_found(monkeypatch):
+    mock_cursor = MagicMock()
+    mock_cursor.fetchone.return_value = None
+    mock_conn = MagicMock()
+    mock_conn.cursor.return_value = mock_cursor
+    monkeypatch.setattr(function_app, "get_db_connection", lambda: mock_conn)
+    req = MagicMock()
+    req.route_params = {"event_id": "999"}
+    req.headers = {}
+    req.get_json.return_value = {"creator": "0738"}
+    resp = function_app.update_event(req)
+    assert resp.status_code == 404
+
+def test_update_event_forbidden(monkeypatch):
+    mock_cursor = MagicMock()
+    mock_cursor.fetchone.return_value = MagicMock(creator="9999")
+    mock_conn = MagicMock()
+    mock_conn.cursor.return_value = mock_cursor
+    monkeypatch.setattr(function_app, "get_db_connection", lambda: mock_conn)
+    req = MagicMock()
+    req.route_params = {"event_id": "1"}
+    req.headers = {}
+    req.get_json.return_value = {"creator": "0738"}
+    resp = function_app.update_event(req)
+    assert resp.status_code == 403
+
+def test_get_event_detail_no_id():
+    req = MagicMock()
+    req.params = {}
+    resp = function_app.get_event_detail(req)
+    assert resp.status_code == 400
+
+def test_get_event_detail_invalid_id():
+    req = MagicMock()
+    req.params = {"event_id": "abc"}
+    resp = function_app.get_event_detail(req)
+    assert resp.status_code == 400

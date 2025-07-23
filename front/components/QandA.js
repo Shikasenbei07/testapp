@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 
 const qaList = [
   { question: "ログインできない場合は？", answer: "パスワードを再設定してください。" },
@@ -9,66 +9,8 @@ const qaList = [
 export default function QandA({ characterImg }) {
   const [open, setOpen] = useState(false);
 
-  // 追加: キャラクターの位置管理
-  const [pos, setPos] = useState({ x: window.innerWidth - 200, y: window.innerHeight - 200 });
-  const direction = useRef({ x: 1, y: 1 });
-
-  useEffect(() => {
-    // ウィンドウサイズ取得
-    const getMax = () => ({
-      x: window.innerWidth - 180,
-      y: window.innerHeight - 180,
-    });
-
-    const move = () => {
-      setPos(prev => {
-        let { x, y } = prev;
-        let { x: dx, y: dy } = direction.current;
-        const max = getMax();
-
-        // 速度を上げる（例: 2 → 8）
-        x += dx * 8;
-        y += dy * 8;
-
-        // 端で跳ね返る
-        if (x < 0) {
-          x = 0;
-          direction.current.x = 1;
-        } else if (x > max.x) {
-          x = max.x;
-          direction.current.x = -1;
-        }
-        if (y < 0) {
-          y = 0;
-          direction.current.y = 1;
-        } else if (y > max.y) {
-          y = max.y;
-          direction.current.y = -1;
-        }
-        return { x, y };
-      });
-    };
-
-    // インターバルはそのまま
-    const interval = setInterval(move, 20);
-
-    // ウィンドウリサイズ時に位置を調整
-    const handleResize = () => {
-      setPos(pos => {
-        const max = getMax();
-        return {
-          x: Math.min(pos.x, max.x),
-          y: Math.min(pos.y, max.y),
-        };
-      });
-    };
-    window.addEventListener("resize", handleResize);
-
-    return () => {
-      clearInterval(interval);
-      window.removeEventListener("resize", handleResize);
-    };
-  }, []);
+  // キャラクターの位置を固定
+  const pos = { x: window.innerWidth - 200, y: window.innerHeight - 200 };
 
   return (
     <>
@@ -85,7 +27,6 @@ export default function QandA({ characterImg }) {
           boxShadow: "0 2px 12px #b4b4d820",
           cursor: "pointer",
           zIndex: 1000,
-          transition: "left 0.04s linear, top 0.04s linear",
         }}
         onClick={() => setOpen(!open)}
       />
