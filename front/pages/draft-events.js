@@ -21,5 +21,37 @@ export default function DraftEventsContainer() {
         router.push(`/event_edit/${eventId}`);
     };
 
-    return <EventList events={events} onEdit={handleEdit} title="下書きイベント一覧" />;
+    return (
+        <div
+            style={{
+                minHeight: "100vh",
+                width: "100vw",
+                background: "linear-gradient(120deg, #e0e7ef 0%, #c7d2fe 60%, #a5b4fc 100%)",
+                display: "flex",
+                alignItems: "flex-start",
+                justifyContent: "center",
+                fontFamily: "'Montserrat', 'Noto Sans JP', 'Helvetica Neue', Arial, 'メイリオ', sans-serif",
+                overflowX: "hidden",
+                paddingTop: 40
+            }}
+        >
+            <div
+                style={{
+                    background: "#fff",
+                    borderRadius: 18,
+                    boxShadow: "0 8px 32px #b4b4d880, 0 2px 8px #c7d2fe80",
+                    padding: 44,
+                    color: "#23263a",
+                    fontFamily: "'Montserrat', 'Noto Sans JP', 'Helvetica Neue', Arial, 'メイリオ', sans-serif",
+                    border: "2px solid #e0e7ef",
+                    maxWidth: 900,
+                    width: "100%",
+                    margin: "40px auto",
+                    overflow: "auto"
+                }}
+            >
+                <EventList events={events} onEdit={handleEdit} title="下書きイベント一覧" />
+            </div>
+        </div>
+    );
 }

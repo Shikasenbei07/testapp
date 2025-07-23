@@ -1,169 +1,168 @@
 import { useRouter } from "next/router";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
-const API_URL_CREATE_EVENT = process.env.NEXT_PUBLIC_API_URL_CREATE_EVENT;
+export default function EventDraftConfirm() {
+  const router = useRouter();
+  const [imageUrl, setImageUrl] = useState(null);
 
-function EventCreateConfirm() {
-    const router = useRouter();
-    const [formValues, setFormValues] = useState(null);
-    const [image, setImage] = useState(null);
-    const [imageName, setImageName] = useState(null);
-    const [categoryName, setCategoryName] = useState("");
-    const [keywordNames, setKeywordNames] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState("");
+  // クエリ取得
+  const query = router.query;
 
-    useEffect(() => {
-        if (!router.isReady) return;
-        // router.queryから値取得
-        const {
-            title = "",
-            date = "",
-            location = "",
-            category = "",
-            keywords: rawKeywords = [],
-            summary = "",
-            detail = "",
-            deadline = "",
-            max_participants = "",
-            is_draft = 0
-        } = router.query;
-        const keywords = typeof rawKeywords === "string" ? rawKeywords.split(",") : rawKeywords;
-        setFormValues({ title, date, location, category, keywords, summary, detail, deadline, max_participants, is_draft });
+  useEffect(() => {
+    // 画像プレビュー用
+    const img = localStorage.getItem("eventCreateImage");
+    if (img) setImageUrl(img);
+  }, []);
 
-        // 画像
-        try {
-            const imageData = typeof window !== "undefined" ? localStorage.getItem("eventCreateImage") : null;
-            const imageNameData = typeof window !== "undefined" ? localStorage.getItem("eventCreateImageName") : null;
-            if (imageData) {
-                const arr = imageData.split(",");
-                if (arr[0].includes("base64")) {
-                    const mime = arr[0].match(/:(.*?);/)[1];
-                    const bstr = atob(arr[1]);
-                    let n = bstr.length;
-                    const u8arr = new Uint8Array(n);
-                    while (n--) {
-                        u8arr[n] = bstr.charCodeAt(n);
-                    }
-                    setImage(new Blob([u8arr], { type: mime }));
-                    setImageName(imageNameData || "upload.png");
-                }
-            }
-        } catch { }
-        // カテゴリ・キーワード
-        try {
-            const categoriesMaster = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("categories") || "[]") : [];
-            const keywordsMaster = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("keywords") || "[]") : [];
-            const foundCategory = categoriesMaster.find(c => String(c.value) === String(category));
-            if (foundCategory) setCategoryName(foundCategory.label);
-            setKeywordNames(keywords.map(k => {
-                const found = keywordsMaster.find(kw => String(kw.value) === String(k));
-                return found ? found.label : k;
-            }));
-        } catch { }
-    }, [router.isReady, router.query]);
+  const handleBack = () => {
+    router.back();
+  };
 
-    if (!formValues) {
-        return <div>読み込み中...</div>;
-    }
+  const handleSave = () => {
+    // 下書き保存API呼び出しなど
+    // ...保存処理...
+    router.push("/draft-events");
+  };
 
-    const isDraft = String(formValues.is_draft) === "1";
-    const confirmText = isDraft
-        ? "この内容で下書き保存します。よろしいですか？"
-        : "この内容でイベントを登録します。よろしいですか？";
-    const buttonText = isDraft ? "下書き保存を確定" : "イベント登録を確定";
-
-    // 確定ボタンでAPI POST
-    const handleConfirm = async () => {
-        setLoading(true);
-        setError("");
-        const formData = new FormData();
-        formData.append("title", formValues.title);
-        formData.append("date", formValues.date);
-        formData.append("location", formValues.location);
-        formData.append("category", formValues.category);
-        formData.append("summary", formValues.summary);
-        formData.append("detail", formValues.detail);
-        formData.append("deadline", formValues.deadline);
-        formData.append("max_participants", formValues.max_participants);
-        (formValues.keywords || []).forEach(k => formData.append("keywords", k));
-        if (image) formData.append("image", image, imageName);
-        formData.append("is_draft", isDraft ? 1 : 0);
-        // creatorは省略（API側で処理）
-        try {
-            const res = await fetch(API_URL_CREATE_EVENT, {
-                method: "POST",
-                body: formData
-            });
-            if (res.ok) {
-                router.push(`/event/create/complete?is_draft=${isDraft ? 1 : 0}`);
-            } else {
-                let err;
-                const contentType = res.headers.get("content-type");
-                if (contentType && contentType.includes("application/json")) {
-                    err = await res.json();
-                } else {
-                    err = { error: await res.text() };
-                }
-                setError("登録失敗: " + (err.error || res.status) + (err.trace ? "\n" + err.trace : ""));
-            }
-
-        } catch (err) {
-            setError("通信エラー: " + err);
-        }
-        setLoading(false);
-    };
-
-    return (
-        <div style={{ maxWidth: 600, margin: "2rem auto", fontFamily: "sans-serif" }}>
-            <h1>イベント作成{isDraft ? "（下書き保存）" : "（本登録）"}確認</h1>
-            <div style={{ margin: "1rem 0", fontWeight: "bold", color: "#1976d2" }}>{confirmText}</div>
-            <div className="row"><b>タイトル:</b> {formValues.title}</div>
-            <div className="row"><b>日付:</b> {formValues.date}</div>
-            <div className="row"><b>場所:</b> {formValues.location}</div>
-            <div className="row"><b>カテゴリ:</b> {categoryName || ""}</div>
-            <div className="row"><b>キーワード:</b> {Array.isArray(keywordNames) ? keywordNames.join(", ") : (keywordNames || "")}</div>
-            <div className="row"><b>概要:</b> {formValues.summary}</div>
-            <div className="row"><b>詳細:</b> {formValues.detail}</div>
-            <div className="row"><b>最大人数:</b> {formValues.max_participants}</div>
-            <div className="row"><b>締切日:</b> {formValues.deadline}</div>
-            <div className="row"><b>画像:</b> {
-                image instanceof Blob ? (
-                    <img
-                        src={URL.createObjectURL(image)}
-                        alt={imageName || "画像"}
-                        style={{ maxWidth: "200px", maxHeight: "200px", border: "1px solid #ccc", marginTop: "8px" }}
-                    />
-                ) : (
-                    "未設定"
-                )
-            }</div>
-            {error && <div style={{ color: "red" }}>{error}</div>}
-            <button onClick={handleConfirm} disabled={loading} style={{ background: "#1976d2", color: "#fff", marginTop: 16 }}>
-                {loading ? "登録中..." : buttonText}
-            </button>
-            <button
-                type="button"
-                style={{ marginLeft: 8 }}
-                onClick={() => {
-                    // 入力内容をlocalStorageに保存
-                    const saveData = {
-                        title: formValues.title,
-                        date: formValues.date,
-                        location: formValues.location,
-                        category: formValues.category,
-                        keywords: formValues.keywords,
-                        summary: formValues.summary,
-                        detail: formValues.detail,
-                        deadline: formValues.deadline,
-                        max_participants: formValues.max_participants
-                    };
-                    localStorage.setItem("eventCreateDraft", JSON.stringify(saveData));
-                    router.back();
-                }}
-            >戻る</button>
+  return (
+    <div
+      style={{
+        minHeight: "100vh",
+        width: "100vw",
+        background: "linear-gradient(120deg, #e0e7ef 0%, #c7d2fe 60%, #a5b4fc 100%)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontFamily: "'Montserrat', 'Noto Sans JP', 'Helvetica Neue', Arial, 'メイリオ', sans-serif"
+      }}
+    >
+      <div
+        style={{
+          background: "#fff",
+          borderRadius: 20,
+          boxShadow: "0 8px 32px 0 #b4b4d880, 0 2px 8px #c7d2fe80",
+          padding: "2.5em 2em",
+          minWidth: "420px",           // 横幅を少し広く
+          maxWidth: "720px",           // 横幅を少し広く
+          width: "100%",
+          textAlign: "center"
+        }}
+      >
+        <h2
+          style={{
+            color: "#5a5af0",
+            fontWeight: 900,
+            fontSize: "1.5em",
+            letterSpacing: "0.08em",
+            marginBottom: "1.5em",
+            textShadow: "0 2px 8px #b4b4d830",
+            fontFamily: "'Bebas Neue', 'Montserrat', 'Noto Sans JP', 'Helvetica Neue', Arial, 'メイリオ', sans-serif"
+          }}
+        >
+          この内容で下書き保存します。よろしいですか？
+        </h2>
+        {/* 必要に応じて内容のプレビューをここに表示 */}
+        <div
+          style={{
+            background: "#f8faff",
+            borderRadius: "12px",
+            boxShadow: "0 2px 12px #b4b4d820",
+            padding: "1.5em 1em",
+            marginBottom: "1.5em",
+            textAlign: "left",
+            maxWidth: 600,           // 横幅を少し広く
+            margin: "0 auto 1.5em auto"
+          }}
+        >
+          <div style={{ marginBottom: "0.7em", fontWeight: 700, color: "#5a5af0" }}>
+            タイトル:{" "}
+            <span style={{ color: "#23263a", fontWeight: 500 }}>{query.title}</span>
+          </div>
+          <div style={{ marginBottom: "0.7em", fontWeight: 700, color: "#5a5af0" }}>
+            日付:{" "}
+            <span style={{ color: "#23263a", fontWeight: 500 }}>{query.date}</span>
+          </div>
+          <div style={{ marginBottom: "0.7em", fontWeight: 700, color: "#5a5af0" }}>
+            場所:{" "}
+            <span style={{ color: "#23263a", fontWeight: 500 }}>{query.location}</span>
+          </div>
+          <div style={{ marginBottom: "0.7em", fontWeight: 700, color: "#5a5af0" }}>
+            カテゴリ:{" "}
+            <span style={{ color: "#23263a", fontWeight: 500 }}>{query.category}</span>
+          </div>
+          <div style={{ marginBottom: "0.7em", fontWeight: 700, color: "#7f5af0" }}>
+            キーワード:{" "}
+            <span style={{ color: "#23263a", fontWeight: 500 }}>
+              {Array.isArray(query.keywords) ? query.keywords.join(", ") : query.keywords}
+            </span>
+          </div>
+          <div style={{ marginBottom: "0.7em", fontWeight: 700, color: "#2cb67d" }}>
+            概要:{" "}
+            <span style={{ color: "#23263a", fontWeight: 500 }}>{query.summary}</span>
+          </div>
+          <div style={{ marginBottom: "0.7em", fontWeight: 700, color: "#2cb67d" }}>
+            詳細:{" "}
+            <span style={{ color: "#23263a", fontWeight: 500 }}>{query.detail}</span>
+          </div>
+          <div style={{ marginBottom: "0.7em", fontWeight: 700, color: "#5a5af0" }}>
+            最大人数:{" "}
+            <span style={{ color: "#23263a", fontWeight: 500 }}>{query.max_participants}</span>
+          </div>
+          <div style={{ marginBottom: "0.7em", fontWeight: 700, color: "#5a5af0" }}>
+            締切:{" "}
+            <span style={{ color: "#23263a", fontWeight: 500 }}>{query.deadline}</span>
+          </div>
         </div>
-    );
+        {imageUrl && (
+          <img
+            src={imageUrl}
+            alt="プレビュー画像"
+            style={{
+              maxWidth: "320px",
+              borderRadius: "10px",
+              boxShadow: "0 2px 12px #b4b4d820",
+              marginBottom: "1em"
+            }}
+          />
+        )}
+        {/* ボタン */}
+        <div style={{ marginTop: "2em", display: "flex", justifyContent: "center", gap: "2em" }}>
+          <button
+            onClick={handleBack}
+            style={{
+              background: "#e0e7ef",
+              color: "#23263a",
+              border: "1.5px solid #b4b4d8",
+              borderRadius: "8px",
+              padding: "0.8em 2em",
+              fontWeight: "bold",
+              fontSize: "1.05em",
+              cursor: "pointer",
+              boxShadow: "0 2px 8px #b4b4d820",
+              letterSpacing: "0.05em"
+            }}
+          >
+            戻る
+          </button>
+          <button
+            onClick={handleSave}
+            style={{
+              background: "linear-gradient(90deg, #5a5af0 0%, #b4b4d8 100%)",
+              color: "#fff",
+              border: "none",
+              borderRadius: "8px",
+              padding: "0.8em 2em",
+              fontWeight: "bold",
+              fontSize: "1.1em",
+              cursor: "pointer",
+              letterSpacing: "0.08em",
+              boxShadow: "0 2px 12px #b4b4d820"
+            }}
+          >
+            下書き保存
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
-
-export default EventCreateConfirm;

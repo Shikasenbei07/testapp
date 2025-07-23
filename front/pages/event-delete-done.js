@@ -6,7 +6,7 @@ export default function EventDeleteDone() {
         <div style={{ maxWidth: 600, margin: "2rem auto", fontFamily: "sans-serif", textAlign: "center" }}>
             <h1>イベント削除完了</h1>
             <p>イベントの削除が完了しました。</p>
-            <a href="/event-edit" style={{ color: "#1976d2" }}>他のイベントを編集する</a>
+            <a href="/event/created" style={{ color: "#1976d2" }}>他のイベントを編集する</a>
         </div>
     );
 }

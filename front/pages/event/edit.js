@@ -5,6 +5,7 @@ import { useRouter } from "next/router";
 const API_URL_GET_CATEGORIES = process.env.NEXT_PUBLIC_API_URL_GET_CATEGORIES;
 const API_URL_GET_KEYWORDS = process.env.NEXT_PUBLIC_API_URL_GET_KEYWORDS;
 const API_URL_UPDATE_EVENT = process.env.NEXT_PUBLIC_API_URL_UPDATE_EVENT;
+const API_URL_GET_EVENT_DETAIL = process.env.NEXT_PUBLIC_API_URL_GET_EVENT_DETAIL;
 
 
 // イベント編集ページ
@@ -41,11 +42,10 @@ export default function EventEdit() {
 
     // イベント詳細取得（event_idはクエリやpropsで渡す想定）
     useEffect(() => {
-        // バグ修正: クエリからevent_idを取得
         const eventId = router.query.event_id || (typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("event_id") : "");
         if (!eventId) return;
         setLoading(true);
-        fetch(API_URL_UPDATE_EVENT + `?event_id=${eventId}`)
+        fetch(API_URL_GET_EVENT_DETAIL + `&event_id=${eventId}`)
             .then(async res => {
                 if (!res.ok) {
                     // 404や500の場合
@@ -96,7 +96,7 @@ export default function EventEdit() {
                 setPreview(data.image ? `/images/${data.image}` : null);
             })
             .finally(() => setLoading(false));
-    }, [router.query.id]);
+    }, [router.query.event_id]);
 
     // 入力変更
     const handleChange = (e) => {

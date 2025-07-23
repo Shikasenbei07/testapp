@@ -29,8 +29,53 @@ export default function CreatedEventsContainer() {
     };
 
     if (error) {
-        return <div style={{ color: "red" }}>{error}</div>;
+        return (
+            <div
+                style={{
+                    color: "#5a5af0",
+                    background: "#f8fafc",
+                    border: "1.5px solid #b4b4d8",
+                    borderRadius: "14px",
+                    padding: "1.5em 2em",
+                    margin: "2.5em auto",
+                    maxWidth: 520,
+                    fontWeight: 700,
+                    textAlign: "center",
+                    fontSize: "1.1em",
+                    boxShadow: "0 4px 24px #b4b4d850, 0 2px 8px #c7d2fe80"
+                }}
+            >
+                {error}
+            </div>
+        );
     }
 
-    return <EventList events={events} onEdit={handleEdit} title="作成済みイベント一覧" />;
+    return (
+        <div
+            style={{
+                maxWidth: 900,
+                margin: "2.5em auto",
+                background: "#fff",
+                borderRadius: "22px",
+                boxShadow: "0 8px 32px #b4b4d880, 0 2px 8px #c7d2fe80, 0 1.5px 0 #fff",
+                padding: "2.5em 2em"
+            }}
+        >
+            <EventList
+                events={events}
+                onEdit={handleEdit}
+                title={
+                    <span style={{
+                        color: "#5a5af0",           // アクセントカラーで見やすく
+                        fontWeight: 900,
+                        fontSize: "1.4em",
+                        letterSpacing: "0.08em",
+                        textShadow: "0 2px 8px #b4b4d820"
+                    }}>
+                        作成済みイベント一覧
+                    </span>
+                }
+            />
+        </div>
+    );
 }
