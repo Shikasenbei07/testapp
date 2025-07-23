@@ -155,10 +155,10 @@ def get_self_created_events(req: func.HttpRequest) -> func.HttpResponse:
 
 @app.route(route="get_draft")
 def get_draft(req: func.HttpRequest) -> func.HttpResponse:
-    user_id = req.params.get('user_id')
+    user_id = req.params.get('id')
     if not user_id:
         try:
-            user_id = req.get_json().get('user_id')
+            user_id = req.get_json().get('id')
         except Exception:
             return error_response("user_id is required")
     try:
