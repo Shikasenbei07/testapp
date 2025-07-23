@@ -19,11 +19,9 @@ export default function EventCreate() {
       onChange={eventForm.handleChange}
       onSubmit={eventForm.handleSubmit}
       onDraft={eventForm.handleDraft}
-      onDelete={eventForm.isEdit ? eventForm.handleDelete : undefined}
       isFormComplete={eventForm.isFormComplete}
       submitLabel={eventForm.isEdit ? "更新" : "作成"}
       draftLabel={"下書き保存"}
-      deleteLabel={"イベント取り消し"}
       deadlineType="datetime-local"
     />
   );

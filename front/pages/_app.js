@@ -1,10 +1,10 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/router';
-import MyIcon from '../components/MyIcon';
 import Header from '../components/Header';
 import '../styles/global.css';
 import { getValidId } from '../utils/getValidId';
 import { refreshIdExpire } from '../utils/refreshIdExpire';
+import Head from "next/head";
 
 function MyApp({ Component, pageProps }) {
   const router = useRouter();
@@ -40,6 +40,9 @@ function MyApp({ Component, pageProps }) {
 
   return (
     <>
+      <Head>
+        <link rel="icon" href="/img/logo.png" />
+      </Head>
       <Header />
       <div>
         <Component {...pageProps} />

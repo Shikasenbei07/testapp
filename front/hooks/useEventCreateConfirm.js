@@ -70,8 +70,10 @@ export function useEventCreateConfirm(router) {
     formData.append("deadline", formValues.deadline);
     formData.append("max_participants", formValues.max_participants);
     (formValues.keywords || []).forEach(k => formData.append("keywords", k));
+
     if (image) formData.append("image", image, imageName);
     formData.append("is_draft", String(formValues.is_draft) === "1" ? 1 : 0);
+    
     try {
       const res = await fetch(API_URL_CREATE_EVENT, {
         method: "POST",

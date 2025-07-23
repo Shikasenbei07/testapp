@@ -11,30 +11,12 @@ export default function EventForm({
     onChange,
     onSubmit,
     onDraft,
-    onDelete,
     isFormComplete,
     submitLabel = "作成",
-    draftLabel = "下書き保存",
-    deleteLabel = "イベント取り消し"
+    draftLabel = "下書き保存"
 }) {
-    // スタイル定義
-    const styles = {
-        container: { maxWidth: 600, margin: "2rem auto", fontFamily: "sans-serif" },
-        keywordLabel: { display: "flex", alignItems: "center", gap: "0.2rem", margin: 0 },
-        keywordWrap: { display: "flex", flexWrap: "wrap", gap: "0.5rem" },
-        image: { maxWidth: "100%", maxHeight: 200, marginTop: "0.5rem" },
-        submitBtn: (enabled) => ({
-            background: enabled ? "#1976d2" : "#ccc",
-            color: enabled ? "#fff" : "#888",
-            cursor: enabled ? "pointer" : "not-allowed",
-            opacity: enabled ? 1 : 0.6
-        }),
-        draftBtn: { marginLeft: 8 },
-        deleteBtn: { marginLeft: 8, background: "#d32f2f", color: "#fff" }
-    };
-
     return (
-        <div style={styles.container}>
+        <div className="event-form-container">
             <h1>{isEdit ? "イベント編集" : "イベント作成"}</h1>
             <form onSubmit={onSubmit}>
                 <div className="row">
@@ -68,9 +50,9 @@ export default function EventForm({
                 </div>
                 <div className="row">
                     <label>キーワード</label>
-                    <div style={styles.keywordWrap}>
+                    <div className="keyword-wrap">
                         {keywordOptions.map(opt => (
-                            <label key={opt.value} style={styles.keywordLabel}>
+                            <label key={opt.value} className="keyword-label">
                                 <input
                                     type="checkbox"
                                     name="keywords"
@@ -89,10 +71,10 @@ export default function EventForm({
                         <input type="file" name="image" accept="image/*" onChange={onChange} />
                     </label>
                     {(preview && form.image && typeof form.image !== "string") && (
-                        <img src={preview} alt="プレビュー" style={styles.image} />
+                        <img src={preview} alt="プレビュー" className="event-image" />
                     )}
                     {(!preview && eventData && eventData.image_url) && (
-                        <img src={eventData.image_url} alt="保存済み画像" style={styles.image} />
+                        <img src={eventData.image_url} alt="保存済み画像" className="event-image" />
                     )}
                     {errors.image && <div style={{ color: 'red' }}>{errors.image}</div>}
                 </div>
@@ -123,21 +105,88 @@ export default function EventForm({
                 <button
                     type="submit"
                     disabled={!isFormComplete()}
-                    style={styles.submitBtn(isFormComplete())}
+                    className={`submit-btn${isFormComplete() ? "" : " disabled"}`}
                 >
                     {submitLabel}
                 </button>
-                <button type="button" style={styles.draftBtn} onClick={onDraft}>{draftLabel}</button>
-                {/*
+                <button type="button" className="draft-btn" onClick={onDraft}>{draftLabel}</button>
+                {/* 
                 {isEdit && (
                     <button
                         type="button"
-                        style={styles.deleteBtn}
+                        className="delete-btn"
                         onClick={onDelete}
                     >{deleteLabel}</button>
                 )}
                 */}
             </form>
+            <style jsx>{`
+                .event-form-container {
+                    max-width: 600px;
+                    margin: 2rem auto;
+                    font-family: sans-serif;
+                }
+                .row {
+                    margin-bottom: 1.2rem;
+                }
+                .keyword-label {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.2rem;
+                    margin: 0;
+                }
+                .keyword-wrap {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 0.5rem;
+                }
+                .event-image {
+                    max-width: 100%;
+                    max-height: 200px;
+                    margin-top: 0.5rem;
+                }
+                .submit-btn {
+                    background: #1976d2;
+                    color: #fff;
+                    cursor: pointer;
+                    opacity: 1;
+                    border: none;
+                    border-radius: 4px;
+                    padding: 0.6em 1.5em;
+                    font-size: 1rem;
+                    font-weight: bold;
+                    margin-right: 8px;
+                    transition: background 0.2s, opacity 0.2s;
+                }
+                .submit-btn.disabled {
+                    background: #ccc;
+                    color: #888;
+                    cursor: not-allowed;
+                    opacity: 0.6;
+                }
+                .draft-btn {
+                    margin-left: 8px;
+                    background: #eee;
+                    color: #333;
+                    border: none;
+                    border-radius: 4px;
+                    padding: 0.6em 1.5em;
+                    font-size: 1rem;
+                    font-weight: bold;
+                    cursor: pointer;
+                }
+                .delete-btn {
+                    margin-left: 8px;
+                    background: #d32f2f;
+                    color: #fff;
+                    border: none;
+                    border-radius: 4px;
+                    padding: 0.6em 1.5em;
+                    font-size: 1rem;
+                    font-weight: bold;
+                    cursor: pointer;
+                }
+            `}</style>
         </div>
     );
 }

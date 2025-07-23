@@ -7,11 +7,14 @@ from requests_toolbelt.multipart import decoder
 import uuid
 from datetime import datetime, date
 
-from utils import get_db_connection, error_response, success_response
+from utils import get_db_connection, get_azure_storage_connection_string, error_response, success_response
+
+# 追加: Azure Blob Storage用
+from azure.storage.blob import BlobServiceClient
 
 app = func.FunctionApp(http_auth_level=func.AuthLevel.FUNCTION)
 
-CONNECTION_STRING = os.environ.get("CONNECTION_STRING_PRODUCT") if os.environ.get("IS_MAIN_PRODUCT") == "true" else os.environ.get("CONNECTION_STRING_TEST")
+CONTAINER_NAME = "profile-images"
 
 def error_response(msg, status=400, trace=None):
     body = {"error": msg}
@@ -32,9 +35,16 @@ def to_db_date(val):
             return val
     return val
 
+def upload_image_to_azure(image_bytes, filename):
+    connect_str = get_azure_storage_connection_string()
+    blob_service_client = BlobServiceClient.from_connection_string(connect_str)
+    blob_client = blob_service_client.get_blob_client(container=CONTAINER_NAME, blob=filename)
+    blob_client.upload_blob(image_bytes, overwrite=True)
+    return blob_client.url
+
 def parse_multipart(req):
     content_type = req.headers.get("Content-Type", "")
-    data, image_path = {}, None
+    data, image_path, image_bytes, image_filename = {}, None, None, None
     if content_type.startswith("multipart/form-data"):
         body = req.get_body()
         multipart_data = decoder.MultipartDecoder(body, content_type)
@@ -46,13 +56,9 @@ def parse_multipart(req):
                 user_id = str(data.get("creator", "unknown"))
                 unique_id = uuid.uuid4().hex[:8]
                 save_name = f"{datetime.now().strftime('%Y%m%d%H%M%S')}_{user_id}_{unique_id}{ext}"
-                save_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'front', 'public', 'images'))
-                os.makedirs(save_dir, exist_ok=True)
-                save_path = os.path.join(save_dir, save_name)
-                with open(save_path, "wb") as f:
-                    f.write(part.content)
-                image_path = f"images/{save_name}"
-                data["image"] = image_path
+                image_bytes = part.content
+                image_filename = save_name
+                # image_pathは後でAzureアップロード後にセット
             else:
                 name = cd.split('name="')[1].split('"')[0]
                 value = part.text
@@ -65,7 +71,7 @@ def parse_multipart(req):
     else:
         data = req.get_json()
         image_path = data.get("image")
-    return data, image_path
+    return data, image_path, image_bytes, image_filename
 
 def fetch_events(user_id, is_draft):
     with get_db_connection() as conn:
@@ -88,10 +94,24 @@ def fetch_events(user_id, is_draft):
         events.reverse()
         return events
 
+def get_blob_url(filename):
+    # ストレージの画像URLを生成
+    connect_str = get_azure_storage_connection_string()
+    blob_service_client = BlobServiceClient.from_connection_string(connect_str)
+    blob_client = blob_service_client.get_blob_client(container=CONTAINER_NAME, blob=filename)
+    return blob_client.url
+
 @app.route(route="create_event", methods=["POST"])
 def create_event(req: func.HttpRequest) -> func.HttpResponse:
     try:
-        data, _ = parse_multipart(req)
+        data, image_path, image_bytes, image_filename = parse_multipart(req)
+        # 画像があればAzureストレージにアップロード
+        if image_bytes and image_filename:
+            image_url = upload_image_to_azure(image_bytes, image_filename)
+            data["image"] = image_url
+        else:
+            data["image"] = image_path
+
         data["category"] = data.get("category") or None
         data["max_participants"] = data.get("max_participants") or None
         is_draft = int(data.get("is_draft", 1))
@@ -240,7 +260,13 @@ def search_events(req: func.HttpRequest) -> func.HttpResponse:
                     cursor.execute(sql)
                     columns = [column[0] for column in cursor.description]
                     rows = cursor.fetchall()
-                    result = [dict(zip(columns, row)) for row in rows]
+                    result = []
+                    for row in rows:
+                        row_dict = dict(zip(columns, row))
+                        # imageカラムがあればURL化
+                        if row_dict.get("image"):
+                            row_dict["image"] = get_blob_url(row_dict["image"])
+                        result.append(row_dict)
                     return func.HttpResponse(json.dumps(result, default=str), mimetype="application/json")
                 else:
                     try:
@@ -258,6 +284,9 @@ def search_events(req: func.HttpRequest) -> func.HttpResponse:
                     columns = [column[0] for column in cursor.description]
                     if row:
                         result = dict(zip(columns, row))
+                        # imageカラムがあればURL化
+                        if result.get("image"):
+                            result["image"] = get_blob_url(result["image"])
                         for k, v in result.items():
                             if isinstance(v, (bytes, bytearray)):
                                 result[k] = v.decode('utf-8', errors='ignore')
@@ -305,6 +334,9 @@ def get_event_detail(req: func.HttpRequest) -> func.HttpResponse:
             if row:
                 keys = ["event_id", "event_title", "event_category", "event_datetime", "deadline", "location", "max_participants", "current_participants", "creator_id", "creator_name", "handle_name", "description", "content", "image", "is_draft"]
                 event = dict(zip(keys, row))
+                # imageカラムがあればURL化
+                if event.get("image"):
+                    event["image"] = get_blob_url(event["image"])
                 # datetime型を文字列に変換
                 for k in ["event_datetime", "deadline"]:
                     if isinstance(event[k], (datetime, date)):
@@ -335,13 +367,12 @@ def update_event(req: func.HttpRequest) -> func.HttpResponse:
                     user_id = "edit"
                     unique_id = uuid.uuid4().hex[:8]
                     save_name = f"{datetime.now().strftime('%Y%m%d%H%M%S')}_{user_id}_{unique_id}{ext}"
-                    save_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'front', 'public', 'images'))
-                    os.makedirs(save_dir, exist_ok=True)
-                    save_path = os.path.join(save_dir, save_name)
-                    with open(save_path, "wb") as f:
-                        f.write(part.content)
-                    image_path = f"images/{save_name}"
-                    data["image"] = image_path
+                    image_bytes = part.content
+                    image_filename = save_name
+                    data["image"] = image_filename
+                    # 画像はAzureにアップロード
+                    image_url = upload_image_to_azure(image_bytes, image_filename)
+                    data["image"] = image_url
                 else:
                     name = content_disposition.split('name="')[1].split('"')[0]
                     value = part.text
@@ -419,24 +450,22 @@ def get_participants(req: func.HttpRequest) -> func.HttpResponse:
     event_id = req.params.get('event_id')
     if not event_id:
         return func.HttpResponse("event_id is required", status_code=400)
-        print("[DEBUG] get_event_detail req.params:", getattr(req, 'params', None))
-        print("[DEBUG] get_event_detail req.route_params:", getattr(req, 'route_params', None))
 
-    conn_str = os.environ["CONNECTION_STRING"]
-    conn = pyodbc.connect(conn_str)
     try:
-        with conn.cursor() as cursor:
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
             sql = """
                 SELECT u.id, u.l_name, u.f_name, u.email
                 FROM EVENTS_PARTICIPANTS ep
                 JOIN USERS u ON ep.id = u.id
                 WHERE ep.event_id = ? AND ep.cancelled_at IS NULL
             """
-            cursor.execute(sql, event_id)
+            cursor.execute(sql, (event_id,))
             columns = [column[0] for column in cursor.description]
             participants = [dict(zip(columns, row)) for row in cursor.fetchall()]
-    finally:
-        conn.close()
+    except Exception as e:
+        logging.error(str(e))
+        return error_response(f"DB error: {str(e)}", 500)
 
     return func.HttpResponse(
         json.dumps({"participants": participants}, ensure_ascii=False),
