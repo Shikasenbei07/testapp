@@ -33,12 +33,11 @@ export default function EventResultTable({
           // ↓ キーワードが入力されている場合はキーワードで部分一致検索（イベント名では検索しない）
           .filter(ev => {
             if (!keyword) return true;
-            // キーワードが空でなければ、event.keywords配列に部分一致するものがあるか
-            return Array.isArray(ev.keywords)
-              ? ev.keywords.some(kw =>
-                  (kw.keyword_name || kw).toLowerCase().includes(keyword.toLowerCase())
-                )
-              : false;
+            // キーワード配列がなければ「一致しない」ではなく「false」ではなく「true」にする
+            if (!Array.isArray(ev.keywords) || ev.keywords.length === 0) return false;
+            return ev.keywords.some(kw =>
+              (kw.keyword_name || kw).toLowerCase().includes(keyword.toLowerCase())
+            );
           })
           .filter(ev => {
             if (!hideExpired) return true;

@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import { getValidId } from "../../utils/getValidId";
 import { useEventsData } from "../../hooks/useEventsData";
 import { toggleFavorite } from "../../utils/toggleFavorite";
+import { filterEvents } from "../../utils/filterEvents";
 import EventSearchHeader from "../../components/EventSearchHeader";
 import EventResultTable from "../../components/EventResultTable";
 
@@ -39,32 +40,7 @@ export default function EventsPage() {
   const filteredKeys = ["event_title", "event_datetime", "deadline", "location"];
 
   // イベント名またはキーワードで部分一致検索
-  const filteredEvents = events.filter(event => {
-    const keywordLower = keyword.trim().toLowerCase();
-    const eventTitleLower = eventTitle.trim().toLowerCase();
-    // どちらも未入力なら全件
-    if (!keywordLower && !eventTitleLower) return true;
-    // イベント名検索（eventTitleのみで検索）
-    const matchTitle = event.event_title && event.event_title.toLowerCase().includes(eventTitleLower);
-    // キーワード検索（keywordのみで検索）
-    const matchKeywords = Array.isArray(event.keywords)
-      ? event.keywords.some(kw =>
-          (kw.keyword_name || kw).toLowerCase().includes(keywordLower)
-        )
-      : false;
-    // 両方入力時は両方一致、どちらか入力時はどちらか一致
-    if (keywordLower && eventTitleLower) {
-      // 両方入力時は両方一致
-      return matchTitle && matchKeywords;
-    } else if (eventTitleLower) {
-      // イベント名のみ
-      return matchTitle;
-    } else if (keywordLower) {
-      // キーワードのみ
-      return matchKeywords;
-    }
-    return true;
-  });
+  const filteredEvents = filterEvents(events, { keyword, eventTitle });
 
   const handleToggleFavorite = (eventId) => {
     setFavorites(prev => toggleFavorite(prev, eventId));

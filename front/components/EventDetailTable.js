@@ -10,12 +10,7 @@ export default function EventDetailTable({ event }) {
       ? event.keywords.map((kw, i) => (
           <span
             key={kw.keyword_id || kw}
-            style={{
-              cursor: "pointer",
-              color: "#1976d2",
-              marginRight: 8,
-              textDecoration: "underline",
-            }}
+            style={keywordTagStyle}
             onClick={() => {
               // キーワードをlocalStorageに保存
               const keywordValue = kw.keyword_name || kw;
@@ -32,13 +27,7 @@ export default function EventDetailTable({ event }) {
     <div>
       {/* キーワードを表の外に表示 */}
       {keywordTags && (
-        <div
-          style={{
-            marginBottom: "1rem",
-            fontWeight: "bold",
-            color: "#1976d2",
-          }}
-        >
+        <div style={keywordTagsWrapperStyle}>
           {keywordTags}
         </div>
       )}
@@ -73,3 +62,17 @@ export default function EventDetailTable({ event }) {
     </div>
   );
 }
+
+// --- スタイル定義をページ末尾に分離 ---
+const keywordTagStyle = {
+  cursor: "pointer",
+  color: "#1976d2",
+  marginRight: 8,
+  textDecoration: "underline",
+};
+
+const keywordTagsWrapperStyle = {
+  marginBottom: "1rem",
+  fontWeight: "bold",
+  color: "#1976d2",
+};

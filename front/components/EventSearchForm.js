@@ -18,17 +18,6 @@ export default function EventSearchForm({
   setHideExpired,
   error,
 }) {
-  // ローカルストレージからキーワードを取得してセット
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("eventSearchKeyword");
-      if (saved) {
-        setKeyword(saved);
-        localStorage.removeItem("eventSearchKeyword");
-      }
-    }
-  }, [setKeyword]);
-
   // リセット処理
   const handleReset = () => {
     setSortKey("");
@@ -36,9 +25,23 @@ export default function EventSearchForm({
     setSelectedCategory("");
     setSelectedDate("");
     setKeyword("");
-    if (setEventTitle) setEventTitle(""); // ← 修正: setEventTitleが存在する場合のみ呼ぶ
+    if (setEventTitle) setEventTitle("");
     setHideExpired(false);
   };
+
+  // ローカルストレージから初期値を取得し、取得後は削除
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const stored = window.localStorage.getItem("eventSearchKeyword");
+      if (stored) {
+        setKeyword(stored);
+        window.localStorage.removeItem("eventSearchKeyword");
+      } else {
+        handleReset();
+      }
+    }
+    // eslint-disable-next-line
+  }, []);
 
   return (
     <div style={searchFormWrapperStyle}>
@@ -69,8 +72,8 @@ export default function EventSearchForm({
           onChange={(e) => setSelectedCategory(e.target.value)}
         >
           <option value="">すべて</option>
-          {categories.map((cat) => (
-            <option key={cat.id} value={cat.id}>
+          {categories.map((cat, idx) => (
+            <option key={cat.id ?? cat.name ?? idx} value={cat.id}>
               {cat.name}
             </option>
           ))}
@@ -100,8 +103,8 @@ export default function EventSearchForm({
         <input
           type="text"
           id="keyword-search"
-          value={keyword}
-          onChange={(e) => setKeyword(e.target.value)}
+          value={keyword || ""}
+          onChange={(e) => setKeyword && setKeyword(e.target.value)}
           placeholder="キーワードで検索"
         />
       </div>
