@@ -1,14 +1,14 @@
 import os
-import pyodbc
 import json
 import logging
+import traceback
 import azure.functions as func
 from requests_toolbelt.multipart import decoder
 import uuid
 from datetime import datetime, date
 
 from utils import get_db_connection, get_azure_storage_connection_string, error_response, success_response
-from azure.storage.blob import generate_blob_sas, BlobSasPermissions
+from utils_blob import upload_blob, get_blob_sas_url
 
 # 追加: Azure Blob Storage用
 from azure.storage.blob import BlobServiceClient
@@ -31,12 +31,6 @@ def to_db_date(val):
             return val
     return val
 
-def upload_image_to_azure(image_bytes, filename):
-    connect_str = get_azure_storage_connection_string()
-    blob_service_client = BlobServiceClient.from_connection_string(connect_str)
-    blob_client = blob_service_client.get_blob_client(container=CONTAINER_NAME, blob=filename)
-    blob_client.upload_blob(image_bytes, overwrite=True)
-    return blob_client.url
 
 def parse_multipart(req):
     content_type = req.headers.get("Content-Type", "")
@@ -90,35 +84,12 @@ def fetch_events(user_id, is_draft):
         events.reverse()
         return events
 
-def get_blob_url(filename):
-    if filename and (filename.startswith("http://") or filename.startswith("https://")):
-        return filename
-    connect_str = get_azure_storage_connection_string()
-    blob_service_client = BlobServiceClient.from_connection_string(connect_str)
-    blob_client = blob_service_client.get_blob_client(container=CONTAINER_NAME, blob=filename)
-    # SASトークンを生成（例：10分間有効）
-    from datetime import datetime, timedelta
-    sas_token = generate_blob_sas(
-        account_name=blob_service_client.account_name,
-        container_name=CONTAINER_NAME,
-        blob_name=filename,
-        account_key=blob_service_client.credential.account_key,
-        permission=BlobSasPermissions(read=True),
-        expiry=datetime.utcnow() + timedelta(minutes=10)
-    )
-    return f"{blob_client.url}?{sas_token}"
 
 @app.route(route="create_event", methods=["POST"])
 def create_event(req: func.HttpRequest) -> func.HttpResponse:
     try:
         data, image_path, image_bytes, image_filename = parse_multipart(req)
         logging.info(f"image_bytes: {type(image_bytes)}, image_filename: {image_filename}")
-        # 画像があればAzureストレージにアップロード
-        if image_bytes and image_filename:
-            image_url = upload_image_to_azure(image_bytes, image_filename)
-            data["image"] = image_url
-        else:
-            data["image"] = image_path
 
         data["category"] = data.get("category") or None
         data["max_participants"] = data.get("max_participants") or None
@@ -133,13 +104,14 @@ def create_event(req: func.HttpRequest) -> func.HttpResponse:
             for f in required_fields:
                 if not data.get(f):
                     return error_response(f"{f}は必須です")
+
         with get_db_connection() as conn:
             cursor = conn.cursor()
             cursor.execute(
                 '''
-                INSERT INTO EVENTS (event_title, event_category, event_datetime, deadline, location, max_participants, creator, description, content, image, is_draft)
+                INSERT INTO EVENTS (event_title, event_category, event_datetime, deadline, location, max_participants, creator, description, content, is_draft)
                 OUTPUT INSERTED.event_id
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ''',
                 data.get("title"),
                 int(data.get("category")) if data.get("category") else None,
@@ -150,21 +122,39 @@ def create_event(req: func.HttpRequest) -> func.HttpResponse:
                 str(data.get("creator")),
                 data.get("summary"),
                 data.get("detail"),
-                data.get("image"),
                 is_draft
             )
-            event_id = cursor.fetchone()[0]
+            event_id = int(cursor.fetchone()[0])
+
+            # 画像があればAzureストレージにアップロード
+            if image_bytes and image_filename:
+                blob_name = upload_blob("event-images", image_bytes, image_filename, "eventimg_" + str(event_id))
+                cursor.execute(
+                    '''
+                    UPDATE EVENTS
+                    SET image = ?
+                    WHERE event_id = ?
+                    ''',
+                    blob_name, event_id
+                )
+
+
             if data.get("keywords"):
                 for kw in data["keywords"]:
                     if kw:
-                        cursor.execute("INSERT INTO EVENTS_KEYWORDS (event_id, keyword_id) VALUES (?, ?)", event_id, int(kw))
+                        cursor.execute(
+                            '''
+                            INSERT INTO EVENTS_KEYWORDS (event_id, keyword_id)
+                            VALUES (?, ?)
+                            ''',
+                            event_id, int(kw)
+                        )
             conn.commit()
         return func.HttpResponse(json.dumps({"message": "イベント登録完了", "event_id": event_id}), mimetype="application/json", status_code=200)
     except Exception as e:
-        import traceback
         tb = traceback.format_exc()
         logging.error(tb)
-        return error_response(str(e), 500, tb)
+        return error_response(str(e), 500)
 
 @app.route(route="get_self_created_events")
 def get_self_created_events(req: func.HttpRequest) -> func.HttpResponse:

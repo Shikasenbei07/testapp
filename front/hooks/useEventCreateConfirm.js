@@ -1,5 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 
+//const API_URL_CREATE_EVENT = process.env.NEXT_PUBLIC_API_URL_CREATE_EVENT;
+const API_URL_CREATE_EVENT = "http://localhost:7071/api/create_event";
+
 export function useEventCreateConfirm(router) {
   const [formValues, setFormValues] = useState(null);
   const [image, setImage] = useState(null);
@@ -67,7 +70,7 @@ export function useEventCreateConfirm(router) {
 
   const handleConfirm = useCallback(async () => {
     if (!formValues) return;
-    const API_URL_CREATE_EVENT = process.env.NEXT_PUBLIC_API_URL_CREATE_EVENT;
+    
     if (!API_URL_CREATE_EVENT) {
       setError("APIのURLが設定されていません。管理者に連絡してください。");
       return;
@@ -95,6 +98,8 @@ export function useEventCreateConfirm(router) {
         body: formData
       });
       if (res.ok) {
+        localStorage.removeItem("eventCreateImage");
+        localStorage.removeItem("eventCreateImageName");
         if (formValues.is_draft === "1") {
             alert("下書きとして保存しました。");
         } else {
