@@ -263,7 +263,7 @@ def search_events(req: func.HttpRequest) -> func.HttpResponse:
                         row_dict = dict(zip(columns, row))
                         # imageカラムがあればURL化
                         if row_dict.get("image"):
-                            row_dict["image"] = get_blob_sas_url(row_dict["image"])
+                            row_dict["image"] = get_blob_sas_url("event-images", row_dict["image"])
                         result.append(row_dict)
                     return func.HttpResponse(json.dumps(result, default=str), mimetype="application/json")
                 else:
@@ -284,7 +284,7 @@ def search_events(req: func.HttpRequest) -> func.HttpResponse:
                         result = dict(zip(columns, row))
                         # imageカラムがあればURL化
                         if result.get("image"):
-                            result["image"] = get_blob_sas_url(result["image"])
+                            result["image"] = get_blob_sas_url("event-images", result["image"])
                         for k, v in result.items():
                             if isinstance(v, (bytes, bytearray)):
                                 result[k] = v.decode('utf-8', errors='ignore')
@@ -334,7 +334,7 @@ def get_event_detail(req: func.HttpRequest) -> func.HttpResponse:
                 event = dict(zip(keys, row))
                 # imageカラムがあればURL化
                 if event.get("image"):
-                    event["image"] = get_blob_url(event["image"])
+                    event["image"] = get_blob_sas_url("event-images", event["image"])
                 # datetime型を文字列に変換
                 for k in ["event_datetime", "deadline"]:
                     if isinstance(event[k], (datetime, date)):
