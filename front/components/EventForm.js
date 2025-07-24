@@ -57,7 +57,7 @@ export default function EventForm({
                                     type="checkbox"
                                     name="keywords"
                                     value={opt.value}
-                                    checked={form.keywords.includes(opt.value)}
+                                    checked={form.keywords.includes(opt.value) || form.keywords.includes(String(opt.value))}
                                     onChange={onChange}
                                 />
                                 {opt.label}

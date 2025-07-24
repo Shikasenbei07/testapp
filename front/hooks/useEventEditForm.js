@@ -73,13 +73,22 @@ export function useEventEditForm() {
             })
             .then(data => {
                 if (!data) return;
+                // 取得したキーワードID配列（オブジェクト配列・ID配列どちらでも対応）
+                let checkedKeywords = [];
+                if (Array.isArray(data.keywords)) {
+                    if (typeof data.keywords[0] === "object" && data.keywords[0] !== null) {
+                        checkedKeywords = data.keywords.map(k => String(k.keyword_id));
+                    } else {
+                        checkedKeywords = data.keywords.map(k => String(k));
+                    }
+                }
                 setForm({
                     event_id: data.event_id,
                     title: data.event_title,
                     date: data.event_datetime,
                     location: data.location,
                     category: String(data.event_category),
-                    keywords: data.keywords ? data.keywords.map(k => String(k)) : [], // ←ここを必ず文字列配列に
+                    keywords: checkedKeywords,
                     summary: data.description,
                     detail: data.content,
                     deadline: data.deadline,

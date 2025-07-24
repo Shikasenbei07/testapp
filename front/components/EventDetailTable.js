@@ -1,3 +1,5 @@
+import { formatDateTime } from "../utils/formatDateTime";
+
 export default function EventDetailTable({ event }) {
   return (
     <table border="1" cellPadding="8">
@@ -8,11 +10,11 @@ export default function EventDetailTable({ event }) {
         </tr>
         <tr>
           <th>日時</th>
-          <td>{event.event_datetime}</td>
+          <td>{formatDateTime(event.event_datetime)}</td>
         </tr>
         <tr>
           <th>締切</th>
-          <td>{event.deadline}</td>
+          <td>{formatDateTime(event.deadline)}</td>
         </tr>
         <tr>
           <th>場所</th>

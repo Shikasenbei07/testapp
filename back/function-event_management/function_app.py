@@ -339,6 +339,18 @@ def get_event_detail(req: func.HttpRequest) -> func.HttpResponse:
                 for k in ["event_datetime", "deadline"]:
                     if isinstance(event[k], (datetime, date)):
                         event[k] = event[k].isoformat()
+                # キーワード一覧を取得して追加
+                cursor.execute(
+                    '''
+                    SELECT k.keyword_id, k.keyword_name
+                    FROM EVENTS_KEYWORDS ek
+                    JOIN KEYWORDS k ON ek.keyword_id = k.keyword_id
+                    WHERE ek.event_id = ?
+                    ''',
+                    (event_id,)
+                )
+                keywords = [{"keyword_id": kid, "keyword_name": kname} for kid, kname in cursor.fetchall()]
+                event["keywords"] = keywords
                 return success_response(event)
             else:
                 return error_response("イベントが見つかりません", 404)
