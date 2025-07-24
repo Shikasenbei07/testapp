@@ -8,7 +8,7 @@ import uuid
 from datetime import datetime, date
 
 from utils import get_db_connection, get_azure_storage_connection_string, error_response, success_response
-from utils_blob import upload_blob, get_blob_sas_url, delete_blob
+from utils_blob import upload_blob, get_blob_sas_url
 
 # 追加: Azure Blob Storage用
 from azure.storage.blob import BlobServiceClient
@@ -192,13 +192,11 @@ def delete_event(req: func.HttpRequest) -> func.HttpResponse:
     try:
         with get_db_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT creator, image FROM EVENTS WHERE event_id=?", (event_id,))
+            cursor.execute("SELECT creator FROM EVENTS WHERE event_id=?", (event_id,))
             row = cursor.fetchone()
             if not row:
                 return error_response("イベントが存在しません", 404)
-            # creator, imageカラム取得
             event_creator = row.creator if hasattr(row, "creator") else row[0]
-            image_blob_name = row.image if hasattr(row, "image") else row[1]
             try:
                 data = req.get_json()
             except Exception:
@@ -206,9 +204,6 @@ def delete_event(req: func.HttpRequest) -> func.HttpResponse:
             request_creator = str(data.get("creator", ""))
             if not request_creator or request_creator != str(event_creator):
                 return error_response("イベント作成者のみ削除可能です", 403)
-            # イベント画像があればBLOBも削除
-            if image_blob_name:
-                delete_blob("event-images", image_blob_name)
             cursor.execute("DELETE FROM EVENTS_KEYWORDS WHERE event_id=?", (event_id,))
             cursor.execute("DELETE FROM EVENTS_PARTICIPANTS WHERE event_id=?", (event_id,))
             cursor.execute("DELETE FROM favorites WHERE event_id=?", (event_id,))  # ←追加
@@ -284,6 +279,18 @@ def search_events(req: func.HttpRequest) -> func.HttpResponse:
                 # imageカラムがあればURL化
                 if row_dict.get("image"):
                     row_dict["image"] = get_blob_sas_url("event-images", row_dict["image"])
+                # event_idに対応するキーワード名を配列で取得
+                cursor.execute(
+                    '''
+                    SELECT k.keyword_name
+                    FROM EVENTS_KEYWORDS ek
+                    JOIN KEYWORDS k ON ek.keyword_id = k.keyword_id
+                    WHERE ek.event_id = ?
+                    ''',
+                    (row_dict["event_id"],)
+                )
+                keywords = [kname for (kname,) in cursor.fetchall()]
+                row_dict["keywords"] = keywords
                 result.append(row_dict)
             print(result)
             return func.HttpResponse(json.dumps(result, default=str), mimetype="application/json")
