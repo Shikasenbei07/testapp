@@ -36,21 +36,11 @@ export default function EventsPage() {
     error,
     setError,
   } = useEventsData(id, keyword, eventTitle);
-
-  // eventsが変化したときだけログを出す
-  useEffect(() => {
-    console.log("events:", events);
-  }, [events]);
-
+  
   const filteredKeys = ["event_title", "event_datetime", "deadline", "location"];
 
   // イベント名またはキーワードで部分一致検索
   const filteredEvents = filterEvents(events, { keyword, eventTitle });
-
-  // filteredEventsが変化したときだけログを出す
-  useEffect(() => {
-    console.log("filteredEvents:", filteredEvents);
-  }, [filteredEvents]);
 
   const handleToggleFavorite = (eventId) => {
     setFavorites(prev => toggleFavorite(prev, eventId));
