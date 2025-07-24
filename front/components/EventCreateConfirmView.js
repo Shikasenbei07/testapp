@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { formatDate } from "../utils/dateUtils"; // 日付フォーマット関数をインポート（パスは適宜修正）
+import { formatDateTime } from "../utils/formatDateTime"; // 日付フォーマット関数をインポート（パスは適宜修正）
 
 export default function EventCreateConfirmView({
   formValues,
@@ -41,14 +41,14 @@ export default function EventCreateConfirmView({
       <h1>イベント作成{isDraft ? "（下書き保存）" : "（本登録）"}確認</h1>
       <div style={{ margin: "1rem 0", fontWeight: "bold", color: "#1976d2" }}>{confirmText}</div>
       <div className="row"><b>タイトル:</b> {formValues.title}</div>
-      <div className="row"><b>日付:</b> {formValues.date ? formatDate(formValues.date) : ""}</div>
+      <div className="row"><b>日付:</b> {formValues.date ? formatDateTime(formValues.date) : ""}</div>
       <div className="row"><b>場所:</b> {formValues.location}</div>
       <div className="row"><b>カテゴリ:</b> {categoryName || ""}</div>
       <div className="row"><b>キーワード:</b> {Array.isArray(keywordNames) ? keywordNames.join(", ") : (keywordNames || "")}</div>
       <div className="row"><b>概要:</b> {formValues.summary}</div>
       <div className="row"><b>詳細:</b> {formValues.detail}</div>
       <div className="row"><b>最大人数:</b> {formValues.max_participants}</div>
-      <div className="row"><b>締切日:</b> {formValues.deadline ? formatDate(formValues.deadline) : ""}</div>
+      <div className="row"><b>締切日:</b> {formValues.deadline ? formatDateTime(formValues.deadline) : ""}</div>
       <div className="row"><b>画像:</b> {
         imageUrl ? (
           <img
