@@ -17,8 +17,8 @@ export default function EventDetail() {
   return (
     <div style={{ padding: "2rem" }}>
       <h1>イベント詳細</h1>
-      <EventDetailTable event={event} />
       <EventDetailImage src={event.image} alt="イベント画像" />
+      <EventDetailTable event={event} />
       <EventDetailActions event_id={event_id} event={event} router={router} />
     </div>
   );
