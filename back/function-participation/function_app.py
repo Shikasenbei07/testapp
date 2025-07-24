@@ -6,10 +6,7 @@ import logging
 
 app = func.FunctionApp(http_auth_level=func.AuthLevel.FUNCTION)
 
-if os.environ.get("IS_MAIN_PRODUCT") == "true":
-    CONNECTION_STRING = os.environ.get("CONNECTION_STRING_PRODUCT")
-else:
-    CONNECTION_STRING = os.environ.get("CONNECTION_STRING_TEST")
+from utils import get_connection_string, get_db_connection, error_response, success_response
 
 
 # イベント参加登録API
@@ -46,14 +43,7 @@ def participate(req: func.HttpRequest) -> func.HttpResponse:
                 mimetype="application/json"
             )
 
-        if not CONNECTION_STRING:
-            return func.HttpResponse(
-                json.dumps({"error": "DB接続情報(CONNECTION_STRING)が設定されていません"}),
-                status_code=500,
-                mimetype="application/json"
-            )
-
-        with pyodbc.connect(CONNECTION_STRING) as conn:
+        with get_db_connection() as conn:
             cursor = conn.cursor()
             # すでに参加済みかチェック
             cursor.execute(
@@ -125,10 +115,7 @@ def get_mylist(req: func.HttpRequest) -> func.HttpResponse:
             user_id = data.get("id")
         else:
             user_id = req.params.get("id")
-        conn_str = CONNECTION_STRING
-        if not conn_str:
-            return func.HttpResponse("DB connection string not found.", status_code=500)
-        with pyodbc.connect(conn_str) as conn:
+        with get_db_connection() as conn:
             cursor = conn.cursor()
             sql = """
             SELECT
@@ -183,11 +170,7 @@ def reservation_history(req: func.HttpRequest) -> func.HttpResponse:
                 mimetype="application/json"
             )
 
-        conn_str = CONNECTION_STRING
-        if not conn_str:
-            logging.error("CONNECTION_STRING is not set in environment variables.")
-            return func.HttpResponse("DB connection string not found.", status_code=500)
-        with pyodbc.connect(conn_str) as conn:
+        with get_db_connection() as conn:
             cursor = conn.cursor()
             sql = """
             SELECT
@@ -224,27 +207,45 @@ def reservation_history(req: func.HttpRequest) -> func.HttpResponse:
     )
 
 
-@app.route(route="cancel-participation")
+@app.route(route="cancel-participation", methods=["DELETE"])
 def cancel_participation(req: func.HttpRequest) -> func.HttpResponse:
     try:
-        data = req.get_json()
+        try:
+            data = req.get_json()
+        except Exception:
+            return error_response("リクエストボディが不正です", status=400)
         event_id = data.get("event_id")
-        user_id = data.get("user_id")
+        user_id = data.get("id")
         if not event_id or not user_id:
-            return func.HttpResponse("event_id and user_id required", status_code=400)
+            return error_response("event_idとidは必須です", status=400)
+        try:
+            event_id = int(event_id)
+        except ValueError:
+            return error_response("event_idは整数で指定してください", status=400)
 
-        conn_str = CONNECTION_STRING
-        with pyodbc.connect(conn_str) as conn:
+        with get_db_connection() as conn:
             cursor = conn.cursor()
             # レコード削除
-            cursor.execute("""
+            cursor.execute(
+                """
                 DELETE FROM EVENTS_PARTICIPANTS
                 WHERE event_id = ? AND id = ?
-            """, (event_id, user_id))
-            conn.commit()
+                """,
+                (event_id, user_id)
+            )
             if cursor.rowcount == 0:
-                return func.HttpResponse("キャンセル対象がありません", status_code=400)
-        return func.HttpResponse("OK", status_code=200)
+                return error_response("参加登録が見つかりません", status=404)
+            # current_participantsをデクリメント
+            cursor.execute(
+                """
+                UPDATE EVENTS
+                SET current_participants = CASE WHEN current_participants > 0 THEN current_participants - 1 ELSE 0 END
+                WHERE event_id = ?
+                """,
+                (event_id,)
+            )
+            conn.commit()
+        return success_response("OK", status=200)
     except Exception as e:
         logging.error(f"Cancel participation error: {e}")
-        return func.HttpResponse("DB error", status_code=500)
+        return error_response("DB error", status=500)
