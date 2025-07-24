@@ -247,11 +247,8 @@ def search_events(req: func.HttpRequest) -> func.HttpResponse:
     try:
         if req.method == "POST":
             body = req.get_json()
-            keyword = body.get("keyword").strip()
+            keyword = body.get("keyword")
             event_title = body.get("event_title", "").strip()
-            print(keyword, event_title)
-            if not keyword:
-                print("yes")
         else:
             keyword = req.params.get("keyword", "").strip()
             event_title = req.params.get("event_title", "").strip()
@@ -264,7 +261,7 @@ def search_events(req: func.HttpRequest) -> func.HttpResponse:
                 LEFT JOIN CATEGORIES c ON e.event_category = c.category_id
                 LEFT JOIN EVENTS_KEYWORDS ek ON e.event_id = ek.event_id
                 LEFT JOIN KEYWORDS k ON ek.keyword_id = k.keyword_id
-                WHERE 1=1
+                WHERE e.is_draft=0
             '''
             params = []
             if event_title:
@@ -283,6 +280,7 @@ def search_events(req: func.HttpRequest) -> func.HttpResponse:
                 if row_dict.get("image"):
                     row_dict["image"] = get_blob_sas_url("event-images", row_dict["image"])
                 result.append(row_dict)
+            print(result)
             return func.HttpResponse(json.dumps(result, default=str), mimetype="application/json")
     except Exception as e:
         return error_response(str(e), 500)

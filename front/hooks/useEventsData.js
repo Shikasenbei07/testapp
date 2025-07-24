@@ -30,7 +30,6 @@ export function useEventsData(id, keyword, eventTitle) {
     })
       .then(res => res.json())
       .then(data => {
-        console.log("イベントデータ取得:", keyword, eventTitle);
         setEvents(Array.isArray(data) ? data : []);
       })
       .catch(err => setError("データ取得エラー: " + err.message));
@@ -41,6 +40,7 @@ export function useEventsData(id, keyword, eventTitle) {
         setCategories(Array.isArray(data) ? data.map(cat => ({ id: cat.category_id, name: cat.category_name })) : []);
       })
       .catch(err => setError("カテゴリー取得エラー: " + err.message));
+
   }, [id, keyword, eventTitle]);
 
   return {

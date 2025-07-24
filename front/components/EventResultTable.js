@@ -30,7 +30,16 @@ export default function EventResultTable({
         {[...events]
           .filter(ev => !selectedCategory || String(ev.event_category) === String(selectedCategory))
           .filter(ev => !selectedDate || (ev.event_datetime && ev.event_datetime.slice(0,10) === selectedDate))
-          .filter(ev => !keyword || (ev.event_title && ev.event_title.includes(keyword)))
+          // ↓ キーワードが入力されている場合はキーワードで部分一致検索（イベント名では検索しない）
+          .filter(ev => {
+            if (!keyword) return true;
+            // キーワードが空でなければ、event.keywords配列に部分一致するものがあるか
+            return Array.isArray(ev.keywords)
+              ? ev.keywords.some(kw =>
+                  (kw.keyword_name || kw).toLowerCase().includes(keyword.toLowerCase())
+                )
+              : false;
+          })
           .filter(ev => {
             if (!hideExpired) return true;
             if (!ev.deadline) return true;
