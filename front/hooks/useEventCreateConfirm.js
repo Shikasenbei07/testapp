@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 
-//const API_URL_CREATE_EVENT = process.env.NEXT_PUBLIC_API_URL_CREATE_EVENT;
-const API_URL_CREATE_EVENT = "http://localhost:7071/api/create_event";
+const API_URL_CREATE_EVENT = process.env.NEXT_PUBLIC_API_URL_CREATE_EVENT;
 
 export function useEventCreateConfirm(router) {
   const [formValues, setFormValues] = useState(null);
