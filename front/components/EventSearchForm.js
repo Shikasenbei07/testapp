@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 
 export default function EventSearchForm({
   sortKey,
@@ -16,6 +16,17 @@ export default function EventSearchForm({
   setHideExpired,
   error,
 }) {
+  // ローカルストレージからキーワードを取得してセット
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("eventSearchKeyword");
+      if (saved) {
+        setKeyword(saved);
+        localStorage.removeItem("eventSearchKeyword");
+      }
+    }
+  }, [setKeyword]);
+
   // リセット処理
   const handleReset = () => {
     setSortKey("");
