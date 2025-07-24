@@ -19,27 +19,27 @@ export default function EventForm({
         <div className="event-form-container">
             <h1>{isEdit ? "イベント編集" : "イベント作成"}</h1>
             <form onSubmit={onSubmit}>
-                <div className="row">
-                    <label>タイトル
-                        <input type="text" name="title" value={form.title} onChange={onChange} required maxLength={255} />
+                <div className="row" style={styles.row}>
+                    <label style={styles.label}>タイトル
+                        <input type="text" name="title" value={form.title} onChange={onChange} required maxLength={255} style={styles.input} />
                     </label>
                     {errors.title && <div style={{ color: 'red' }}>{errors.title}</div>}
                 </div>
-                <div className="row">
-                    <label>日付
-                        <input type="datetime-local" name="date" value={form.date} onChange={onChange} required min={new Date().toISOString().slice(0, 16)} />
+                <div className="row" style={styles.row}>
+                    <label style={styles.label}>日付
+                        <input type="datetime-local" name="date" value={form.date} onChange={onChange} required min={new Date().toISOString().slice(0, 16)} style={styles.input} />
                     </label>
                     {errors.date && <div style={{ color: 'red' }}>{errors.date}</div>}
                 </div>
-                <div className="row">
-                    <label>場所
-                        <input type="text" name="location" value={form.location} onChange={onChange} required maxLength={255} />
+                <div className="row" style={styles.row}>
+                    <label style={styles.label}>場所
+                        <input type="text" name="location" value={form.location} onChange={onChange} required maxLength={255} style={styles.input} />
                     </label>
                     {errors.location && <div style={{ color: 'red' }}>{errors.location}</div>}
                 </div>
-                <div className="row">
-                    <label>カテゴリ
-                        <select name="category" value={form.category} onChange={onChange} required>
+                <div className="row" style={styles.row}>
+                    <label style={styles.label}>カテゴリ
+                        <select name="category" value={form.category} onChange={onChange} required style={styles.select}>
                             <option value="">選択してください</option>
                             {categoryOptions.map(opt => (
                                 <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -59,6 +59,7 @@ export default function EventForm({
                                     value={opt.value}
                                     checked={form.keywords.includes(opt.value) || form.keywords.includes(String(opt.value))}
                                     onChange={onChange}
+                                    style={styles.checkbox}
                                 />
                                 {opt.label}
                             </label>
@@ -66,9 +67,9 @@ export default function EventForm({
                     </div>
                     {errors.keywords && <div style={{ color: 'red' }}>{errors.keywords}</div>}
                 </div>
-                <div className="row">
-                    <label>画像
-                        <input type="file" name="image" accept="image/*" onChange={onChange} />
+                <div className="row" style={styles.row}>
+                    <label style={styles.label}>画像
+                        <input type="file" name="image" accept="image/*" onChange={onChange} style={styles.input} />
                     </label>
                     {(preview && form.image && typeof form.image !== "string") && (
                         <img src={preview} alt="プレビュー" className="event-image" />
@@ -78,27 +79,27 @@ export default function EventForm({
                     )}
                     {errors.image && <div style={{ color: 'red' }}>{errors.image}</div>}
                 </div>
-                <div className="row">
-                    <label>イベント概要
-                        <textarea name="summary" rows={3} maxLength={200} value={form.summary} onChange={onChange} required />
+                <div className="row" style={styles.row}>
+                    <label style={styles.label}>イベント概要
+                        <textarea name="summary" rows={3} maxLength={200} value={form.summary} onChange={onChange} required style={styles.textarea} />
                     </label>
                     {errors.summary && <div style={{ color: 'red' }}>{errors.summary}</div>}
                 </div>
-                <div className="row">
-                    <label>イベント詳細
-                        <textarea name="detail" rows={5} maxLength={200} value={form.detail} onChange={onChange} required />
+                <div className="row" style={styles.row}>
+                    <label style={styles.label}>イベント詳細
+                        <textarea name="detail" rows={5} maxLength={200} value={form.detail} onChange={onChange} required style={styles.textarea} />
                     </label>
                     {errors.detail && <div style={{ color: 'red' }}>{errors.detail}</div>}
                 </div>
-                <div className="row">
-                    <label>最大人数
-                        <input type="number" name="max_participants" value={form.max_participants} onChange={onChange} min={1} />
+                <div className="row" style={styles.row}>
+                    <label style={styles.label}>最大人数
+                        <input type="number" name="max_participants" value={form.max_participants} onChange={onChange} min={1} style={styles.input} />
                     </label>
                     {errors.max_participants && <div style={{ color: 'red' }}>{errors.max_participants}</div>}
                 </div>
-                <div className="row">
-                    <label>申し込み締め切り日
-                        <input type="datetime-local" name="deadline" value={form.deadline} onChange={onChange} required min={new Date().toISOString().slice(0, 16)} max={form.date || undefined} />
+                <div className="row" style={styles.row}>
+                    <label style={styles.label}>申し込み締め切り日
+                        <input type="datetime-local" name="deadline" value={form.deadline} onChange={onChange} required min={new Date().toISOString().slice(0, 16)} max={form.date || undefined} style={styles.input} />
                     </label>
                     {errors.deadline && <div style={{ color: 'red' }}>{errors.deadline}</div>}
                 </div>

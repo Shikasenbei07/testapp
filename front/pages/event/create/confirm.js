@@ -36,5 +36,3 @@ function EventCreateConfirm() {
     />
   );
 }
-
-export default EventCreateConfirm;

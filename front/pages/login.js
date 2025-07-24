@@ -14,3 +14,5 @@ export default function Login() {
     />
   );
 }
+
+// getServerSidePropsを削除（静的生成を許可）

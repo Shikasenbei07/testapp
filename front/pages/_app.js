@@ -39,7 +39,7 @@ function MyApp({ Component, pageProps }) {
   const isLoginPage = router.pathname === '/login';
 
   return (
-    <>
+    <div>
       <Head>
         <link rel="icon" href="/img/logo.png" />
       </Head>
@@ -47,7 +47,7 @@ function MyApp({ Component, pageProps }) {
       <div>
         <Component {...pageProps} />
       </div>
-    </>
+    </div>
   );
 }
 

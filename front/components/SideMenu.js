@@ -1,6 +1,13 @@
 import Link from 'next/link';
 
 export default function SideMenu({ open, setOpen }) {
+  const menuItems = [
+    { href: '/event', label: 'イベント一覧' },
+    { href: '/event/create', label: 'イベント作成' },
+    { href: '/event/created', label: 'イベント編集' },
+    { href: '/mypage/reservation', label: '参加予約一覧' },
+  ];
+
   return (
     <>
       <button
@@ -40,26 +47,49 @@ export default function SideMenu({ open, setOpen }) {
         aria-hidden={!open}
       >
         <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-          <li style={{ margin: '1em' }}>
-            <Link href="/event" style={{ color: '#000' }} onClick={() => setOpen(false)}>
-              イベント一覧
-            </Link>
-          </li>
-          <li style={{ margin: '1em' }}>
-            <Link href="/event/create" style={{ color: '#000' }} onClick={() => setOpen(false)}>
-              イベント作成
-            </Link>
-          </li>
-          <li style={{ margin: '1em' }}>
-            <Link href="/event/created" style={{ color: '#000' }} onClick={() => setOpen(false)}>
-              イベント編集
-            </Link>
-          </li>
-          <li style={{ margin: '1em' }}>
-            <Link href="/mypage/reservation" style={{ color: '#000' }} onClick={() => setOpen(false)}>
-              参加予約一覧
-            </Link>
-          </li>
+          {menuItems.map((item) => (
+            <li
+              key={item.href}
+              style={{
+                margin: '1em',
+                position: 'relative',
+                cursor: 'pointer',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.querySelector('.underline').style.width = '70%'; // ← ここを短く
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.querySelector('.underline').style.width = '0';
+              }}
+            >
+              <Link
+                href={item.href}
+                style={{
+                  color: '#000',
+                  textDecoration: 'none',
+                  position: 'relative',
+                  zIndex: 1,
+                }}
+                onClick={() => setOpen(false)}
+              >
+                {item.label}
+              </Link>
+              <span
+                className="underline"
+                style={{
+                  display: 'block',
+                  position: 'absolute',
+                  left: 0,
+                  bottom: -2,
+                  height: '2px',
+                  width: 0,
+                  background: '#7f5af0',
+                  transition: 'width 0.3s',
+                  zIndex: 0,
+                }}
+              />
+            </li>
+          ))}
         </ul>
       </nav>
     </>

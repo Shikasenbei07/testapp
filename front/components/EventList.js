@@ -63,6 +63,8 @@ export default function EventList({ events, onEdit, onDelete, title }) {
                     text-align: center;
                     cursor: pointer;
                     text-decoration: underline;
+                    color: #5a5af0; /* アクセントカラーで見やすく */
+                    text-shadow: 0 2px 8px #b4b4d820;
                 }
                 .event-list-edit-btn {
                     padding: 0.4em 1em;

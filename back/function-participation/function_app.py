@@ -136,6 +136,7 @@ def get_mylist(req: func.HttpRequest) -> func.HttpResponse:
             cursor.execute(sql, (user_id,))
             columns = [column[0] for column in cursor.description]
             rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
+            logging.info(f"取得予約履歴: {rows}")
     except Exception as e:
         return func.HttpResponse("DB error", status_code=500)
 
