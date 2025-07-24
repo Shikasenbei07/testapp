@@ -14,6 +14,8 @@ export default function EventSearchHeader({
   setSelectedDate,
   keyword,
   setKeyword,
+  eventTitle,
+  setEventTitle,
   hideExpired,
   setHideExpired,
   error,
@@ -41,6 +43,8 @@ export default function EventSearchHeader({
           setSelectedDate={setSelectedDate}
           keyword={keyword}
           setKeyword={setKeyword}
+          eventTitle={eventTitle}
+          setEventTitle={setEventTitle}
           hideExpired={hideExpired}
           setHideExpired={setHideExpired}
           error={error}

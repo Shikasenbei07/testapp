@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 
-const API_URL_SEARCH_EVENTS = process.env.NEXT_PUBLIC_API_URL_SEARCH_EVENTS;
+//const API_URL_SEARCH_EVENTS = process.env.NEXT_PUBLIC_API_URL_SEARCH_EVENTS;
+const API_URL_SEARCH_EVENTS = "http://localhost:7071/api/search_events";
 const API_URL_GET_FAVORITES = process.env.NEXT_PUBLIC_API_URL_GET_FAVORITES;
 const API_URL_GET_CATEGORIES = process.env.NEXT_PUBLIC_API_URL_GET_CATEGORIES;
 
-export function useEventsData(id) {
+export function useEventsData(id, keyword, eventTitle) {
   const [favorites, setFavorites] = useState([]);
   const [events, setEvents] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -22,19 +23,15 @@ export function useEventsData(id) {
       .then(data => setFavorites(Array.isArray(data) ? data : []))
       .catch(() => setFavorites([]));
 
-    fetch(API_URL_SEARCH_EVENTS)
+    fetch(API_URL_SEARCH_EVENTS, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ keyword, event_title: eventTitle }),
+    })
       .then(res => res.json())
       .then(data => {
-        const now = new Date();
-        const filtered = Array.isArray(data)
-          ? data.filter(event => {
-              if (event.is_draft === 1 || event.is_draft === "1") return false;
-              if (!event.deadline) return true;
-              const deadline = new Date(event.deadline);
-              return deadline >= now;
-            })
-          : [];
-        setEvents(filtered);
+        console.log("イベントデータ取得:", keyword, eventTitle);
+        setEvents(Array.isArray(data) ? data : []);
       })
       .catch(err => setError("データ取得エラー: " + err.message));
 
@@ -44,7 +41,14 @@ export function useEventsData(id) {
         setCategories(Array.isArray(data) ? data.map(cat => ({ id: cat.category_id, name: cat.category_name })) : []);
       })
       .catch(err => setError("カテゴリー取得エラー: " + err.message));
-  }, [id]);
+  }, [id, keyword, eventTitle]);
 
-  return { favorites, setFavorites, events, categories, error, setError };
+  return {
+    favorites,
+    setFavorites,
+    events,
+    categories,
+    error,
+    setError,
+  };
 }

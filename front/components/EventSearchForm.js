@@ -12,6 +12,8 @@ export default function EventSearchForm({
   setSelectedDate,
   keyword,
   setKeyword,
+  eventTitle,
+  setEventTitle,
   hideExpired,
   setHideExpired,
   error,
@@ -34,6 +36,7 @@ export default function EventSearchForm({
     setSelectedCategory("");
     setSelectedDate("");
     setKeyword("");
+    if (setEventTitle) setEventTitle(""); // ← 修正: setEventTitleが存在する場合のみ呼ぶ
     setHideExpired(false);
   };
 
@@ -83,13 +86,23 @@ export default function EventSearchForm({
         />
       </div>
       <div style={formItemStyle}>
+        <label htmlFor="event-title-search">イベント名検索: </label>
+        <input
+          type="text"
+          id="event-title-search"
+          value={eventTitle || ""}
+          onChange={(e) => setEventTitle && setEventTitle(e.target.value)}
+          placeholder="イベント名で検索"
+        />
+      </div>
+      <div style={formItemStyle}>
         <label htmlFor="keyword-search">キーワード検索: </label>
         <input
           type="text"
           id="keyword-search"
           value={keyword}
           onChange={(e) => setKeyword(e.target.value)}
-          placeholder="イベント名で検索"
+          placeholder="キーワードで検索"
         />
       </div>
       <div style={formItemStyle}>
@@ -139,4 +152,4 @@ const clearButtonStyle = {
   background: "#fff",
   color: "#1976d2",
   cursor: "pointer"
-}
+};

@@ -245,66 +245,47 @@ def get_keywords(req: func.HttpRequest) -> func.HttpResponse:
 @app.route(route="search_events", methods=["GET", "POST"])
 def search_events(req: func.HttpRequest) -> func.HttpResponse:
     try:
-        if req.method == "GET":
-            event_id = req.params.get("event_id")
-            with get_db_connection() as conn:
-                cursor = conn.cursor()
-                if not event_id:
-                    sql = '''
-                        SELECT e.*, c.category_name
-                        FROM events e
-                        LEFT JOIN CATEGORIES c ON e.event_category = c.category_id
-                    '''
-                    cursor.execute(sql)
-                    columns = [column[0] for column in cursor.description]
-                    rows = cursor.fetchall()
-                    result = []
-                    for row in rows:
-                        row_dict = dict(zip(columns, row))
-                        # imageカラムがあればURL化
-                        if row_dict.get("image"):
-                            row_dict["image"] = get_blob_sas_url("event-images", row_dict["image"])
-                        result.append(row_dict)
-                    return func.HttpResponse(json.dumps(result, default=str), mimetype="application/json")
-                else:
-                    try:
-                        event_id_int = int(event_id)
-                    except (ValueError, TypeError):
-                        return error_response("event_idの形式が不正です")
-                    sql = '''
-                        SELECT e.*, c.category_name
-                        FROM events e
-                        LEFT JOIN CATEGORIES c ON e.event_category = c.category_id
-                        WHERE e.event_id = ?
-                    '''
-                    cursor.execute(sql, (event_id_int,))
-                    row = cursor.fetchone()
-                    columns = [column[0] for column in cursor.description]
-                    if row:
-                        result = dict(zip(columns, row))
-                        # imageカラムがあればURL化
-                        if result.get("image"):
-                            result["image"] = get_blob_sas_url("event-images", result["image"])
-                        for k, v in result.items():
-                            if isinstance(v, (bytes, bytearray)):
-                                result[k] = v.decode('utf-8', errors='ignore')
-                            elif hasattr(v, 'isoformat'):
-                                result[k] = v.isoformat()
-                        return func.HttpResponse(json.dumps(result, default=str), mimetype="application/json")
-                    else:
-                        return error_response("該当するデータがありません", 404)
-        elif req.method == "POST":
-            req_body = req.get_json()
-            event_id = req_body.get("event_id")
-            if not event_id:
-                return error_response("event_idが指定されていません")
-            # 必要ならここにPOST用の処理を追加
-            return error_response("未実装", 501)
+        if req.method == "POST":
+            body = req.get_json()
+            keyword = body.get("keyword").strip()
+            event_title = body.get("event_title", "").strip()
+            print(keyword, event_title)
+            if not keyword:
+                print("yes")
         else:
-            return error_response("許可されていないメソッドです", 405)
+            keyword = req.params.get("keyword", "").strip()
+            event_title = req.params.get("event_title", "").strip()
+
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            sql = '''
+                SELECT DISTINCT e.*, c.category_name
+                FROM events e
+                LEFT JOIN CATEGORIES c ON e.event_category = c.category_id
+                LEFT JOIN EVENTS_KEYWORDS ek ON e.event_id = ek.event_id
+                LEFT JOIN KEYWORDS k ON ek.keyword_id = k.keyword_id
+                WHERE 1=1
+            '''
+            params = []
+            if event_title:
+                sql += " AND e.event_title LIKE ?"
+                params.append(f"%{event_title}%")
+            if keyword:
+                sql += " AND k.keyword_name = ?"
+                params.append(keyword)
+            cursor.execute(sql, params)
+            columns = [column[0] for column in cursor.description]
+            rows = cursor.fetchall()
+            result = []
+            for row in rows:
+                row_dict = dict(zip(columns, row))
+                # imageカラムがあればURL化
+                if row_dict.get("image"):
+                    row_dict["image"] = get_blob_sas_url("event-images", row_dict["image"])
+                result.append(row_dict)
+            return func.HttpResponse(json.dumps(result, default=str), mimetype="application/json")
     except Exception as e:
-        logging.error(f"DBエラー: {e}")
-        return error_response(f"DB接続エラー: {e}", 500)
+        return error_response(str(e), 500)
 
 @app.route(route="get_event_detail", methods=["GET"])
 def get_event_detail(req: func.HttpRequest) -> func.HttpResponse:

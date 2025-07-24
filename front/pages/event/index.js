@@ -13,6 +13,7 @@ export default function EventsPage() {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
   const [keyword, setKeyword] = useState("");
+  const [eventTitle, setEventTitle] = useState(""); // イベント名検索用
   const [hideExpired, setHideExpired] = useState(false);
   const [searchOpen, setSearchOpen] = useState(true);
   const router = useRouter();
@@ -33,9 +34,37 @@ export default function EventsPage() {
     categories,
     error,
     setError,
-  } = useEventsData(id);
+  } = useEventsData(id, keyword, eventTitle);
 
   const filteredKeys = ["event_title", "event_datetime", "deadline", "location"];
+
+  // イベント名またはキーワードで部分一致検索
+  const filteredEvents = events.filter(event => {
+    const keywordLower = keyword.trim().toLowerCase();
+    const eventTitleLower = eventTitle.trim().toLowerCase();
+    // どちらも未入力なら全件
+    if (!keywordLower && !eventTitleLower) return true;
+    // イベント名検索（eventTitleのみで検索）
+    const matchTitle = event.event_title && event.event_title.toLowerCase().includes(eventTitleLower);
+    // キーワード検索（keywordのみで検索）
+    const matchKeywords = Array.isArray(event.keywords)
+      ? event.keywords.some(kw =>
+          (kw.keyword_name || kw).toLowerCase().includes(keywordLower)
+        )
+      : false;
+    // 両方入力時は両方一致、どちらか入力時はどちらか一致
+    if (keywordLower && eventTitleLower) {
+      // 両方入力時は両方一致
+      return matchTitle && matchKeywords;
+    } else if (eventTitleLower) {
+      // イベント名のみ
+      return matchTitle;
+    } else if (keywordLower) {
+      // キーワードのみ
+      return matchKeywords;
+    }
+    return true;
+  });
 
   const handleToggleFavorite = (eventId) => {
     setFavorites(prev => toggleFavorite(prev, eventId));
@@ -57,12 +86,14 @@ export default function EventsPage() {
         setSelectedDate={setSelectedDate}
         keyword={keyword}
         setKeyword={setKeyword}
+        eventTitle={eventTitle}
+        setEventTitle={setEventTitle}
         hideExpired={hideExpired}
         setHideExpired={setHideExpired}
         error={error}
       />
       <EventResultTable
-        events={events}
+        events={filteredEvents}
         favorites={favorites}
         filteredKeys={filteredKeys}
         sortKey={sortKey}
