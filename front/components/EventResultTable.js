@@ -78,13 +78,24 @@ export default function EventResultTable({
                   <span></span>
                 )}
               </td>
-              {filteredKeys.map((key, i) => (
-                <td key={i}>
-                  {(key === "event_datetime" || key === "deadline") && event[key]
-                    ? event[key].replace(/:\d{2}$/, "")
-                    : event[key]}
-                </td>
-              ))}
+              {filteredKeys.map((key, i) => {
+                // 申し込み期限セルのみ赤字判定
+                if (key === "deadline") {
+                  const isExpired = event[key] && new Date(event[key]) < new Date();
+                  return (
+                    <td key={i} style={isExpired ? { color: "red" } : {}}>
+                      {event[key] ? event[key].replace(/:\d{2}$/, "") : event[key]}
+                    </td>
+                  );
+                }
+                return (
+                  <td key={i}>
+                    {(key === "event_datetime" && event[key])
+                      ? event[key].replace(/:\d{2}$/, "")
+                      : event[key]}
+                  </td>
+                );
+              })}
               <td>{`${event.current_participants ?? 0}/${event.max_participants ?? 0}`}</td>
               <td style={{ textAlign: 'center' }}>
                 <button onClick={() => window.location.href = `/event/detail/${event.event_id}`}>詳細</button>

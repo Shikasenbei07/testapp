@@ -17,12 +17,28 @@ export default function EventDetailActions({ event_id, event, router }) {
       <button style={backButtonStyle} onClick={() => router.push(`/event`)}>戻る</button>
       {!isCreator ? (
         <>
-          <button
-            style={participateButtonStyle}
-            onClick={() => router.push(`/event/participation?event_id=${event_id}`)}
-          >
-            参加
-          </button>
+          {(event && event.deadline && new Date(event.deadline) < new Date()) ? (
+            <button
+              style={expiredButtonStyle}
+              disabled
+            >
+              申込期限切れ
+            </button>
+          ) : (event && event.max_participants !== undefined && event.current_participants >= event.max_participants) ? (
+            <button
+              style={waitButtonStyle}
+              disabled
+            >
+              キャンセル待ち
+            </button>
+          ) : (
+            <button
+              style={participateButtonStyle}
+              onClick={() => router.push(`/event/participation?event_id=${event_id}`)}
+            >
+              参加
+            </button>
+          )}
           <button
             style={inquiryButtonStyle}
             onClick={() => router.push(`/inquiry/new?event_id=${event_id}`)}
@@ -70,4 +86,18 @@ const inquiryButtonStyle = {
   border: 'none',
   borderRadius: '4px',
   cursor: 'pointer'
+};
+
+const expiredButtonStyle = {
+  ...participateButtonStyle,
+  background: "#ccc",
+  color: "#888",
+  cursor: "not-allowed"
+};
+
+const waitButtonStyle = {
+  ...participateButtonStyle,
+  background: "#ffc107",
+  color: "#888",
+  cursor: "not-allowed"
 };

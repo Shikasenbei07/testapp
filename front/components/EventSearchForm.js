@@ -26,7 +26,7 @@ export default function EventSearchForm({
     setSelectedDate("");
     setKeyword("");
     if (setEventTitle) setEventTitle("");
-    setHideExpired(false);
+    setHideExpired(true);
   };
 
   // ローカルストレージから初期値を取得し、取得後は削除
@@ -113,9 +113,9 @@ export default function EventSearchForm({
           <input
             type="checkbox"
             checked={hideExpired}
-            onChange={(e) => setHideExpired(e.target.checked)}
+            onChange={e => setHideExpired(e.target.checked)}
           />
-          期限切れイベントを非表示
+          申込期間内のイベントのみ表示
         </label>
       </div>
       <div style={formItemStyle}>
