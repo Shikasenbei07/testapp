@@ -105,8 +105,17 @@ export function useEventEditForm() {
             setForm((prev) => ({ ...prev, image: file }));
             if (file) {
                 setPreview(URL.createObjectURL(file));
+                // 画像ファイルをDataURL化してlocalStorageに保存
+                const reader = new FileReader();
+                reader.onload = function (ev) {
+                    localStorage.setItem("eventEditImage", ev.target.result);
+                    localStorage.setItem("eventEditImageName", file.name);
+                };
+                reader.readAsDataURL(file);
             } else {
                 setPreview(null);
+                localStorage.removeItem("eventEditImage");
+                localStorage.removeItem("eventEditImageName");
             }
         } else {
             setForm((prev) => ({ ...prev, [name]: value }));

@@ -353,7 +353,8 @@ def update_event(req: func.HttpRequest) -> func.HttpResponse:
         # 作成者チェック
         content_type = req.headers.get("Content-Type", "")
         data = {}
-        image_path = None
+        image_bytes = None
+        image_filename = None
         if content_type.startswith("multipart/form-data"):
             body = req.get_body()
             multipart_data = decoder.MultipartDecoder(body, content_type)
@@ -367,10 +368,7 @@ def update_event(req: func.HttpRequest) -> func.HttpResponse:
                     save_name = f"{datetime.now().strftime('%Y%m%d%H%M%S')}_{user_id}_{unique_id}{ext}"
                     image_bytes = part.content
                     image_filename = save_name
-                    data["image"] = image_filename
-                    # 画像はAzureにアップロード
-                    image_url = upload_image_to_azure(image_bytes, image_filename)
-                    data["image"] = image_url
+                    data["image"] = image_filename  # 一時的にファイル名をセット
                 else:
                     name = content_disposition.split('name="')[1].split('"')[0]
                     value = part.text
@@ -384,12 +382,13 @@ def update_event(req: func.HttpRequest) -> func.HttpResponse:
                 data["image"] = None
         else:
             data = req.get_json()
-            image_path = data.get("image")
+            image_bytes = None
+            image_filename = None
 
         # DBからイベント取得して作成者チェック
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("SELECT creator FROM EVENTS WHERE event_id=?", event_id)
+        cursor.execute("SELECT creator FROM EVENTS WHERE event_id=?", (event_id,))
         row = cursor.fetchone()
         if not row:
             return func.HttpResponse(json.dumps({"error": "イベントが存在しません"}), mimetype="application/json", status_code=404)
@@ -397,6 +396,7 @@ def update_event(req: func.HttpRequest) -> func.HttpResponse:
         request_creator = str(data.get("creator", ""))
         if not request_creator or request_creator != str(event_creator):
             return func.HttpResponse(json.dumps({"error": "イベント作成者のみ編集可能です"}), mimetype="application/json", status_code=403)
+
         def to_db_date(val):
             if not val or (isinstance(val, str) and val.strip() == ""):
                 return None
@@ -410,13 +410,17 @@ def update_event(req: func.HttpRequest) -> func.HttpResponse:
                     return val
             return val
 
+        # 画像があればAzureストレージにアップロード
+        if image_bytes and image_filename:
+            blob_name = upload_blob("event-images", image_bytes, image_filename, "eventimg_" + str(event_id))
+            data["image"] = blob_name
+
         with get_db_connection() as conn:
             with conn.cursor() as cursor:
                 cursor.execute(
                     '''
                     UPDATE EVENTS SET event_title=?, event_category=?, event_datetime=?, deadline=?, location=?, max_participants=?, description=?, content=?, image=? WHERE event_id=?
-                    '''
-                    ,
+                    ''',
                     data.get("title"),
                     int(data.get("category")) if data.get("category") else None,
                     to_db_date(data.get("date")),
@@ -429,10 +433,10 @@ def update_event(req: func.HttpRequest) -> func.HttpResponse:
                     event_id
                 )
                 # キーワード更新（全削除→再登録）
-                cursor.execute("DELETE FROM EVENTS_KEYWORDS WHERE event_id=?", event_id)
+                cursor.execute("DELETE FROM EVENTS_KEYWORDS WHERE event_id=?", (event_id,))
                 if data.get("keywords"):
                     for kw in data["keywords"]:
-                        cursor.execute("INSERT INTO EVENTS_KEYWORDS (event_id, keyword_id) VALUES (?, ?)", event_id, int(kw))
+                        cursor.execute("INSERT INTO EVENTS_KEYWORDS (event_id, keyword_id) VALUES (?, ?)", (event_id, int(kw)))
                 conn.commit()
         return func.HttpResponse(json.dumps({"message": "イベント更新完了", "event_id": event_id}), mimetype="application/json", status_code=200)
     except Exception as e:

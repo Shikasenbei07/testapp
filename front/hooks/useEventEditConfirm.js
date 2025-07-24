@@ -24,10 +24,33 @@ export function useEventEditConfirm() {
             summary = "",
             detail = "",
             deadline = "",
-            max_participants = ""
+            max_participants = "",
+            imageName = null
         } = router.query;
         const keywords = typeof rawKeywords === "string" ? rawKeywords.split(",") : rawKeywords;
-        setFormValues({ event_id, title, date, location, category, keywords, summary, detail, deadline, max_participants });
+
+        // 画像データの復元
+        let image = imageName;
+        try {
+            const imageData = typeof window !== "undefined" ? localStorage.getItem("eventEditImage") : null;
+            const imageNameData = typeof window !== "undefined" ? localStorage.getItem("eventEditImageName") : null;
+            if (imageData && imageNameData) {
+                const arr = imageData.split(",");
+                if (arr[0].includes("base64")) {
+                    const mime = arr[0].match(/:(.*?);/)[1];
+                    const bstr = atob(arr[1]);
+                    let n = bstr.length;
+                    const u8arr = new Uint8Array(n);
+                    while (n--) {
+                        u8arr[n] = bstr.charCodeAt(n);
+                    }
+                    image = new File([u8arr], imageNameData, { type: mime });
+                }
+            }
+        } catch { /* 画像復元失敗時は何もしない */ }
+
+        setFormValues({ event_id, title, date, location, category, keywords, summary, detail, deadline, max_participants, image });
+
         try {
             const categoriesMaster = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("categories") || "[]") : [];
             const keywordsMaster = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("keywords") || "[]") : [];
@@ -45,27 +68,31 @@ export function useEventEditConfirm() {
         setError("");
         const url = API_URL_UPDATE_EVENT.replace("%7Bevent_id%7D", formValues.event_id);
 
-        // JSONで送信する場合
-        const body = JSON.stringify({
-            title: formValues.title,
-            date: formValues.date,
-            location: formValues.location,
-            category: formValues.category,
-            summary: formValues.summary,
-            detail: formValues.detail,
-            deadline: formValues.deadline,
-            max_participants: formValues.max_participants,
-            keywords: formValues.keywords,
-            creator: getValidId && getValidId()
-        });
+        const formData = new FormData();
+        formData.append("title", formValues.title);
+        formData.append("date", formValues.date);
+        formData.append("location", formValues.location);
+        formData.append("category", formValues.category);
+        formData.append("summary", formValues.summary);
+        formData.append("detail", formValues.detail);
+        formData.append("deadline", formValues.deadline);
+        formData.append("max_participants", formValues.max_participants);
+        formValues.keywords && formValues.keywords.forEach(k => formData.append("keywords", k));
+        formData.append("creator", getValidId && getValidId());
+        // 画像ファイルがあれば追加
+        if (formValues.image instanceof File) {
+            formData.append("image", formValues.image, formValues.image.name);
+        }
 
         try {
             const res = await fetch(url, {
                 method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body
+                body: formData
             });
             if (res.ok) {
+                // 編集完了時にlocalStorageから画像データを削除
+                localStorage.removeItem("eventEditImage");
+                localStorage.removeItem("eventEditImageName");
                 router.push("/event/edit/complete");
             } else {
                 let err;

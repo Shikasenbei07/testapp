@@ -16,6 +16,7 @@ export default function EventResultTable({
     <table border="1" cellPadding="8">
       <thead>
         <tr>
+          <th></th>
           <th>イベント名</th>
           <th>開催日時</th>
           <th>申し込み期限</th>
@@ -58,6 +59,17 @@ export default function EventResultTable({
           })
           .map((event, idx) => (
             <tr key={idx}>
+              <td>
+                {event.image ? (
+                  <img
+                    src={event.image}
+                    alt="イベント画像"
+                    style={{ maxWidth: 80, maxHeight: 80, objectFit: "cover", border: "1px solid #ccc" }}
+                  />
+                ) : (
+                  <span></span>
+                )}
+              </td>
               {filteredKeys.map((key, i) => (
                 <td key={i}>
                   {(key === "event_datetime" || key === "deadline") && event[key]

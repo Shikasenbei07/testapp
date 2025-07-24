@@ -13,6 +13,14 @@ export default function EventEditConfirmView({
         return <div>読み込み中...</div>;
     }
 
+    // 画像プレビュー用
+    let imagePreview = null;
+    if (formValues.image instanceof File) {
+        imagePreview = URL.createObjectURL(formValues.image);
+    } else if (typeof formValues.image === "string" && formValues.image) {
+        imagePreview = formValues.image; // 既存画像URL
+    }
+
     return (
         <div style={{ maxWidth: 600, margin: "2rem auto", fontFamily: "sans-serif" }}>
             <h1>イベント編集内容確認</h1>
@@ -31,6 +39,18 @@ export default function EventEditConfirmView({
             <div className="row"><b>詳細:</b> {formValues.detail}</div>
             <div className="row"><b>最大人数:</b> {formValues.max_participants}</div>
             <div className="row"><b>締切日:</b> {formValues.deadline}</div>
+            <div className="row">
+                <b>画像:</b><br />
+                {imagePreview ? (
+                    <img
+                        src={imagePreview}
+                        alt="イベント画像"
+                        style={{ maxWidth: "100%", maxHeight: 200, marginTop: 8, border: "1px solid #ccc" }}
+                    />
+                ) : (
+                    <span>画像なし</span>
+                )}
+            </div>
             {error && <div style={{ color: "red" }}>{error}</div>}
             <button
                 onClick={onConfirm}
