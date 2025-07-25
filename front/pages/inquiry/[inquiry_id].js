@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { formatDateTime } from "../../utils/formatDateTime";
 
+const API_URL_GET_INQUIRY_DETAILS = process.env.NEXT_PUBLIC_API_URL_GET_INQUIRY_DETAILS;
+
 export default function InquiryDetail() {
   const [inquiry, setInquiry] = useState(null);
   const router = useRouter();
