@@ -13,6 +13,7 @@ export default function InquiryDetail() {
   const [isSending, setIsSending] = useState(false);
   const router = useRouter();
   const inputRef = useRef(null);
+  const messagesEndRef = useRef(null);
 
   // クエリパラメータ取得
   const [hashedInquiryId, setHashedInquiryId] = useState(null);
@@ -67,6 +68,13 @@ export default function InquiryDetail() {
       }
     }
   }, [inquiry, userId]);
+
+  // メッセージリストの末尾にスクロール
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [inquiry]);
 
   if (!inquiry || inquiry.length === 0 || (inquiry[0].destination != userId && inquiry[0].sender != userId)) {
     return <div>データがありません。</div>;
@@ -151,6 +159,8 @@ export default function InquiryDetail() {
             <div className="created-date">{formatDateTime(item.created_date)}</div>
           </div>
         ))}
+        {/* スクロール用ダミー要素 */}
+        <div ref={messagesEndRef}></div>
       </div>
       <form className="inquiry-form" onSubmit={handleSend}>
         <textarea
