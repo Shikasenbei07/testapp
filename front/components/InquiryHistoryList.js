@@ -17,9 +17,13 @@ export default function InquiryHistoryList({ inquiries }) {
               router.push(`/inquiry/${item.hashed_inquiry_id}`);
             }}
           >
-            <div className="inquiry-event-title">
-              イベント名: {item.event_title}
-            </div>
+            {item.event_title ? (
+              <div className="inquiry-event-title">
+                イベント名: {item.event_title}
+              </div>
+            ) : (
+              <div style={{ color: "red", fontWeight: "bold" }}>削除されたイベント</div>
+            )}
             <div>件名: {item.inquiry_title}</div>
             <div>件数: {item.count}</div>
           </li>

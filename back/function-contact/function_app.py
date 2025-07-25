@@ -155,8 +155,8 @@ def create_inquiry(req: func.HttpRequest) -> func.HttpResponse:
     except Exception:
         return error_response("リクエストボディが不正です。", status=400)
     inquiry_id = body.get('inquiry_id') if body.get('inquiry_id') is not None else None
-    event_id = body.get('event_id')
-    title = body.get('title')
+    event_id = body.get('event_id') if body.get('event_id') is not None else None
+    title = body.get('title') if body.get('title') is not None else None
     content = body.get('content')
     destination = body.get('destination')
     sender = body.get('sender')
@@ -165,14 +165,11 @@ def create_inquiry(req: func.HttpRequest) -> func.HttpResponse:
         event_id = int(event_id) if event_id is not None else None
     except ValueError:
         return error_response("event_idは数値で指定してください。", status=400)
-    if not event_id or not title or not content:
-        return error_response("event_id, title, contentは必須です。", status=400)
     
     try:
         conn = get_db_connection()
         with conn.cursor() as cursor:
             if inquiry_id is None:
-                print("こっち")
                 # 問い合わせの新規作成
                 cursor.execute(
                     '''
@@ -217,14 +214,13 @@ def create_inquiry(req: func.HttpRequest) -> func.HttpResponse:
                     (hashed_inquiry_id, inquiry_id)
                 )
             else:
-                print("あっち")
                 # 既存の問い合わせに対する返信
                 cursor.execute(
                     '''
-                    INSERT INTO inquiries (inquiry_id, event_id, title, content, destination, sender)
-                    VALUES (?, ?, ?, ?, ?, ?)
+                    INSERT INTO inquiries (inquiry_id, content, destination, sender)
+                    VALUES (?, ?, ?, ?)
                     ''',
-                    (inquiry_id, event_id, title, content, destination, sender)
+                    (inquiry_id, content, destination, sender)
                 )
             conn.commit()
     except Exception as e:
