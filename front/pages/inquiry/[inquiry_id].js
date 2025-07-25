@@ -13,6 +13,7 @@ export default function InquiryDetail() {
   const [isSending, setIsSending] = useState(false);
   const router = useRouter();
   const inputRef = useRef(null);
+  const [prevInquiryContents, setPrevInquiryContents] = useState([]);
   const messagesEndRef = useRef(null);
 
   // クエリパラメータ取得
@@ -35,14 +36,20 @@ export default function InquiryDetail() {
       });
       const data = await res.json();
       if (Array.isArray(data) && data.length > 0) {
-        setInquiry(data);
+        // content配列を抽出
+        const newContents = data.map(item => item.content);
+        // 前回と異なる場合のみsetInquiry
+        if (JSON.stringify(newContents) !== JSON.stringify(prevInquiryContents)) {
+          setInquiry(data);
+          setPrevInquiryContents(newContents);
+        }
       }
     }
     fetchInquiry();
 
     const interval = setInterval(fetchInquiry, 1000);
     return () => clearInterval(interval);
-  }, [hashedInquiryId]);
+  }, [hashedInquiryId, prevInquiryContents]);
 
   const userId = typeof window !== "undefined" ? localStorage.getItem("id") : null;
 
@@ -72,7 +79,16 @@ export default function InquiryDetail() {
   // メッセージリストの末尾にスクロール
   useEffect(() => {
     if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+      // content配列が変化した場合のみスクロール
+      if (inquiry && prevInquiryContents.length > 0) {
+        const currentContents = inquiry.map(item => item.content);
+        if (JSON.stringify(currentContents) !== JSON.stringify(prevInquiryContents)) {
+          messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+        }
+      } else if (inquiry) {
+        // 初回ロード時はスクロール
+        messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+      }
     }
   }, [inquiry]);
 
