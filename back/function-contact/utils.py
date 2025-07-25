@@ -14,7 +14,7 @@ def get_db_connection():
     conn_str = get_connection_string()
     if not conn_str:
         raise Exception("DB接続情報がありません")
-    return pyodbc.connect(conn_str)
+    return pyodbc.connect(conn_str, unicode_results=True)
     
 def get_azure_storage_connection_string():
     if os.environ.get("IS_MAIN_PRODUCT") == "true":
