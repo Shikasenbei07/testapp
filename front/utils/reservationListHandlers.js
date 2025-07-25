@@ -12,14 +12,16 @@ export function formatDate(dateStr) {
 export async function handleCancelReservation({ event_id, userId, fetchHistory, showCustomAlert, setConfirmId, setCanceling }) {
   setCanceling(true);
   try {
-    const res = await fetch("https://0x0-history2-dwcdfzgnc0gygud2.japaneast-01.azurewebsites.net/api/cancel-participation?code=2w2yTWReAwYkW2QnECrJYVsSD4s4g-qx-OTAufJIMJ9rAzFuTaTVzA%3D%3D", {
-      method: "POST",
+    const res = await fetch("https://0x0-participation-test.azurewebsites.net/api/cancel-participation?code=lg6z2CItkdkWJ01FZGSTMb0W0e7HfGW9hHGRwMsq_bpFAzFuADr_nQ%3D%3D", {
+      method: "DELETE",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ event_id, user_id: userId })
+      body: JSON.stringify({ event_id, id: userId })
     });
+    console.log("Cancel response:", res);
     if (res.ok) {
       fetchHistory();
       showCustomAlert("キャンセルしました");
+      alert("キャンセルしました");
       setConfirmId(null);
     } else {
       const msg = await res.text();

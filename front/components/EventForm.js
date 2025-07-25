@@ -191,3 +191,12 @@ export default function EventForm({
         </div>
     );
 }
+
+const styles = {
+  row: { marginBottom: "1.2rem" },
+  label: { fontWeight: "bold", marginBottom: 4, display: "block" },
+  input: { width: "100%", padding: "8px", marginTop: "4px" },
+  select: { width: "100%", padding: "8px", marginTop: "4px" },
+  checkbox: { marginRight: "4px" },
+  textarea: { width: "100%", padding: "8px", marginTop: "4px" }
+};

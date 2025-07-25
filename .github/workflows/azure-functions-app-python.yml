@@ -20,7 +20,7 @@ name: Deploy Python project to Azure Function App
 
 on:
   push:
-    branches: ["develop"]
+    branches: ["xxx"]
 
 env:
   AZURE_FUNCTIONAPP_NAME: '0x0-function-eventmanagement-test'   # set this to your function app name on Azure
