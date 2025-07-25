@@ -131,10 +131,40 @@ export default function EventResultTable({
                   cursor: 'pointer',
                   borderRadius: 4,
                   padding: '4px 12px',
+                  marginRight: 8,
                 }}
               >
                 ★
               </button>
+              {event.creator === localStorage.getItem("id") ? (
+                <button
+                  onClick={() => window.location.href = `/event/edit?event_id=${event.event_id}`}
+                  style={{
+                    background: "#ffa000",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: 4,
+                    padding: "6px 16px",
+                    cursor: "pointer"
+                  }}
+                >
+                  編集
+                </button>
+              ) : (
+                <button
+                  onClick={() => window.location.href = `/event/participation?event_id=${event.event_id}`}
+                  style={{
+                    background: "#43a047",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: 4,
+                    padding: "6px 16px",
+                    cursor: "pointer"
+                  }}
+                >
+                  参加
+                </button>
+              )}
             </div>
           </div>
         </div>
