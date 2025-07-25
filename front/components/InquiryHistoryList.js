@@ -13,7 +13,10 @@ export default function InquiryHistoryList({ inquiries }) {
           <li
             key={`${item.inquiry_id}-${idx}`}
             className="inquiry-history-item"
-            onClick={() => router.push(`/inquiry/${item.hashed_inquiry_id}`)}
+            onClick={() => {
+              localStorage.setItem("hashed_inquiry_id", item.hashed_inquiry_id);
+              router.push("/event/inquiry/chat");
+            }}
           >
             <div className="inquiry-event-title">
               イベント名: {item.event_title}

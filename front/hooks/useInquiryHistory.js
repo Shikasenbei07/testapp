@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import { getValidId } from "../utils/getValidId";
 
-//const API_URL_GET_INQUIRIES = process.env.NEXT_PUBLIC_API_URL_GET_INQUIRIES;
-const API_URL_GET_INQUIRIES = "http://localhost:7071/api/get_inquiries";
+const API_URL_GET_INQUIRIES = process.env.NEXT_PUBLIC_API_URL_GET_INQUIRIES;
 
 export function useInquiryHistory() {
   const [inquiries, setInquiries] = useState([]);

@@ -31,6 +31,9 @@ def get_inquiries(req: func.HttpRequest) -> func.HttpResponse:
                     i.event_id,
                     e.event_title,
                     i.title,
+                    i.destination,
+                    i.sender,
+                    i.hashed_inquiry_id,
                     (
                         SELECT COUNT(*)
                         FROM INQUIRIES ii
@@ -41,7 +44,7 @@ def get_inquiries(req: func.HttpRequest) -> func.HttpResponse:
                     ON i.event_id = e.event_id
                 WHERE i.sender = ?
                     AND i.inquiry_no = 1
-                GROUP BY i.inquiry_id, i.event_id, e.event_title, i.title
+                GROUP BY i.inquiry_id, i.event_id, e.event_title, i.title, i.destination, i.sender, i.hashed_inquiry_id
                 ''',
                 (sender_id,)
             )
@@ -49,11 +52,13 @@ def get_inquiries(req: func.HttpRequest) -> func.HttpResponse:
             result = [
                 {
                     "inquiry_id": row[0],
-                    "hashed_inquiry_id": hashlib.sha256(str(row[0]).encode()).hexdigest(),
                     "event_id": row[1],
                     "event_title": row[2],
                     "inquiry_title": row[3],
-                    "count": row[4]
+                    "destination": row[4],
+                    "sender": row[5],
+                    "hashed_inquiry_id": row[6],
+                    "count": row[7]
                 }
                 for row in rows
             ]
