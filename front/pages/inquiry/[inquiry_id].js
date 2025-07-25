@@ -100,13 +100,16 @@ export default function InquiryDetail() {
 
     // サーバーへ送信
     try {
-      await fetch(API_URL_CREATE_INQUIRY, {
+      const res = await fetch(API_URL_CREATE_INQUIRY, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newMessage),
       });
+      if (!res.ok) {
+        throw new Error("Network response was not ok");
+      }
     } catch (e) {
-      // エラー時は何もしない（必要ならエラー表示を追加）
+      console.error("送信エラー:", e);
     }
     setIsSending(false);
   };
@@ -128,9 +131,7 @@ export default function InquiryDetail() {
             key={idx}
             className={`inquiry-message-box ${item.sender === userId ? "right" : "left"}`}
           >
-            {item.sender === userId ? (
-              <div className="sender-name">{item.sender_name}</div>
-            ) : (
+            {item.sender !== userId && (
               <div className="sender-name">
                 {partnerIcon && (
                   <img
