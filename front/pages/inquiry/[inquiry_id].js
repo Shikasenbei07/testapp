@@ -25,6 +25,7 @@ export default function InquiryDetail() {
 
   useEffect(() => {
     if (!hashedInquiryId) return;
+    // 初回取得
     async function fetchInquiry() {
       const res = await fetch(API_URL_GET_INQUIRY_DETAILS, {
         method: "POST",
@@ -37,6 +38,9 @@ export default function InquiryDetail() {
       }
     }
     fetchInquiry();
+
+    const interval = setInterval(fetchInquiry, 1000);
+    return () => clearInterval(interval);
   }, [hashedInquiryId]);
 
   const userId = typeof window !== "undefined" ? localStorage.getItem("id") : null;
