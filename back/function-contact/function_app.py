@@ -7,7 +7,7 @@ import hashlib
 
 app = func.FunctionApp(http_auth_level=func.AuthLevel.FUNCTION)
 
-from utils import get_db_connection, get_azure_storage_connection_string, error_response, success_response
+from utils import get_db_connection, get_azure_storage_connection_string, error_response, success_response, to_jst_isoformat
 
 
 @app.route(route="get_inquiries", methods=["POST"])
@@ -100,10 +100,24 @@ def get_inquiry_details(req: func.HttpRequest) -> func.HttpResponse:
 
             cursor.execute(
                 '''
-                SELECT i.inquiry_id, i.event_id, e.event_title, i.title, i.content, i.created_date, i.destination, i.sender
+                SELECT 
+                    i.inquiry_id,
+                    i.event_id,
+                    e.event_title,
+                    i.title,
+                    i.content,
+                    i.created_date,
+                    i.destination,
+                    u_dest.handle_name AS destination_name,
+                    i.sender,
+                    u_send.handle_name AS sender_name
                 FROM INQUIRIES i
                 LEFT JOIN EVENTS e
                     ON i.event_id = e.event_id
+                LEFT JOIN USERS u_dest
+                    ON i.destination = u_dest.id
+                LEFT JOIN USERS u_send
+                    ON i.sender = u_send.id
                 WHERE i.inquiry_id=?
                 ''',
                 (inquiry_id,)
@@ -116,9 +130,11 @@ def get_inquiry_details(req: func.HttpRequest) -> func.HttpResponse:
                     "event_title": row[2],
                     "inquiry_title": row[3],
                     "content": row[4],
-                    "created_date": row[5].isoformat() if row[5] else None,
+                    "created_date": to_jst_isoformat(row[5]),
                     "destination": row[6],
-                    "sender": row[7]
+                    "destination_name": row[7],
+                    "sender": row[8],
+                    "sender_name": row[9]
                 }
                 for row in rows
             ]

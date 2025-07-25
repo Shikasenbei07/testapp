@@ -34,11 +34,12 @@ export default function InquiryDetail() {
     <div>
       <h2>問い合わせ詳細</h2>
       <div>イベント名: {inquiry[0].event_title}</div>
+      <div>イベント作成者: {inquiry[0].destination_name}</div>
       <div>件名: {inquiry[0].inquiry_title}</div>
       <ul>
         {inquiry.map((item, idx) => (
           <li key={idx} style={{ marginBottom: "1em", borderBottom: "1px solid #eee" }}>
-            <div>送信者: {item.sender}</div>
+            <div>送信者: {item.sender_name}</div>
             <div>内容: {item.content}</div>
             <div>作成日時: {formatDateTime(item.created_date)}</div>
           </li>
