@@ -256,11 +256,16 @@ def receive_inquiries(req: func.HttpRequest) -> func.HttpResponse:
             rows = cursor.fetchall()
             result = [dict(zip(columns, row)) for row in rows]
     except Exception as e:
-        return func.HttpResponse(json.dumps({"error": f"取得エラー: {str(e)}"}), status_code=500, headers=headers)
+        return func.HttpResponse(
+            json.dumps({"error": f"取得エラー: {str(e)}"}, ensure_ascii=False),
+            status_code=500,
+            headers={"Content-Type": "application/json; charset=utf-8"}
+        )
 
     return func.HttpResponse(
         json.dumps(result, ensure_ascii=False, default=str),
         status_code=200,
+        headers={"Content-Type": "application/json; charset=utf-8"}
     )
 
 

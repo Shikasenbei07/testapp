@@ -26,7 +26,8 @@ def error_response(message, status=400):
     return func.HttpResponse(
         body=json.dumps({"error": message}, ensure_ascii=False),
         status_code=status,
-        mimetype="application/json"
+        mimetype="application/json",
+        headers={"Content-Type": "application/json; charset=utf-8"}
     )
 
 def success_response(data=None, message=None, status=200):
@@ -36,7 +37,8 @@ def success_response(data=None, message=None, status=200):
     return func.HttpResponse(
         body=json.dumps(body, ensure_ascii=False),
         status_code=status,
-        mimetype="application/json"
+        mimetype="application/json",
+        headers={"Content-Type": "application/json; charset=utf-8"}
     )
 
 def to_jst_isoformat(dt):
