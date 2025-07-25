@@ -78,8 +78,8 @@ def get_inquiry_details(req: func.HttpRequest) -> func.HttpResponse:
     except Exception:
         return error_response("リクエストボディが不正です。", status=400)
 
-    inquiry_id = str(body.get('inquiry_id'))
-    if not inquiry_id:
+    hashed_inquiry_id = str(body.get('hashed_inquiry_id'))
+    if not hashed_inquiry_id:
         return error_response("idは必須です。", status=400)
 
     try:
@@ -87,7 +87,20 @@ def get_inquiry_details(req: func.HttpRequest) -> func.HttpResponse:
         with conn.cursor() as cursor:
             cursor.execute(
                 '''
-                SELECT i.event_id, e.event_title, i.title, i.content, i.created_date
+                SELECT inquiry_id
+                FROM INQUIRIES
+                WHERE hashed_inquiry_id=?
+                ''',
+                (hashed_inquiry_id,)
+            )
+            row = cursor.fetchone()
+            if not row:
+                return error_response("指定された問い合わせは存在しません。", status=404)
+            inquiry_id = row[0]
+
+            cursor.execute(
+                '''
+                SELECT i.inquiry_id, i.event_id, e.event_title, i.title, i.content, i.created_date, i.destination, i.sender
                 FROM INQUIRIES i
                 LEFT JOIN EVENTS e
                     ON i.event_id = e.event_id
@@ -98,11 +111,14 @@ def get_inquiry_details(req: func.HttpRequest) -> func.HttpResponse:
             rows = cursor.fetchall()
             result = [
                 {
-                    "event_id": row[0],
-                    "event_title": row[1],
-                    "inquiry_title": row[2],
-                    "content": row[3],
-                    "datetime": row[4].isoformat() if row[4] else None
+                    "inquiry_id": row[0],
+                    "event_id": row[1],
+                    "event_title": row[2],
+                    "inquiry_title": row[3],
+                    "content": row[4],
+                    "created_date": row[5].isoformat() if row[5] else None,
+                    "destination": row[6],
+                    "sender": row[7]
                 }
                 for row in rows
             ]

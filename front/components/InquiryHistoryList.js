@@ -14,8 +14,7 @@ export default function InquiryHistoryList({ inquiries }) {
             key={`${item.inquiry_id}-${idx}`}
             className="inquiry-history-item"
             onClick={() => {
-              localStorage.setItem("hashed_inquiry_id", item.hashed_inquiry_id);
-              router.push("/event/inquiry/chat");
+              router.push(`/inquiry/${item.hashed_inquiry_id}`);
             }}
           >
             <div className="inquiry-event-title">
