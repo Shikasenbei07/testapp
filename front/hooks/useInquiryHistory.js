@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { getValidId } from "../utils/getValidId";
 
+//const API_URL_GET_INQUIRIES = process.env.NEXT_PUBLIC_API_URL_GET_INQUIRIES;
+const API_URL_GET_INQUIRIES = "http://localhost:7071/api/get_inquiries";
+
 export function useInquiryHistory() {
   const [inquiries, setInquiries] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -12,7 +15,7 @@ export function useInquiryHistory() {
       setLoading(true);
       try {
         const res = await fetch(
-          "http://localhost:7071/api/get_inquiries",
+          API_URL_GET_INQUIRIES,
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },

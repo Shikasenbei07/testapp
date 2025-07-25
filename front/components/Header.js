@@ -29,7 +29,17 @@ export default function Header() {
             style={{ marginLeft: "1rem", fontWeight: "bold", fontSize: "1.2rem", cursor: "pointer" }}
             onClick={() => router.push("/")}
           >
-            <img src="/img/title.png" alt="タイトル" style={{ height: "32px", verticalAlign: "middle" }} />
+            <img
+              src="/img/title.png"
+              alt="タイトル"
+              style={{
+                height: "32px",
+                verticalAlign: "middle",
+                background: "transparent", // 背景透過
+                border: "none",            // 枠なし
+                boxShadow: "none"          // 影なし
+              }}
+            />
           </span>
         </div>
         <div style={rightAreaStyle}>
