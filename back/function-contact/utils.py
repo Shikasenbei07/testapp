@@ -4,6 +4,11 @@ import json
 import pyodbc
 from datetime import datetime, timezone, timedelta
 
+def missing(*fields):
+    """任意のフィールドが None または空文字列なら True を返す"""
+    return any(f is None or f == '' for f in fields)
+
+
 def get_connection_string():
     if os.environ.get("IS_MAIN_PRODUCT") == "true":
         return os.environ.get("CONNECTION_STRING_PRODUCT")

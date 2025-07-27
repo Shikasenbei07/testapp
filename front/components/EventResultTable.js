@@ -53,7 +53,12 @@ export default function EventResultTable({
   return (
     <div className="event-card-list">
       {filteredEvents.map((event, idx) => (
-        <div className="event-card" key={idx}>
+        <div
+          className="event-card"
+          key={idx}
+          onClick={() => window.location.href = `/event/detail/${event.event_id}`}
+          style={{ cursor: "pointer" }}
+        >
           <div className="event-card-image">
             {event.image ? (
               <img
@@ -108,21 +113,7 @@ export default function EventResultTable({
             </div>
             <div style={{ marginTop: 8 }}>
               <button
-                onClick={() => window.location.href = `/event/detail/${event.event_id}`}
-                style={{
-                  marginRight: 8,
-                  background: "#1976d2",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: 4,
-                  padding: "6px 16px",
-                  cursor: "pointer"
-                }}
-              >
-                詳細
-              </button>
-              <button
-                onClick={() => toggleFavorite(event.event_id)}
+                onClick={e => { e.stopPropagation(); toggleFavorite(event.event_id); }}
                 title="お気に入り登録"
                 style={{
                   backgroundColor: favorites.includes(event.event_id) ? 'yellow' : '#eee',
@@ -138,7 +129,7 @@ export default function EventResultTable({
               </button>
               {event.creator === localStorage.getItem("id") ? (
                 <button
-                  onClick={() => window.location.href = `/event/edit?event_id=${event.event_id}`}
+                  onClick={e => { e.stopPropagation(); window.location.href = `/event/edit?event_id=${event.event_id}`; }}
                   style={{
                     background: "#ffa000",
                     color: "#fff",
@@ -152,7 +143,7 @@ export default function EventResultTable({
                 </button>
               ) : (
                 <button
-                  onClick={() => window.location.href = `/event/participation?event_id=${event.event_id}`}
+                  onClick={e => { e.stopPropagation(); window.location.href = `/event/participation?event_id=${event.event_id}`; }}
                   style={{
                     background: "#43a047",
                     color: "#fff",

@@ -25,7 +25,15 @@ export default function InquiryForm({ eventId }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
-
+    
+    console.log("Submitting inquiry:", JSON.stringify({
+          inquiry_id: null,
+          event_id: eventId,
+          subject: title,
+          main_text: content,
+          recipient: creatorId,
+          sender: id
+        }));
     try {
       const result = await fetch(API_URL_CREATE_INQUIRY, {
         method: "POST",
@@ -35,9 +43,9 @@ export default function InquiryForm({ eventId }) {
         body: JSON.stringify({
           inquiry_id: null,
           event_id: eventId,
-          title: title,
-          content: content,
-          destination: creatorId,
+          subject: title,
+          main_text: content,
+          recipient: creatorId,
           sender: id
         }),
       });
