@@ -9,6 +9,7 @@ export default function UserSettingForm({
   lNameFuri,
   fNameFuri,
   birthday,
+  handleName, // 追加
   preview,
   success,
   error,
@@ -18,6 +19,15 @@ export default function UserSettingForm({
 }) {
   return (
     <form onSubmit={onSubmit} style={formStyle}>
+      <div style={fieldStyle}>
+        <label>表示名</label>
+        <input
+          type="text"
+          value={handleName}
+          onChange={e => onChange("handleName", e.target.value)}
+          style={inputStyle}
+        />
+      </div>
       <div style={fieldStyle}>
         <label>メールアドレス</label>
         <input

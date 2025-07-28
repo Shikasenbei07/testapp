@@ -1,4 +1,4 @@
-export default function MypageProfile({ profileImg, lName }) {
+export default function MypageProfile({ profileImg, handleName }) {
   return (
     <>
       {profileImg && (
@@ -11,7 +11,7 @@ export default function MypageProfile({ profileImg, lName }) {
         </div>
       )}
       <div style={{ fontWeight: "bold", fontSize: "1.2rem", marginBottom: "1.2rem" }}>
-        {lName}さんのページ
+        {handleName}さんのページ
       </div>
     </>
   );

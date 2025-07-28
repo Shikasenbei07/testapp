@@ -5,6 +5,7 @@ import { useRouter } from "next/router";
 export default function Setting() {
   const {
     email, secondEmail, tel, lName, fName, lNameFuri, fNameFuri, birthday,
+    handleName, // 追加
     preview, loading, error, success,
     handleChange, handleImgChange, handleSubmit
   } = useUserSetting();
@@ -25,6 +26,7 @@ export default function Setting() {
         lNameFuri={lNameFuri}
         fNameFuri={fNameFuri}
         birthday={birthday}
+        handleName={handleName} // 追加
         preview={preview}
         success={success}
         error={error}

@@ -5,7 +5,7 @@ import { getValidId } from "../utils/getValidId";
 const API_URL_GET_USER = process.env.NEXT_PUBLIC_API_URL_GET_USER;
 
 export function useMyPageUser() {
-  const [lName, setLName] = useState("");
+  const [handleName, setHandleName] = useState("");
   const [profileImg, setProfileImg] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -37,7 +37,7 @@ export function useMyPageUser() {
         return res.json();
       })
       .then(data => {
-        setLName(data.l_name ?? "");
+        setHandleName(data.handle_name ?? "");
         setProfileImg(data.profile_img ?? null);
         setLoading(false);
       })
@@ -47,5 +47,5 @@ export function useMyPageUser() {
       });
   }, [router]);
 
-  return { lName, profileImg, loading, error };
+  return { handleName, profileImg, loading, error };
 }

@@ -19,6 +19,7 @@ export function useUserSetting() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [handleName, setHandleName] = useState("");
   const router = useRouter();
 
   useEffect(() => {
@@ -45,6 +46,7 @@ export function useUserSetting() {
         setBirthday(data.birthday ?? "");
         setProfileImg(data.profile_img ?? null);
         setPreview(data.profile_img ?? null);
+        setHandleName(data.handle_name ?? "");
         setLoading(false);
       })
       .catch(() => {
@@ -74,6 +76,7 @@ export function useUserSetting() {
       case "lNameFuri": setLNameFuri(value); break;
       case "fNameFuri": setFNameFuri(value); break;
       case "birthday": setBirthday(value); break;
+      case "handleName": setHandleName(value); break;
       default: break;
     }
   };
@@ -114,6 +117,7 @@ export function useUserSetting() {
         f_name_furi: fNameFuri,
         birthday,
         profile_img: imgUrl,
+        handle_name: handleName,
       }),
     });
 
@@ -138,6 +142,7 @@ export function useUserSetting() {
     profileImg, setProfileImg,
     preview, setPreview,
     loading, error, success,
+    handleName, setHandleName,
     handleChange,
     handleImgChange,
     handleSubmit,
