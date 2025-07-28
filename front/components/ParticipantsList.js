@@ -4,8 +4,8 @@ const ParticipantsList = ({ eventId }) => {
     const [participants, setParticipants] = useState([]);
 
     useEffect(() => {
-        fetch(`http://localhost:7071/api/participants-list?event_id=${eventId}`)
-            .then(res => res.json())
+        fetch(`https://0x0-participants-list-a3ccaze5fhfxhzc5.japaneast-01.azurewebsites.net/api/participants-list?code=f_9tpb31_ZJiYApv4xACeaoyHHutK_czVWEGsuZv_7IpAzFu69yp_w%3D%3D&event_id=${eventId}`)
+            .then(res => res.text())
             .then(data => setParticipants(data.participants || []));
     }, [eventId]);
 

@@ -3,6 +3,7 @@ import { useEventDetail } from '../../../hooks/useEventDetail';
 import EventDetailActions from '../../../components/EventDetailActions';
 import EventDetailTable from '../../../components/EventDetailTable';
 import EventDetailImage from '../../../components/EventDetailImage';
+import ParticipantsList from '../../../components/ParticipantsList';
 import { useEffect, useState } from 'react';
 
 export default function EventDetail() {
@@ -41,20 +42,7 @@ export default function EventDetail() {
       <EventDetailTable event={event} />
       <EventDetailActions event_id={event_id} event={event} router={router} />
 
-      <h2>参加者一覧</h2>
-      {participantsLoading ? (
-        <div>参加者を取得中...</div>
-      ) : participants.length === 0 ? (
-        <div>参加者はいません。</div>
-      ) : (
-        <ul>
-          {participants.map((user) => (
-            <li key={user.id}>
-              {user.id} {user.l_name ?? ""} {user.f_name ?? ""}
-            </li>
-          ))}
-        </ul>
-      )}
+      <ParticipantsList participants={participants} loading={participantsLoading} />
     </div>
   );
 }
