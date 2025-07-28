@@ -3,6 +3,7 @@ import json
 import pyodbc
 import os
 import logging
+from datetime import datetime
 
 app = func.FunctionApp(http_auth_level=func.AuthLevel.FUNCTION)
 
@@ -250,3 +251,42 @@ def cancel_participation(req: func.HttpRequest) -> func.HttpResponse:
     except Exception as e:
         logging.error(f"Cancel participation error: {e}")
         return error_response("DB error", status=500)
+    
+
+@app.route(route="participation-history", methods=["POST"])
+def participation_history(req: func.HttpRequest) -> func.HttpResponse:
+    data = req.get_json()
+    user_id = data.get("id")
+    
+    try:
+        now = datetime.now()
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            sql = """
+            SELECT
+                ep.event_id,
+                e.event_title,
+                e.event_datetime,
+                e.location,
+                u.l_name + ' ' + u.f_name AS creator_name,
+                e.image
+            FROM
+                EVENTS_PARTICIPANTS ep
+                LEFT JOIN EVENTS e ON ep.event_id = e.event_id
+                LEFT JOIN USERS u ON e.creator = u.id
+            WHERE
+                ep.id = ?
+                AND (ep.cancelled_at IS NULL OR ep.cancelled_at = '')
+                AND e.event_datetime < ?
+            ORDER BY
+                e.event_datetime DESC
+            """
+            cursor.execute(sql, (user_id, now))
+            columns = [column[0] for column in cursor.description]
+            rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
+            logging.info(f"取得参加履歴: {rows}")
+    except Exception as e:
+        logging.error(f"DB error: {e}")
+        return error_response("DB error", status=500)
+
+    return success_response(rows, status=200)
