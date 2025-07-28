@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { getValidId } from "../utils/getValidId";
 
-const API_URL = "https://0x0-participation-d7fqb7h3dpcqcxek.japaneast-01.azurewebsites.net/api/reservation-history?code=62ynEBx_jbHKALdJRcPtSf-Hral22ROdaZFZeR6DVf0bAzFuZZI-Rw%3D%3D";
+const API_URL = "https://0x0-participation-test.azurewebsites.net/api/reservation-history?code=exW-o4MDMd1st0v3s80m78npZI9eFDO5oC0USpOh-_qlAzFuCQyxhQ%3D%3D";
 
 export function useReservationList() {
   const [history, setHistory] = useState([]);

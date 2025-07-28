@@ -13,7 +13,7 @@ export function useRemoveFavorite() {
 
     setRemoving(true);
     try {
-      const res = await fetch(API_URL_REMOVE_FAVORITE + `?event_id=${encodeURIComponent(event_id)}`, {
+      const res = await fetch(API_URL_REMOVE_FAVORITE + `&event_id=${encodeURIComponent(event_id)}`, {
         method: "DELETE",
       });
       if (res.ok) {

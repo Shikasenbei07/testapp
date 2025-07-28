@@ -8,7 +8,7 @@ from datetime import datetime
 app = func.FunctionApp(http_auth_level=func.AuthLevel.FUNCTION)
 
 from utils import get_connection_string, get_db_connection, error_response, success_response
-
+from utils_blob import get_blob_sas_url
 
 # イベント参加登録API
 @app.route(route="participate", methods=["GET", "POST"])
@@ -136,7 +136,15 @@ def get_mylist(req: func.HttpRequest) -> func.HttpResponse:
             """
             cursor.execute(sql, (user_id,))
             columns = [column[0] for column in cursor.description]
-            rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+            rows = cursor.fetchall()
+            result = []
+            for row in rows:
+                row_dict = dict(zip(columns, row))
+                # imageカラムがあればURL化
+                if row_dict.get("image"):
+                    row_dict["image"] = get_blob_sas_url("event-images", row_dict["image"])
+                result.append(row_dict)
             logging.info(f"取得予約履歴: {rows}")
     except Exception as e:
         return func.HttpResponse("DB error", status_code=500)
@@ -192,8 +200,15 @@ def reservation_history(req: func.HttpRequest) -> func.HttpResponse:
             """
             cursor.execute(sql, (user_id,))
             columns = [column[0] for column in cursor.description]
-            rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
-            logging.info(f"取得予約履歴: {rows}")
+            rows = cursor.fetchall()
+            result = []
+            for row in rows:
+                row_dict = dict(zip(columns, row))
+                # imageカラムがあればURL化
+                if row_dict.get("image"):
+                    row_dict["image"] = get_blob_sas_url("event-images", row_dict["image"])
+                result.append(row_dict)
+            logging.info(f"取得予約履歴: {result}")
     except Exception as e:
         logging.error(f"DB error: {e}")
         return func.HttpResponse(
