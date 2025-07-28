@@ -304,3 +304,34 @@ def participation_history(req: func.HttpRequest) -> func.HttpResponse:
         return error_response("DB error", status=500)
 
     return success_response(rows, status=200)
+
+
+@app.route(route="get_participants", methods=["GET"])
+def get_participants(req: func.HttpRequest) -> func.HttpResponse:
+    event_id = req.params.get("event_id")
+    
+    if not event_id:
+        return error_response("event_idは必須です", status=400)
+    
+    try:
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            sql = """
+            SELECT
+                ep.id,
+                u.handle_name
+            FROM
+                EVENTS_PARTICIPANTS ep
+                LEFT JOIN USERS u ON ep.id = u.id
+            WHERE
+                ep.event_id = ?
+            """
+            cursor.execute(sql, (event_id,))
+            columns = [column[0] for column in cursor.description]
+            rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
+            logging.info(f"取得参加者リスト: {rows}")
+    except Exception as e:
+        logging.error(f"DB error: {e}")
+        return error_response("DB error", status=500)
+
+    return success_response(rows, status=200)
