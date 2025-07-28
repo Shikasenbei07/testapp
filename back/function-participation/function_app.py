@@ -205,7 +205,7 @@ def reservation_history(req: func.HttpRequest) -> func.HttpResponse:
             for row in rows:
                 row_dict = dict(zip(columns, row))
                 # imageカラムがあればURL化
-                if row_dict.get("image") is not None:
+                if row_dict.get("image"):
                     row_dict["image"] = get_blob_sas_url("event-images", row_dict["image"])
                 result.append(row_dict)
             logging.info(f"取得予約履歴: {result}")
