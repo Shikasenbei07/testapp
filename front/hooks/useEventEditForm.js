@@ -186,14 +186,41 @@ export function useEventEditForm() {
             };
             reader.readAsDataURL(confirmForm.image);
         } else {
+            // プレビュー画像のデータをセット
+            confirmForm.imagePreview = preview || "";
             // 画像未選択時は既存画像（プレビュー）をlocalStorageに保存して遷移
             if (preview) {
-                localStorage.setItem("eventEditImage", preview);
-                localStorage.setItem("eventEditImageName", "existing-image");
+                // 画像のバイナリデータをBase64文字列として保存
+                fetch(preview)
+                    .then(res => res.blob())
+                    .then(blob => {
+                        const reader = new FileReader();
+                        reader.onloadend = function () {
+                            localStorage.setItem("eventEditImage", reader.result); // Base64文字列
+                            localStorage.setItem("eventEditImageName", "preview.png");
+                            const params = new URLSearchParams({
+                                event_id: confirmForm.event_id,
+                                title: confirmForm.title,
+                                date: confirmForm.date,
+                                location: confirmForm.location,
+                                category: confirmForm.category,
+                                keywords: confirmForm.keywords.join(","),
+                                summary: confirmForm.summary,
+                                detail: confirmForm.detail,
+                                deadline: confirmForm.deadline,
+                                max_participants: confirmForm.max_participants,
+                                is_draft: 0
+                            }).toString();
+                            router.push(`/event/edit/confirm?${params}`);
+                        };
+                        reader.readAsDataURL(blob);
+                    });
+                return; // fetch→FileReaderの非同期処理後にpushするのでここでreturn
             } else {
                 localStorage.removeItem("eventEditImage");
                 localStorage.removeItem("eventEditImageName");
             }
+
             const params = new URLSearchParams({
                 event_id: confirmForm.event_id,
                 title: confirmForm.title,

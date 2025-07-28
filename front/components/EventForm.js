@@ -69,15 +69,23 @@ export default function EventForm({
                 </div>
                 <div className="row" style={styles.row}>
                     <label style={styles.label}>画像
-                        <input type="file" name="image" accept="image/*" onChange={onChange} style={styles.input} />
+                        <input
+                            type="file"
+                            name="image"
+                            accept="image/*"
+                            onChange={onChange}
+                            style={styles.input}
+                            // デフォルト値として eventData.image を設定
+                            // input[type="file"] には value 属性は使えないため、imgタグでプレビュー表示
+                        />
                     </label>
+                    {/* 編集時・保存済み画像のプレビュー */}
+                    {!preview && eventData && eventData.image && (
+                        <img src={eventData.image} alt="保存済み画像" className="event-image" />
+                    )}
                     {/* 新規選択時のプレビュー */}
                     {preview && (
                         <img src={preview} alt="プレビュー" className="event-image" />
-                    )}
-                    {/* 編集時・保存済み画像のプレビュー */}
-                    {!preview && eventData && eventData.image_url && (
-                        <img src={eventData.image_url} alt="保存済み画像" className="event-image" />
                     )}
                     {errors.image && <div style={{ color: 'red' }}>{errors.image}</div>}
                 </div>

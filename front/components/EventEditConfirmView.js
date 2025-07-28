@@ -13,16 +13,33 @@ export default function EventEditConfirmView({
     const [imagePreview, setImagePreview] = useState(null);
 
     useEffect(() => {
-        if (formValues?.image instanceof File) {
+        // 1. event/editから渡されたプレビュー画像があればそれを優先
+        if (formValues?.imagePreview) {
+            setImagePreview(formValues.imagePreview);
+        } 
+        // 2. File型ならURL生成
+        else if (formValues?.image instanceof File) {
             const url = URL.createObjectURL(formValues.image);
             setImagePreview(url);
             return () => URL.revokeObjectURL(url);
-        } else if (typeof formValues?.image === "string" && formValues.image) {
+        } 
+        // 3. 画像URL文字列
+        else if (typeof formValues?.image === "string" && formValues.image) {
             setImagePreview(formValues.image);
-        } else {
+        } 
+        // 4. previewがあれば
+        else if (formValues?.preview) {
+            setImagePreview(formValues.preview);
+        } 
+        // 5. ローカルストレージから取得
+        else if (localStorage.getItem("eventEditImage")) {
+            setImagePreview(localStorage.getItem("eventEditImage"));
+        } 
+        // 6. 何もなければnull
+        else {
             setImagePreview(null);
         }
-    }, [formValues?.image]);
+    }, [formValues?.image, formValues?.imagePreview, formValues?.preview]);
 
     if (!formValues) {
         return <div>読み込み中...</div>;
