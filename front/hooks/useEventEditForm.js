@@ -227,9 +227,10 @@ export function useEventEditForm() {
                     formData.append(key, value);
                 }
             });
-            const url = process.env.NEXT_PUBLIC_API_URL_UPDATE_EVENT || "";
-            await fetch(url.replace("{event_id}", form.event_id), {
-                method: "PUT",
+            const url = "https://0x0-eventmanagement-test.azurewebsites.net/api/events/%7Bevent_id%7D?code=tzUwLpPkrKEaGO5m9K5T1fSw21BkNQRyLNBmJ8QXHDk9AzFubRRUtg%3D%3D";
+            //const url = process.env.NEXT_PUBLIC_API_URL_UPDATE_EVENT || "";
+            await fetch(url.replace("%7Bevent_id%7D", form.event_id), {
+                method: "PATCH",
                 body: formData,
             });
             alert("下書き保存しました");

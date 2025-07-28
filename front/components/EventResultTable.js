@@ -1,4 +1,7 @@
 import React from "react";
+import { useState } from "react";
+import { useReservationList } from "../hooks/useReservationList";
+import { cancelReservation } from "../utils/reservationListHandlers";
 
 export default function EventResultTable({
   events,
@@ -11,9 +14,14 @@ export default function EventResultTable({
   keyword,
   hideExpired,
   toggleFavorite,
-  participatedEvents = [],
-  onCancelParticipation = () => {},
 }) {
+  // useReservationListから参加済みイベントID一覧とfetchHistoryを取得
+  const { history: reservationList, fetchHistory } = useReservationList();
+  const participatedEventIds = reservationList?.map(r => String(r.event_id)) ?? [];
+
+  const [canceling, setCanceling] = useState(false);
+  const [confirmId, setConfirmId] = useState(null);
+
   // フィルタ・ソート処理はそのまま
   const filteredEvents = [...events]
     .filter(ev => !selectedCategory || String(ev.event_category) === String(selectedCategory))
@@ -54,110 +62,107 @@ export default function EventResultTable({
 
   return (
     <div className="event-card-list">
-      {filteredEvents.map((event, idx) => (
-        <div
-          className="event-card"
-          key={idx}
-          onClick={() => window.location.href = `/event/detail/${event.event_id}`}
-          style={{ cursor: "pointer" }}
-        >
-          <div className="event-card-image">
-            {event.image ? (
-              <img
-                src={event.image}
-                alt="イベント画像"
-                style={{ maxWidth: 120, maxHeight: 120, objectFit: "cover", border: "1px solid #ccc", borderRadius: 8 }}
-              />
-            ) : (
-              <span style={{ display: "inline-block", width: 120, height: 120, background: "#eee", borderRadius: 8 }} />
-            )}
-          </div>
-          <div className="event-card-content">
-            {filteredKeys.map((key, i) => {
-              if (key === "deadline") {
-                const isExpired = event[key] && new Date(event[key]) < new Date();
-                return (
-                  <div key={i} style={{ color: isExpired ? "red" : undefined }}>
-                    <b>申し込み期限:</b> {event[key] ? event[key].replace(/:\d{2}$/, "") : event[key]}
-                  </div>
-                );
-              }
-              if (key === "event_title") {
-                return (
-                  <div key={i} style={{ fontWeight: "bold", fontSize: "1.2em", marginBottom: 4 }}>
-                    {event[key]}
-                  </div>
-                );
-              }
-              if (key === "event_datetime") {
-                return (
-                  <div key={i}>
-                    <b>開催日時:</b> {event[key] ? event[key].replace(/:\d{2}$/, "") : event[key]}
-                  </div>
-                );
-              }
-              if (key === "location") {
-                return (
-                  <div key={i}>
-                    <b>場所:</b> {event[key]}
-                  </div>
-                );
-              }
-              // その他の項目
-              return (
-                <div key={i}>
-                  <b>{key}:</b> {event[key]}
-                </div>
-              );
-            })}
-            <div>
-              <b>参加人数状況:</b> {`${event.current_participants ?? 0}/${event.max_participants ?? 0}`}
+      {filteredEvents.map((event, idx) => {
+        const now = new Date();
+        const isExpired = event.deadline && new Date(event.deadline) < now;
+        const isFull = event.max_participants !== undefined && event.current_participants >= event.max_participants;
+        const userId = localStorage.getItem("id");
+        const isParticipated = participatedEventIds.includes(String(event.event_id));
+        const isThisCanceling = canceling && confirmId === event.event_id;
+
+        return (
+          <div
+            className="event-card"
+            key={idx}
+            onClick={() => window.location.href = `/event/detail/${event.event_id}`}
+            style={{ cursor: "pointer" }}
+          >
+            <div className="event-card-image">
+              {event.image ? (
+                <img
+                  src={event.image}
+                  alt="イベント画像"
+                  style={{ maxWidth: 120, maxHeight: 120, objectFit: "cover", border: "1px solid #ccc", borderRadius: 8 }}
+                />
+              ) : (
+                <span style={{ display: "inline-block", width: 120, height: 120, background: "#eee", borderRadius: 8 }} />
+              )}
             </div>
-            <div style={{ marginTop: 8 }}>
-              <button
-                onClick={e => {
-                  e.stopPropagation();
-                  toggleFavorite(event.event_id);
-                }}
-                title="お気に入り登録"
-                style={{
-                  backgroundColor: favorites.includes(event.event_id) ? 'yellow' : '#eee',
-                  color: favorites.includes(event.event_id) ? '#fbc02d' : '#888',
-                  border: 'none',
-                  fontSize: '1.5rem',
-                  cursor: 'pointer',
-                  borderRadius: 4,
-                  padding: '4px 12px',
-                  marginRight: 8,
-                  transition: 'background-color 0.2s, color 0.2s'
-                }}
-              >
-                ★
-              </button>
-              {event.creator === localStorage.getItem("id") ? (
+            <div className="event-card-content">
+              {filteredKeys.map((key, i) => {
+                if (key === "deadline") {
+                  const isExpired = event[key] && new Date(event[key]) < new Date();
+                  return (
+                    <div key={i} style={{ color: isExpired ? "red" : undefined }}>
+                      <b>申し込み期限:</b> {event[key] ? event[key].replace(/:\d{2}$/, "") : event[key]}
+                    </div>
+                  );
+                }
+                if (key === "event_title") {
+                  return (
+                    <div key={i} style={{ fontWeight: "bold", fontSize: "1.2em", marginBottom: 4 }}>
+                      {event[key]}
+                    </div>
+                  );
+                }
+                if (key === "event_datetime") {
+                  return (
+                    <div key={i}>
+                      <b>開催日時:</b> {event[key] ? event[key].replace(/:\d{2}$/, "") : event[key]}
+                    </div>
+                  );
+                }
+                if (key === "location") {
+                  return (
+                    <div key={i}>
+                      <b>場所:</b> {event[key]}
+                    </div>
+                  );
+                }
+                // その他の項目
+                return (
+                  <div key={i}>
+                    <b>{key}:</b> {event[key]}
+                  </div>
+                );
+              })}
+              <div>
+                <b>参加人数状況:</b> {`${event.current_participants ?? 0}/${event.max_participants ?? 0}`}
+              </div>
+              <div style={{ marginTop: 8 }}>
                 <button
-                  onClick={e => { e.stopPropagation(); window.location.href = `/event/edit?event_id=${event.event_id}`; }}
-                  style={{
-                    background: "#ffa000",
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: 4,
-                    padding: "6px 16px",
-                    cursor: "pointer"
+                  className={favorites.some(fav => String(fav.event_id) === String(event.event_id)) ? "favorite active" : "favorite"}
+                  onClick={e => {
+                    e.stopPropagation();
+                    toggleFavorite(event.event_id);
                   }}
                 >
-                  編集
+                  ★
                 </button>
-              ) : (
-                (() => {
-                  const isExpired = event.deadline && new Date(event.deadline) < new Date();
-                  if (isExpired) {
+                {(() => {
+                  if (event.creator === userId) {
+                    return (
+                      <button
+                        onClick={e => { e.stopPropagation(); window.location.href = `/event/edit?event_id=${event.event_id}`; }}
+                        style={{
+                          background: "#ffa000",
+                          color: "#fff",
+                          border: "none",
+                          borderRadius: 4,
+                          padding: "6px 16px",
+                          cursor: "pointer"
+                        }}
+                      >
+                        編集
+                      </button>
+                    );
+                  } else if (isExpired) {
                     return (
                       <button
                         disabled
                         style={{
                           background: "#ccc",
-                          color: "#fff",
+                          color: "#888",
                           border: "none",
                           borderRadius: 4,
                           padding: "6px 16px",
@@ -167,23 +172,53 @@ export default function EventResultTable({
                         期限切れ
                       </button>
                     );
-                  } else if (participatedEvents.includes(event.event_id)) {
+                  } else if (isParticipated) {
                     return (
                       <button
-                        onClick={e => {
+                        disabled={isThisCanceling}
+                        onClick={async (e) => {
                           e.stopPropagation();
-                          onCancelParticipation(event.event_id);
+                          // 確認アラートを表示
+                          if (!window.confirm("本当にこのイベントの参加をキャンセルしますか？")) {
+                            return;
+                          }
+                          setConfirmId(event.event_id);
+                          await cancelReservation({
+                            event_id: event.event_id,
+                            userId: localStorage.getItem("id"),
+                            fetchHistory,
+                            showCustomAlert: () => {},
+                            setConfirmId,
+                            setCanceling
+                          });
+                          // fetchHistoryでリストが更新されるのでボタンも自動で変化
                         }}
                         style={{
-                          background: "#f43f5e",
+                          background: isThisCanceling ? "#aaa" : "#f43f5e",
                           color: "#fff",
                           border: "none",
                           borderRadius: 4,
                           padding: "6px 16px",
-                          cursor: "pointer"
+                          cursor: isThisCanceling ? "not-allowed" : "pointer"
                         }}
                       >
-                        参加キャンセル
+                        {isThisCanceling ? "キャンセル中..." : "参加キャンセル"}
+                      </button>
+                    );
+                  } else if (isFull) {
+                    return (
+                      <button
+                        disabled
+                        style={{
+                          background: "#ffc107",
+                          color: "#888",
+                          border: "none",
+                          borderRadius: 4,
+                          padding: "6px 16px",
+                          cursor: "not-allowed"
+                        }}
+                      >
+                        キャンセル待ち
                       </button>
                     );
                   } else {
@@ -203,12 +238,12 @@ export default function EventResultTable({
                       </button>
                     );
                   }
-                })()
-              )}
+                })()}
+              </div>
             </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
       <style jsx>{`
         .event-card-list {
           display: flex;
@@ -247,7 +282,20 @@ export default function EventResultTable({
         .event-card-content {
           flex: 1;
         }
+        .favorite {
+          color: #aaa;
+          background: none;
+          border: none;
+          font-size: 1.5rem;
+          cursor: pointer;
+          transition: color 0.2s;
+        }
+        .favorite.active {
+          color: #ffcc00;
+          text-shadow: 0 0 8px #ffcc00;
+        }
       `}</style>
     </div>
   );
 }
+

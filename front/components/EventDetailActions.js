@@ -1,7 +1,20 @@
 import { useEffect, useState } from "react";
+import { useReservationList } from "../hooks/useReservationList";
+import { cancelReservation } from "../utils/reservationListHandlers";
 
 export default function EventDetailActions({ event_id, event, router }) {
   const [isCreator, setIsCreator] = useState(false);
+  const [canceling, setCanceling] = useState(false);
+  const [confirmId, setConfirmId] = useState(null);
+  const { history: reservationList, fetchHistory } = useReservationList();
+  const [alertMsg, setAlertMsg] = useState("");
+
+  // 参加済み判定
+  const isParticipated = reservationList.some(
+    (r) => String(r.event_id) === String(event_id)
+  );
+
+  const showCustomAlert = (msg) => setAlertMsg(msg);
 
   useEffect(() => {
     const userId = localStorage.getItem("id");
@@ -14,6 +27,7 @@ export default function EventDetailActions({ event_id, event, router }) {
 
   return (
     <div>
+      {alertMsg && <div style={{ color: "red" }}>{alertMsg}</div>}
       <button style={backButtonStyle} onClick={() => router.push(`/event`)}>戻る</button>
       {!isCreator ? (
         <>
@@ -30,6 +44,23 @@ export default function EventDetailActions({ event_id, event, router }) {
               disabled
             >
               キャンセル待ち
+            </button>
+          ) : isParticipated ? (
+            <button
+              style={cancelButtonStyle}
+              disabled={canceling}
+              onClick={async () => {
+                await cancelReservation({
+                  event_id,
+                  userId: localStorage.getItem("id"),
+                  fetchHistory,
+                  showCustomAlert,
+                  setConfirmId,
+                  setCanceling
+                });
+              }}
+            >
+              参加キャンセル
             </button>
           ) : (
             <button
@@ -100,4 +131,10 @@ const waitButtonStyle = {
   background: "#ffc107",
   color: "#888",
   cursor: "not-allowed"
+};
+
+const cancelButtonStyle = {
+  ...participateButtonStyle,
+  background: "#f43f5e",
+  color: "#fff"
 };

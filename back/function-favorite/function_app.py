@@ -16,8 +16,18 @@ else:
 def get_favorites(req: func.HttpRequest) -> func.HttpResponse:
     logging.info('Python HTTP trigger function processed a request.')
 
-    # ユーザーIDは'0738'で固定
-    user_id = "0738"
+    # クエリパラメータからユーザーIDを取得
+    user_id = req.params.get("id")
+    if not user_id:
+        try:
+            req_body = req.get_json()
+        except Exception:
+            req_body = None
+        if req_body:
+            user_id = req_body.get("id")
+
+    if not user_id:
+        return func.HttpResponse("ユーザーIDが指定されていません", status_code=400)
 
     if not CONNECTION_STRING:
         logging.error("CONNECTION_STRING is not set in environment variables.")

@@ -9,7 +9,7 @@ export function formatDate(dateStr) {
   return `${year}年${month}月${day}日${hour}時${min}分`;
 }
 
-export async function handleCancelReservation({ event_id, userId, fetchHistory, showCustomAlert, setConfirmId, setCanceling }) {
+export async function cancelReservation({ event_id, userId, fetchHistory, showCustomAlert, setConfirmId, setCanceling }) {
   setCanceling(true);
   try {
     const res = await fetch("https://0x0-participation-test.azurewebsites.net/api/cancel-participation?code=lg6z2CItkdkWJ01FZGSTMb0W0e7HfGW9hHGRwMsq_bpFAzFuADr_nQ%3D%3D", {
@@ -17,7 +17,6 @@ export async function handleCancelReservation({ event_id, userId, fetchHistory, 
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ event_id, id: userId })
     });
-    console.log("Cancel response:", res);
     if (res.ok) {
       fetchHistory();
       showCustomAlert("キャンセルしました");

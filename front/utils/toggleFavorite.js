@@ -1,7 +1,13 @@
-const API_URL_ADD_FAVORITE = process.env.NEXT_PUBLIC_API_URL_ADD_FAVORITE;
+const API_URL_ADD_FAVORITE = process.env.NEXT_PUBLIC_API_URL_ADD_FAVORITE_TEST;
 
 export async function toggleFavorite(eventId) {
   const id = localStorage.getItem("id");
+  console.log("id:", id); // ← ここで値を確認
+  console.log("eventId:", eventId); // ← ここで値を確認
+  if (!id) {
+    alert("ユーザーIDが取得できません。ログインし直してください。");
+    throw new Error("ユーザーID未取得");
+  }
   try {
     const res = await fetch(
       API_URL_ADD_FAVORITE,

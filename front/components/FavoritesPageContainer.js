@@ -1,7 +1,10 @@
 import FavoritesTable from "./FavoritesTable";
 import { handleRemoveFavorite, handleDetail, handleBack } from "../utils/favoriteHandlers";
+import { getValidId } from "../utils/getValidId";
 
-export default function FavoritesPageContainer({ favorites, setFavorites, loading }) {
+export default function FavoritesPageContainer({ favorites, setFavorites, loading, RemoveFavorite }) {
+  const user_id = getValidId();
+
   return (
     <div style={favoritesPageStyle}>
       <h2 style={headingStyle}>お気に入りイベント一覧</h2>
@@ -12,7 +15,7 @@ export default function FavoritesPageContainer({ favorites, setFavorites, loadin
       ) : (
         <FavoritesTable
           favorites={favorites}
-          onRemove={event_id => handleRemoveFavorite(event_id, favorites, setFavorites)}
+          onRemove={event_id => RemoveFavorite(event_id, user_id)}
           onDetail={handleDetail}
         />
       )}

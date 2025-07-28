@@ -87,9 +87,17 @@ export function handleBack() {
   window.location.href = "/mypage";
 }
 
-export async function handleRemoveFavorite(event_id, favorites, setFavorites) {
+export async function handleRemoveFavorite(event_id, user_id, favorites, setFavorites) {
   const confirmed = await showRemoveFavoritePopup();
   if (!confirmed) return false;
+
+  // 配列保証
+  const safeFavorites = Array.isArray(favorites) ? favorites : [];
+  // setFavoritesが関数かチェック
+  if (typeof setFavorites !== "function") {
+    alert("お気に入り状態の更新関数が見つかりません");
+    return false;
+  }
 
   const API_URL_REMOVE_FAVORITE = process.env.NEXT_PUBLIC_API_URL_REMOVE_FAVORITE;
   const res = await fetch(API_URL_REMOVE_FAVORITE, {
@@ -103,7 +111,7 @@ export async function handleRemoveFavorite(event_id, favorites, setFavorites) {
     }),
   });
   if (res.ok) {
-    setFavorites(favorites.filter(item => item.event_id !== event_id));
+    setFavorites(favorites.filter(item => String(item.event_id) !== String(event_id)));
     return true;
   } else {
     alert("解除に失敗しました");
