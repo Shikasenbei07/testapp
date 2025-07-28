@@ -19,12 +19,20 @@ export default function MypageMenu({ onNavigate }) {
       >
         予約一覧
       </button>
-      <button
-        style={{ padding: "10px 0", background: "#f25f4c", color: "#fff", border: "none", borderRadius: 6, fontWeight: 700, fontSize: "1rem", cursor: "pointer" }}
-        onClick={() => onNavigate("/mypage/inquiries")}
-      >
-        問い合わせ履歴
-      </button>
+      <div style={{ display: "flex", gap: "1rem" }}>
+        <button
+          style={{ flex: 1, padding: "10px 0", background: "#f7b32b", color: "#fff", border: "none", borderRadius: 6, fontWeight: 700, fontSize: "1rem", cursor: "pointer" }}
+          onClick={() => onNavigate("/inquiry/sent")}
+        >
+          問い合わせ送信履歴
+        </button>
+        <button
+          style={{ flex: 1, padding: "10px 0", background: "#3a86ff", color: "#fff", border: "none", borderRadius: 6, fontWeight: 700, fontSize: "1rem", cursor: "pointer" }}
+          onClick={() => onNavigate("/inquiry/received")}
+        >
+          受信問い合わせ一覧
+        </button>
+      </div>
       <button
         style={{ padding: "10px 0", background: "#ffb700", color: "#fff", border: "none", borderRadius: 6, fontWeight: 700, fontSize: "1rem", cursor: "pointer" }}
         onClick={() => onNavigate("/event/created")}

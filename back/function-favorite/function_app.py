@@ -82,12 +82,13 @@ def add_favorite(req: func.HttpRequest) -> func.HttpResponse:
 
 @app.route(route="remove_favorite", methods=["DELETE"])
 def remove_favorite(req: func.HttpRequest) -> func.HttpResponse:
-    import os
-    import pyodbc
-    import logging
-
-    user_id = "0738"
-    event_id = req.route_params.get("event_id")
+    try:
+        req_body = req.get_json()
+        user_id = req_body.get("id")
+        event_id = req_body.get("event_id")
+        # 以降、user_idとevent_idを使って処理
+    except ValueError:
+        return func.HttpResponse("リクエストボディが不正です", status_code=400)
     if not CONNECTION_STRING:
         logging.error("CONNECTION_STRING is not set in environment variables.")
         return func.HttpResponse("DB connection string not found.", status_code=500)

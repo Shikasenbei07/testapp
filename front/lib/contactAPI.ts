@@ -1,13 +1,9 @@
 import type { InquiryInfo, InquiryDetail, CreateInquiryParams, InquiryResponse } from "../types/Contact";
 
-// const API_URL_GET_INQUIRIES = process.env.NEXT_PUBLIC_API_URL_GET_INQUIRIES;
-// const API_URL_GET_INQUIRY_DETAILS = process.env.NEXT_PUBLIC_API_URL_GET_INQUIRY_DETAILS;
-// const API_URL_CREATE_INQUIRY = process.env.NEXT_PUBLIC_API_URL_CREATE_INQUIRY;
-// const API_URL_RECEIVE_INQUIRIES = process.env.NEXT_PUBLIC_API_URL_RECEIVE_INQUIRIES;
-const API_URL_GET_INQUIRIES = "http://localhost:7071/api/get_inquiries";
-const API_URL_GET_INQUIRY_DETAILS = "http://localhost:7071/api/get_inquiry_details";
-const API_URL_CREATE_INQUIRY = "http://localhost:7071/api/create_inquiry";
-const API_URL_RECEIVE_INQUIRIES = "http://localhost:7071/api/receive_inquiries";
+const API_URL_GET_INQUIRIES = process.env.NEXT_PUBLIC_API_URL_GET_INQUIRIES;
+const API_URL_GET_INQUIRY_DETAILS = process.env.NEXT_PUBLIC_API_URL_GET_INQUIRY_DETAILS;
+const API_URL_CREATE_INQUIRY = process.env.NEXT_PUBLIC_API_URL_CREATE_INQUIRY;
+const API_URL_RECEIVE_INQUIRIES = process.env.NEXT_PUBLIC_API_URL_RECEIVE_INQUIRIES;
 
 /**
  * 問い合わせ履歴の取得

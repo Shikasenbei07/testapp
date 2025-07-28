@@ -42,8 +42,10 @@ export default function EventsPage() {
   // イベント名またはキーワードで部分一致検索
   const filteredEvents = filterEvents(events, { keyword, eventTitle });
 
-  const handleToggleFavorite = (eventId) => {
-    setFavorites(prev => toggleFavorite(prev, eventId));
+  const handleToggleFavorite = async (eventId) => {
+    await toggleFavorite(eventId);
+    // API成功後にお気に入りリストを再取得するなどの処理を追加
+    // 例: setFavorites([...favorites, eventId]);
   };
 
   return (

@@ -1,3 +1,6 @@
+import { get } from "http";
+import { getValidId } from "./getValidId";
+
 export function showRemoveFavoritePopup() {
   return new Promise((resolve) => {
     const popup = document.createElement("div");
@@ -89,8 +92,15 @@ export async function handleRemoveFavorite(event_id, favorites, setFavorites) {
   if (!confirmed) return false;
 
   const API_URL_REMOVE_FAVORITE = process.env.NEXT_PUBLIC_API_URL_REMOVE_FAVORITE;
-  const res = await fetch(API_URL_REMOVE_FAVORITE + `&event_id=${event_id}`, {
+  const res = await fetch(API_URL_REMOVE_FAVORITE, {
     method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      event_id,
+      id: getValidId(),
+    }),
   });
   if (res.ok) {
     setFavorites(favorites.filter(item => item.event_id !== event_id));
