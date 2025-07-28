@@ -107,51 +107,45 @@ def get_blob_sas_url(blob_name):
     return f"https://{blob_service_client.account_name}.blob.core.windows.net/{CONTAINER_NAME}/{blob_name}?{sas_token}"
 
 
-@app.route(route="get_user", methods=["POST"])
+@app.route(route="get_user", methods=["GET", "POST"])
 def get_user(req: func.HttpRequest) -> func.HttpResponse:
     try:
-        data = req.get_json()
-        user_id = data.get("id")
-        if not user_id:
+        if req.method == "GET":
+            id = req.params.get("id")
+        elif req.method == "POST":
+            data = req.get_json()
+            id = data.get("id")
+        if not id:
             return error_response("idがありません")
 
         conn = get_db_connection()
         with conn.cursor() as cursor:
             cursor.execute(
                 '''
-                SELECT email, second_email, tel, l_name, f_name, l_name_furi, f_name_furi, birthday, profile_img, handle_name
-                FROM users
-                WHERE id = ?
+                SELECT
+                    email, second_email, tel, l_name, f_name, l_name_furi, f_name_furi, birthday, profile_img, handle_name
+                FROM
+                    users
+                WHERE
+                    id = ?
                 ''',
-                (user_id,)
+                (id,)
             )
+            columns = [column[0] for column in cursor.description]
             row = cursor.fetchone()
             if row is None:
-                return func.HttpResponse("ユーザーが見つかりません", status_code=404)
-            columns = [desc[0] for desc in cursor.description]
-            if len(columns) != len(row):
-                logging.error(f"get_user error: columns/row length mismatch: {columns} / {row}")
-                return func.HttpResponse("データ不整合", status_code=500)
+                return error_response("ユーザーが見つかりません", status=404)
             result = dict(zip(columns, row))
-
-            resp_data = {
-                "id": user_id,
-                "email": result["email"],
-                "second_email": result["second_email"] if result["second_email"] else None,
-                "tel": result["tel"],
-                "l_name": result["l_name"],
-                "f_name": result["f_name"],
-                "l_name_furi": result["l_name_furi"],
-                "f_name_furi": result["f_name_furi"],
-                "birthday": result["birthday"].isoformat() if result["birthday"] else None,
-                # 修正: profile_imgの値を直接返す（img_urlではなくprofile_imgキーで返す）
-                "profile_img": get_blob_sas_url(result["profile_img"]) if result["profile_img"] else None,
-                "handle_name": result["handle_name"] if result["handle_name"] else None
-            }
-            return success_response(resp_data)
+            # birthdayカラムがあればフォーマット
+            if result.get("birthday"):
+                result["birthday"] = result["birthday"].isoformat()
+            # profile_imgカラムがあればURL化
+            if result.get("profile_img"):
+                result["profile_img"] = get_blob_sas_url("user-images", result["profile_img"])
+            return success_response(result)
     except Exception as e:
         logging.error(f"get_user error: {e}")
-        return func.HttpResponse(str(e), status_code=500)
+        return error_response(str(e), status=500)
 
 
 def parse_multipart_form(req: func.HttpRequest):

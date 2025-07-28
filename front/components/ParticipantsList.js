@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 
-const API_URL_GET_PARTICIPANTS = process.env.NEXT_PUBLIC_API_URL_GET_PARTICIPANTS;
+const API_URL_GET_PARTICIPANTS = "http://localhost:7071/api/get_participants";
 
 const ParticipantsList = () => {
     const router = useRouter();
@@ -12,7 +12,7 @@ const ParticipantsList = () => {
     useEffect(() => {
         if (!eventId) return;
         setLoading(true);
-        fetch(`${API_URL_GET_PARTICIPANTS}&event_id=${eventId}`)
+        fetch(`${API_URL_GET_PARTICIPANTS}?event_id=${eventId}`)
             .then(res => {
                 if (!res.ok) throw new Error('Network response was not ok');
                 return res.json();
@@ -32,13 +32,33 @@ const ParticipantsList = () => {
             ) : participants.length === 0 ? (
                 <div>参加者はいません。</div>
             ) : (
-                <ul>
+                <div style={{ display: "flex", alignItems: "center" }}>
                     {participants.map(p => (
-                        <li key={p.id}>
-                            {p.handle_name}
-                        </li>
+                        <a
+                        key={p.id}
+                        href={`/user/${p.id}`}
+                        title={p.handle_name}
+                        style={{
+                            display: "inline-block",
+                            marginLeft: "0.5rem",
+                        }}
+                        >
+                        <img
+                            src={p.profile_img}
+                            alt={p.handle_name}
+                            style={{
+                            width: 40,
+                            height: 40,
+                            borderRadius: "50%",
+                            objectFit: "cover",
+                            cursor: "pointer",
+                            boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                            zIndex: 1100,
+                            }}
+                        />
+                        </a>
                     ))}
-                </ul>
+                </div>
             )}
         </div>
     );

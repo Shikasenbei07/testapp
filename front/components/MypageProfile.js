@@ -11,7 +11,7 @@ export default function MypageProfile({ profileImg, handleName }) {
         </div>
       )}
       <div style={{ fontWeight: "bold", fontSize: "1.2rem", marginBottom: "1.2rem" }}>
-        {handleName}さんのページ
+        {handleName}さんのマイページ
       </div>
     </>
   );

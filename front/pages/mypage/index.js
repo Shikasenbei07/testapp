@@ -4,6 +4,7 @@ import MypageProfile from "../../components/MypageProfile";
 import MypageMenu from "../../components/MypageMenu";
 import MypageFooter from "../../components/MypageFooter";
 import { mypageNavigate, mypageLogout, mypageSetting } from "../../utils/mypageNavigation";
+import BackButton from "../../components/BackButton";
 
 export default function MyPage() {
   const router = useRouter();
@@ -17,6 +18,7 @@ export default function MyPage() {
       <MypageProfile profileImg={profileImg} handleName={handleName} />
       <MypageMenu onNavigate={path => mypageNavigate(router, path)} />
       <MypageFooter onLogout={() => mypageLogout(router)} onSetting={() => mypageSetting(router)} />
+      <BackButton />
     </div>
   );
 }

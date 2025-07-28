@@ -12,7 +12,7 @@ export function formatDate(dateStr) {
 export async function cancelReservation({ event_id, userId, fetchHistory, showCustomAlert, setConfirmId, setCanceling }) {
   setCanceling(true);
   try {
-    const res = await fetch("https://0x0-participation-test.azurewebsites.net/api/cancel-participation?code=lg6z2CItkdkWJ01FZGSTMb0W0e7HfGW9hHGRwMsq_bpFAzFuADr_nQ%3D%3D", {
+    const res = await fetch("https://0x0-participation-test.azurewebsites.net/api/cancel_participation?code=lg6z2CItkdkWJ01FZGSTMb0W0e7HfGW9hHGRwMsq_bpFAzFuADr_nQ%3D%3D", {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ event_id, id: userId })

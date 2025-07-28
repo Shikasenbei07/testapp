@@ -1,25 +1,36 @@
 import { useRouter } from "next/router";
-import { useEffect } from "react";
-import LoginForm from "../components/LoginForm";
-import { useLogin } from "../hooks/login/useLogin";
+import LoginForm from "../components/login/LoginForm";
+import { useLoginForm } from "../hooks/login/useLoginForm";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { userId, loading, error, submitLogin } = useLogin();
+  const {
+      formData,
+      handleChange,
+      handleSubmit,
+      loading,
+      error,
+    } = useLoginForm();
 
-  useEffect(() => {
-    const stored = localStorage.getItem("id");
-    if (stored) router.replace("/event");
-  }, []);
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const success = await handleSubmit();
+    if (success) {
+      router.push("/event");
+    }
+  };
 
-  useEffect(() => {
-    if (userId) router.push("/event");
-  }, [userId, router]);
-
+  
   return (
     <div style={{ maxWidth: 400, margin: "2rem auto" }}>
       <h1>ログイン</h1>
-      <LoginForm submitLogin={submitLogin} loading={loading} error={error} />
+      <LoginForm 
+        onSubmit={onSubmit}
+        formData={formData}
+        handleChange={handleChange}
+        loading={loading}
+        error={error}
+      />
     </div>
   );
 }

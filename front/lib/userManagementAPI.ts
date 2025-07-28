@@ -63,5 +63,5 @@ export async function updateUser(id: string, userData: Partial<User>): Promise<{
         throw new Error(data.error || "ユーザー情報の更新に失敗しました");
     }
    
-    return data;
+    return { message: data.message || "更新が完了しました" };
 }

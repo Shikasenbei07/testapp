@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { getValidId } from "../utils/getValidId";
 
-const API_URL = "https://0x0-participation-test.azurewebsites.net/api/reservation-history?code=exW-o4MDMd1st0v3s80m78npZI9eFDO5oC0USpOh-_qlAzFuCQyxhQ%3D%3D";
+const API_URL_RESERVATION_HISTORY = process.env.NEXT_PUBLIC_API_URL_RESERVATION_HISTORY;
 
 export function useReservationList() {
   const [history, setHistory] = useState([]);
@@ -10,7 +10,14 @@ export function useReservationList() {
 
   const fetchHistory = () => {
     setLoading(true);
-    fetch(`${API_URL}&id=${userId}`)
+    fetch(API_URL_RESERVATION_HISTORY, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ id: userId }),
+    }
+    )
       .then(res => {
         if (!res.ok) throw new Error("履歴取得失敗");
         return res.json();

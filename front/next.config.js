@@ -133,6 +133,27 @@ module.exports = {
             ? process.env.NEXT_PUBLIC_API_URL_GET_PARTICIPANTS_PRODUCT
             : process.env.NEXT_PUBLIC_API_URL_GET_PARTICIPANTS_TEST,
 
+        NEXT_PUBLIC_API_URL_RESERVATION_HISTORY:
+        isLocal
+            ? process.env.NEXT_PUBLIC_API_URL_RESERVATION_HISTORY_LOCAL
+            : isMain
+            ? process.env.NEXT_PUBLIC_API_URL_RESERVATION_HISTORY_PRODUCT
+            : process.env.NEXT_PUBLIC_API_URL_RESERVATION_HISTORY_TEST,
+
+        NEXT_PUBLIC_API_URL_CANCEL_PARTICIPATION:
+        isLocal
+            ? process.env.NEXT_PUBLIC_API_URL_CANCEL_PARTICIPATION_LOCAL
+            : isMain
+            ? process.env.NEXT_PUBLIC_API_URL_CANCEL_PARTICIPATION_PRODUCT
+            : process.env.NEXT_PUBLIC_API_URL_CANCEL_PARTICIPATION_TEST,
+
+        NEXT_PUBLIC_API_URL_PARTICIPATION_HISTORY:
+        isLocal
+            ? process.env.NEXT_PUBLIC_API_URL_PARTICIPATION_HISTORY_LOCAL
+            : isMain
+            ? process.env.NEXT_PUBLIC_API_URL_PARTICIPATION_HISTORY_PRODUCT
+            : process.env.NEXT_PUBLIC_API_URL_PARTICIPATION_HISTORY_TEST,
+
         NEXT_PUBLIC_API_URL_ADD_FAVORITE:
         isLocal
             ? process.env.NEXT_PUBLIC_API_URL_ADD_FAVORITE_LOCAL

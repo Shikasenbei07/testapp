@@ -450,33 +450,33 @@ def update_event(req: func.HttpRequest) -> func.HttpResponse:
         return func.HttpResponse(json.dumps({"error": str(e), "trace": tb}), mimetype="application/json", status_code=500)
 
 
-@app.route(route="get_participants")
-def get_participants(req: func.HttpRequest) -> func.HttpResponse:
-    logging.info('参加者一覧APIが呼び出されました')
-    event_id = req.params.get('event_id')
-    if not event_id:
-        return func.HttpResponse("event_id is required", status_code=400)
+# @app.route(route="get_participants")
+# def get_participants(req: func.HttpRequest) -> func.HttpResponse:
+#     logging.info('参加者一覧APIが呼び出されました')
+#     event_id = req.params.get('event_id')
+#     if not event_id:
+#         return func.HttpResponse("event_id is required", status_code=400)
 
-    try:
-        with get_db_connection() as conn:
-            cursor = conn.cursor()
-            sql = """
-                SELECT u.id, u.l_name, u.f_name, u.email
-                FROM EVENTS_PARTICIPANTS ep
-                JOIN USERS u ON ep.id = u.id
-                WHERE ep.event_id = ? AND ep.cancelled_at IS NULL
-            """
-            cursor.execute(sql, (event_id,))
-            columns = [column[0] for column in cursor.description]
-            participants = [dict(zip(columns, row)) for row in cursor.fetchall()]
-    except Exception as e:
-        logging.error(str(e))
-        return error_response(f"DB error: {str(e)}", 500)
+#     try:
+#         with get_db_connection() as conn:
+#             cursor = conn.cursor()
+#             sql = """
+#                 SELECT u.id, u.l_name, u.f_name, u.email
+#                 FROM EVENTS_PARTICIPANTS ep
+#                 JOIN USERS u ON ep.id = u.id
+#                 WHERE ep.event_id = ? AND ep.cancelled_at IS NULL
+#             """
+#             cursor.execute(sql, (event_id,))
+#             columns = [column[0] for column in cursor.description]
+#             participants = [dict(zip(columns, row)) for row in cursor.fetchall()]
+#     except Exception as e:
+#         logging.error(str(e))
+#         return error_response(f"DB error: {str(e)}", 500)
 
-    return func.HttpResponse(
-        json.dumps({"participants": participants}, ensure_ascii=False),
-        mimetype="application/json",
-        status_code=200
-    )
+#     return func.HttpResponse(
+#         json.dumps({"participants": participants}, ensure_ascii=False),
+#         mimetype="application/json",
+#         status_code=200
+#     )
 
-get_event = get_event_detail  # ファイル末尾などに追加
+# get_event = get_event_detail  # ファイル末尾などに追加
