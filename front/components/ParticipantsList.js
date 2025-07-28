@@ -1,16 +1,27 @@
 import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
 
-const ParticipantsList = ({ eventId }) => {
+const API_URL_GET_PARTICIPANTS = process.env.NEXT_PUBLIC_API_URL_GET_PARTICIPANTS;
+
+const ParticipantsList = () => {
+    const router = useRouter();
+    const eventId = router.query.event_id || router.query.eventId;
     const [participants, setParticipants] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetch(`https://0x0-participants-list-a3ccaze5fhfxhzc5.japaneast-01.azurewebsites.net/api/participants-list?code=f_9tpb31_ZJiYApv4xACeaoyHHutK_czVWEGsuZv_7IpAzFu69yp_w%3D%3D&event_id=${eventId}`)
-            .then(res => res.text())
+        if (!eventId) return;
+        setLoading(true);
+        fetch(`${API_URL_GET_PARTICIPANTS}&event_id=${eventId}`)
+            .then(res => {
+                if (!res.ok) throw new Error('Network response was not ok');
+                return res.json();
+            })
             .then(data => {
-                setParticipants(data.participants || []);
-                setLoading(false);
-            });
+                setParticipants(Array.isArray(data) ? data : []);
+            })
+            .catch(() => setParticipants([]))
+            .finally(() => setLoading(false));
     }, [eventId]);
 
     return (
@@ -24,7 +35,7 @@ const ParticipantsList = ({ eventId }) => {
                 <ul>
                     {participants.map(p => (
                         <li key={p.id}>
-                            {p.l_name} {p.f_name} ({p.email})
+                            {p.handle_name}
                         </li>
                     ))}
                 </ul>

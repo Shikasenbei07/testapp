@@ -174,5 +174,12 @@ module.exports = {
             : isMain
             ? process.env.NEXT_PUBLIC_API_URL_GET_INQUIRY_DETAILS_PRODUCT
             : process.env.NEXT_PUBLIC_API_URL_GET_INQUIRY_DETAILS_TEST,
+
+        NEXT_PUBLIC_API_URL_GET_PARTICIPANTS:
+        isLocal
+            ? process.env.NEXT_PUBLIC_API_URL_GET_PARTICIPANTS_LOCAL
+            : isMain
+            ? process.env.NEXT_PUBLIC_API_URL_GET_PARTICIPANTS_PRODUCT
+            : process.env.NEXT_PUBLIC_API_URL_GET_PARTICIPANTS_TEST,
     },
 };

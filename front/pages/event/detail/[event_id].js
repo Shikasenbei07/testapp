@@ -6,31 +6,32 @@ import EventDetailImage from '../../../components/EventDetailImage';
 import ParticipantsList from '../../../components/ParticipantsList';
 import { useEffect, useState } from 'react';
 
+const API_URL_GET_PARTICIPANTS = process.env.NEXT_PUBLIC_API_URL_GET_PARTICIPANTS;
+
 export default function EventDetail() {
   const router = useRouter();
-  const { event_id } = router.query;
-  const { event, error } = useEventDetail(event_id);
+  const eventId = router.query.event_id || router.query.eventId; // ここを修正
+  const { event, error } = useEventDetail(eventId);
 
   // 参加者一覧取得
   const [participants, setParticipants] = useState([]);
   const [participantsLoading, setParticipantsLoading] = useState(false);
 
   useEffect(() => {
-    if (!event_id) return;
+    if (!eventId) return;
     setParticipantsLoading(true);
-    fetch(
-      "https://0x0-showevent-hbbadxcxh9a4bzhu.japaneast-01.azurewebsites.net/api/event_participants?code=vv8zlmwxVC52mdprOyIMVOfv57vntaOs76gVTmTtnsFXAzFu0hfiaQ%3D%3D",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ event_id: Number(event_id) }),
-      }
-    )
-      .then((res) => res.json())
-      .then((data) => setParticipants(data))
+    fetch(`${API_URL_GET_PARTICIPANTS}&event_id=${eventId}`)
+      .then((res) => {
+        if (!res.ok) throw new Error('Network response was not ok');
+        return res.json();
+      })
+      .then((data) => {
+        // 配列でなければ空配列にする
+        setParticipants(Array.isArray(data) ? data : []);
+      })
       .catch(() => setParticipants([]))
       .finally(() => setParticipantsLoading(false));
-  }, [event_id]);
+  }, [eventId]);
 
   if (error) return <div style={{ color: "red" }}>{error}</div>;
   if (!event) return <div>読み込み中...</div>;
@@ -40,7 +41,7 @@ export default function EventDetail() {
       <h1>イベント詳細</h1>
       <EventDetailImage src={event.image} alt="イベント画像" />
       <EventDetailTable event={event} />
-      <EventDetailActions event_id={event_id} event={event} router={router} />
+      <EventDetailActions event_id={eventId} event={event} router={router} />
 
       <ParticipantsList participants={participants} loading={participantsLoading} />
     </div>
