@@ -142,15 +142,15 @@ def get_mylist(req: func.HttpRequest) -> func.HttpResponse:
             for row in rows:
                 row_dict = dict(zip(columns, row))
                 # imageカラムがあればURL化
-                if row_dict.get("image"):
+                if row_dict.get("image") is not None:
                     row_dict["image"] = get_blob_sas_url("event-images", row_dict["image"])
                 result.append(row_dict)
-            logging.info(f"取得予約履歴: {rows}")
+            logging.info(f"取得予約履歴: {result}")
     except Exception as e:
         return func.HttpResponse("DB error", status_code=500)
 
     return func.HttpResponse(
-        json.dumps(rows, ensure_ascii=False, default=str),
+        json.dumps(result, ensure_ascii=False, default=str),
         mimetype="application/json",
         status_code=200
     )
@@ -205,7 +205,7 @@ def reservation_history(req: func.HttpRequest) -> func.HttpResponse:
             for row in rows:
                 row_dict = dict(zip(columns, row))
                 # imageカラムがあればURL化
-                if row_dict.get("image"):
+                if row_dict.get("image") is not None:
                     row_dict["image"] = get_blob_sas_url("event-images", row_dict["image"])
                 result.append(row_dict)
             logging.info(f"取得予約履歴: {result}")
@@ -218,7 +218,7 @@ def reservation_history(req: func.HttpRequest) -> func.HttpResponse:
         )
 
     return func.HttpResponse(
-        json.dumps(rows, ensure_ascii=False, default=str),
+        json.dumps(result, ensure_ascii=False, default=str),
         mimetype="application/json",
         status_code=200
     )

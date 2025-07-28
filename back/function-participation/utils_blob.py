@@ -111,9 +111,10 @@ def get_blob_sas_url(container_name, blob_name, expiry_hours=1):
         conn_str = get_azure_storage_connection_string()
         blob_service_client = BlobServiceClient.from_connection_string(conn_str)
 
-        # コンテナ名が未指定の場合は定数や環境変数から取得
         if container_name is None:
             raise Exception("コンテナ名が指定されていません")
+        if not blob_name:
+            raise Exception("BLOB名が指定されていません")
 
         # アカウントキーの取得
         credential = getattr(blob_service_client, "credential", None)
