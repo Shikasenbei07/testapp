@@ -18,7 +18,7 @@ CONTAINER_NAME = "profile-images"
 
 # 許可する更新フィールド
 ALLOWED_UPDATE_FIELDS = {
-    "second_email", "tel", "l_name", "f_name", "l_name_furi", "f_name_furi", "birthday", "profile_img"
+    "second_email", "tel", "l_name", "f_name", "l_name_furi", "f_name_furi", "birthday", "profile_img", "handle_name"
 }
 
 
@@ -119,7 +119,7 @@ def get_user(req: func.HttpRequest) -> func.HttpResponse:
         with conn.cursor() as cursor:
             cursor.execute(
                 '''
-                SELECT email, second_email, tel, l_name, f_name, l_name_furi, f_name_furi, birthday, profile_img
+                SELECT email, second_email, tel, l_name, f_name, l_name_furi, f_name_furi, birthday, profile_img, handle_name
                 FROM users
                 WHERE id = ?
                 ''',
@@ -145,7 +145,8 @@ def get_user(req: func.HttpRequest) -> func.HttpResponse:
                 "f_name_furi": result["f_name_furi"],
                 "birthday": result["birthday"].isoformat() if result["birthday"] else None,
                 # 修正: profile_imgの値を直接返す（img_urlではなくprofile_imgキーで返す）
-                "profile_img": get_blob_sas_url(result["profile_img"]) if result["profile_img"] else None
+                "profile_img": get_blob_sas_url(result["profile_img"]) if result["profile_img"] else None,
+                "handle_name": result["handle_name"] if result["handle_name"] else None
             }
             return success_response(resp_data)
     except Exception as e:
