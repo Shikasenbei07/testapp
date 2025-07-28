@@ -276,7 +276,6 @@ def participation_history(req: func.HttpRequest) -> func.HttpResponse:
                 LEFT JOIN USERS u ON e.creator = u.id
             WHERE
                 ep.id = ?
-                AND (ep.cancelled_at IS NULL OR ep.cancelled_at = '')
                 AND e.event_datetime < ?
             ORDER BY
                 e.event_datetime DESC

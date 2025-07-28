@@ -1,11 +1,11 @@
 import { useRouter } from "next/router";
-import { useReservationHistory } from "../../hooks/useReservationHistory";
+import { useParticipationHistory } from "../../hooks/useParticipationHistory";
 import { handleDetail, handleCancelReservation } from "../../utils/reservationHistoryHandlers";
-import ReservationHistoryTable from "../../components/ReservationHistoryTable";
+import ParticipationHistoryTable from "../../components/ParticipationHistoryTable";
 
-export default function ReservationHistory() {
+export default function ParticipationHistory() {
   const router = useRouter();
-  const { history, setHistory, loading, error } = useReservationHistory();
+  const { history, setHistory, loading, error } = useParticipationHistory();
 
   if (loading) return <div style={loadingStyle}>🌀 ローディング中...</div>;
   if (error) return <div style={errorStyle}>{error}</div>;
@@ -18,7 +18,7 @@ export default function ReservationHistory() {
       {history.length === 0 ? (
         <div style={emptyStyle}>履歴がありません。</div>
       ) : (
-        <ReservationHistoryTable
+        <ParticipationHistoryTable
           history={history}
           onDetail={item => handleDetail(router, item)}
           onCancel={event_id => handleCancelReservation(event_id, history, setHistory)}

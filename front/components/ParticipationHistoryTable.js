@@ -1,4 +1,4 @@
-export default function ReservationHistoryTable({ history, onDetail, onCancel }) {
+export default function ParticipationHistoryTable({ history, onDetail, onCancel }) {
   return (
     <table className="responsive-table" style={{
       width: "100%",
@@ -35,7 +35,7 @@ export default function ReservationHistoryTable({ history, onDetail, onCancel })
                   style={detailButtonStyle}
                   onClick={() => onDetail(item)}
                 >
-                  予約詳細
+                  イベント詳細
                 </button>
                 <button
                   style={cancelButtonStyle}

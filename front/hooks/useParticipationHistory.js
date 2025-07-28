@@ -1,14 +1,21 @@
 import { useEffect, useState } from "react";
+import { getValidId } from "../utils/getValidId";
 
-const API_URL = "https://0x0-event-registration-history-cxhcdpauc4b5a9e7.japaneast-01.azurewebsites.net/api/reservation-detail?code=3zMxVWqQvkOGwSYU9lUIemow2Tf52EWlB5kJm6gMO1u0AzFuRjFgfg%3D%3D";
+const API_URL = "https://0x0-participation-test.azurewebsites.net/api/participation-history?code=5jxM5LSzZvvU3zzoZbsQGr7w97h9YqQh1Dl_fhlictTuAzFuG_dOjQ%3D%3D";
 
-export function useReservationHistory() {
+export function useParticipationHistory() {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetch(API_URL)
+    fetch(API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ id: getValidId() }) // 固定のユーザーID
+    })
       .then(res => {
         if (!res.ok) throw new Error("データ取得に失敗しました");
         return res.json();
