@@ -92,10 +92,20 @@ export function useEventEditForm() {
                     summary: data.description,
                     detail: data.content,
                     deadline: data.deadline,
-                    image: null,
+                    image: data.image,
                     max_participants: data.max_participants ? String(data.max_participants) : ""
                 });
-                setPreview(data.image ? `/images/${data.image}` : null);
+                // 画像URLの組み立て
+                let imageUrl = null;
+                if (data.image) {
+                  if (/^https?:\/\//.test(data.image)) {
+                    imageUrl = data.image;
+                  } else {
+                    // 画像ファイル名のみの場合はパスを組み立てる（例: /images/～ などプロジェクト仕様に合わせて修正）
+                    imageUrl = `/images/${data.image}`;
+                  }
+                }
+                setPreview(imageUrl);
             })
             .finally(() => setLoading(false));
     }, [router.query.event_id]);
@@ -142,24 +152,90 @@ export function useEventEditForm() {
         return newErrors;
     };
 
+    // 編集内容確認ページへ遷移
     const handleConfirmPage = (e) => {
         e.preventDefault();
         const v = validate(form);
         setErrors(v);
         if (Object.keys(v).length > 0) return;
-        const params = new URLSearchParams({
-            event_id: form.event_id,
-            title: form.title,
-            date: form.date,
-            location: form.location,
-            category: form.category,
-            keywords: form.keywords.join(","),
-            summary: form.summary,
-            detail: form.detail,
-            deadline: form.deadline,
-            max_participants: form.max_participants
-        }).toString();
-        router.push(`/event/edit/confirm?${params}`);
+
+        // is_draftを0にして送る
+        const confirmForm = { ...form, is_draft: 0 };
+
+        // 画像ファイルを選択している場合はlocalStorageに保存して遷移
+        if (confirmForm.image instanceof File) {
+            const reader = new FileReader();
+            reader.onload = function (ev) {
+                localStorage.setItem("eventEditImage", ev.target.result);
+                localStorage.setItem("eventEditImageName", confirmForm.image.name);
+                const params = new URLSearchParams({
+                    event_id: confirmForm.event_id,
+                    title: confirmForm.title,
+                    date: confirmForm.date,
+                    location: confirmForm.location,
+                    category: confirmForm.category,
+                    keywords: confirmForm.keywords.join(","),
+                    summary: confirmForm.summary,
+                    detail: confirmForm.detail,
+                    deadline: confirmForm.deadline,
+                    max_participants: confirmForm.max_participants,
+                    imageName: confirmForm.image.name,
+                    is_draft: 0
+                }).toString();
+                router.push(`/event/edit/confirm?${params}`);
+            };
+            reader.readAsDataURL(confirmForm.image);
+        } else {
+            // 画像未選択時は既存画像（プレビュー）をlocalStorageに保存して遷移
+            if (preview) {
+                localStorage.setItem("eventEditImage", preview);
+                localStorage.setItem("eventEditImageName", "existing-image");
+            } else {
+                localStorage.removeItem("eventEditImage");
+                localStorage.removeItem("eventEditImageName");
+            }
+            const params = new URLSearchParams({
+                event_id: confirmForm.event_id,
+                title: confirmForm.title,
+                date: confirmForm.date,
+                location: confirmForm.location,
+                category: confirmForm.category,
+                keywords: confirmForm.keywords.join(","),
+                summary: confirmForm.summary,
+                detail: confirmForm.detail,
+                deadline: confirmForm.deadline,
+                max_participants: confirmForm.max_participants,
+                is_draft: 0
+            }).toString();
+            router.push(`/event/edit/confirm?${params}`);
+        }
+    };
+
+    // 下書き保存処理
+    const handleDraft = async (e) => {
+        if (e) e.preventDefault();
+        // is_draftを1にして送る
+        const draftData = { ...form, is_draft: 1 };
+        try {
+            const formData = new FormData();
+            Object.entries(draftData).forEach(([key, value]) => {
+                if (key === "keywords" && Array.isArray(value)) {
+                    value.forEach(k => formData.append("keywords", k));
+                } else if (key === "image" && value instanceof File) {
+                    formData.append("image", value, value.name);
+                } else if (value !== undefined && value !== null) {
+                    formData.append(key, value);
+                }
+            });
+            const url = process.env.NEXT_PUBLIC_API_URL_UPDATE_EVENT || "";
+            await fetch(url.replace("{event_id}", form.event_id), {
+                method: "PUT",
+                body: formData,
+            });
+            alert("下書き保存しました");
+        } catch (err) {
+            alert("下書き保存に失敗しました");
+        }
     };
 
     const isFormComplete = () => {
@@ -178,8 +254,6 @@ export function useEventEditForm() {
     const handleDeleteConfirmPage = () => {
         router.push(`/event/delete/confirm?id=${form.event_id}`);
     };
-
-    const handleDraft = () => { };
 
     return {
         form,

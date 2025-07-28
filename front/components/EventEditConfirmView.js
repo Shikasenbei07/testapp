@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { formatDateTime } from "../utils/formatDateTime"; // 日付フォーマット関数をインポート（パスは適宜修正）
 
 export default function EventEditConfirmView({
@@ -10,16 +10,22 @@ export default function EventEditConfirmView({
     onConfirm,
     onBack
 }) {
+    const [imagePreview, setImagePreview] = useState(null);
+
+    useEffect(() => {
+        if (formValues?.image instanceof File) {
+            const url = URL.createObjectURL(formValues.image);
+            setImagePreview(url);
+            return () => URL.revokeObjectURL(url);
+        } else if (typeof formValues?.image === "string" && formValues.image) {
+            setImagePreview(formValues.image);
+        } else {
+            setImagePreview(null);
+        }
+    }, [formValues?.image]);
+
     if (!formValues) {
         return <div>読み込み中...</div>;
-    }
-
-    // 画像プレビュー用
-    let imagePreview = null;
-    if (formValues.image instanceof File) {
-        imagePreview = URL.createObjectURL(formValues.image);
-    } else if (typeof formValues.image === "string" && formValues.image) {
-        imagePreview = formValues.image; // 既存画像URL
     }
 
     return (

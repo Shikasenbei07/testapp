@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { useEventCreateConfirm } from "../../../hooks/useEventCreateConfirm";
 import EventCreateConfirmView from "../../../components/EventCreateConfirmView";
 
-function EventCreateConfirm() {
+export default function EventCreateConfirm() {
   const router = useRouter();
   const {
     formValues,

@@ -11,6 +11,8 @@ export default function EventResultTable({
   keyword,
   hideExpired,
   toggleFavorite,
+  participatedEvents = [],
+  onCancelParticipation = () => {},
 }) {
   // フィルタ・ソート処理はそのまま
   const filteredEvents = [...events]
@@ -113,16 +115,21 @@ export default function EventResultTable({
             </div>
             <div style={{ marginTop: 8 }}>
               <button
-                onClick={e => { e.stopPropagation(); toggleFavorite(event.event_id); }}
+                onClick={e => {
+                  e.stopPropagation();
+                  toggleFavorite(event.event_id);
+                }}
                 title="お気に入り登録"
                 style={{
                   backgroundColor: favorites.includes(event.event_id) ? 'yellow' : '#eee',
+                  color: favorites.includes(event.event_id) ? '#fbc02d' : '#888',
                   border: 'none',
                   fontSize: '1.5rem',
                   cursor: 'pointer',
                   borderRadius: 4,
                   padding: '4px 12px',
                   marginRight: 8,
+                  transition: 'background-color 0.2s, color 0.2s'
                 }}
               >
                 ★
@@ -142,19 +149,61 @@ export default function EventResultTable({
                   編集
                 </button>
               ) : (
-                <button
-                  onClick={e => { e.stopPropagation(); window.location.href = `/event/participation?event_id=${event.event_id}`; }}
-                  style={{
-                    background: "#43a047",
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: 4,
-                    padding: "6px 16px",
-                    cursor: "pointer"
-                  }}
-                >
-                  参加
-                </button>
+                (() => {
+                  const isExpired = event.deadline && new Date(event.deadline) < new Date();
+                  if (isExpired) {
+                    return (
+                      <button
+                        disabled
+                        style={{
+                          background: "#ccc",
+                          color: "#fff",
+                          border: "none",
+                          borderRadius: 4,
+                          padding: "6px 16px",
+                          cursor: "not-allowed"
+                        }}
+                      >
+                        期限切れ
+                      </button>
+                    );
+                  } else if (participatedEvents.includes(event.event_id)) {
+                    return (
+                      <button
+                        onClick={e => {
+                          e.stopPropagation();
+                          onCancelParticipation(event.event_id);
+                        }}
+                        style={{
+                          background: "#f43f5e",
+                          color: "#fff",
+                          border: "none",
+                          borderRadius: 4,
+                          padding: "6px 16px",
+                          cursor: "pointer"
+                        }}
+                      >
+                        参加キャンセル
+                      </button>
+                    );
+                  } else {
+                    return (
+                      <button
+                        onClick={e => { e.stopPropagation(); window.location.href = `/event/participation?event_id=${event.event_id}`; }}
+                        style={{
+                          background: "#43a047",
+                          color: "#fff",
+                          border: "none",
+                          borderRadius: 4,
+                          padding: "6px 16px",
+                          cursor: "pointer"
+                        }}
+                      >
+                        参加
+                      </button>
+                    );
+                  }
+                })()
               )}
             </div>
           </div>

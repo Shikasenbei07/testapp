@@ -71,10 +71,12 @@ export default function EventForm({
                     <label style={styles.label}>画像
                         <input type="file" name="image" accept="image/*" onChange={onChange} style={styles.input} />
                     </label>
-                    {(preview && form.image && typeof form.image !== "string") && (
+                    {/* 新規選択時のプレビュー */}
+                    {preview && (
                         <img src={preview} alt="プレビュー" className="event-image" />
                     )}
-                    {(!preview && eventData && eventData.image_url) && (
+                    {/* 編集時・保存済み画像のプレビュー */}
+                    {!preview && eventData && eventData.image_url && (
                         <img src={eventData.image_url} alt="保存済み画像" className="event-image" />
                     )}
                     {errors.image && <div style={{ color: 'red' }}>{errors.image}</div>}
