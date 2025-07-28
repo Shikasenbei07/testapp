@@ -422,7 +422,7 @@ def update_event(req: func.HttpRequest) -> func.HttpResponse:
             with conn.cursor() as cursor:
                 cursor.execute(
                     '''
-                    UPDATE EVENTS SET event_title=?, event_category=?, event_datetime=?, deadline=?, location=?, max_participants=?, description=?, content=?, image=? WHERE event_id=?
+                    UPDATE EVENTS SET event_title=?, event_category=?, event_datetime=?, deadline=?, location=?, max_participants=?, description=?, content=?, image=?, is_draft=? WHERE event_id=?
                     ''',
                     data.get("title"),
                     int(data.get("category")) if data.get("category") else None,
@@ -433,6 +433,7 @@ def update_event(req: func.HttpRequest) -> func.HttpResponse:
                     data.get("summary"),
                     data.get("detail"),
                     data.get("image"),
+                    int(data.get("is_draft", 0)),
                     event_id
                 )
                 # キーワード更新（全削除→再登録）
